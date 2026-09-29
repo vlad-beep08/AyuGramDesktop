@@ -222,6 +222,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/features/message_shot/message_shot.h"
 #include "ayu/features/forward/ayu_forward.h"
 #include "ayu/features/undo_send/undo_send.h"
+#include "ayu/features/quick_phrases/quick_phrases.h"
+#include "styles/style_ayu_icons.h"
 #include "boxes/abstract_box.h"
 
 
@@ -609,6 +611,9 @@ HistoryWidget::HistoryWidget(
 		if (_scheduled) {
 			_scheduled->setVisible(!hide);
 		}
+		if (_quickPhrase) {
+			_quickPhrase->setVisible(!hide);
+		}
 		updateFieldSize();
 		moveFieldControls();
 	}, lifetime());
@@ -923,9 +928,11 @@ HistoryWidget::HistoryWidget(
 		AyuSettings::getInstance().showAttachPopupChanges() | rpl::to_empty,
 		AyuSettings::getInstance().showEmojiPopupChanges() | rpl::to_empty,
 		AyuSettings::getInstance().channelBottomButtonChanges() | rpl::to_empty,
-		AyuSettings::getInstance().removeMessageTailChanges() | rpl::to_empty
+		AyuSettings::getInstance().removeMessageTailChanges() | rpl::to_empty,
+		AyuSettings::getInstance().quickPhrasesChanges() | rpl::to_empty
 	) | rpl::on_next([=] {
 		refreshSendGiftToggle();
+		refreshQuickPhraseToggle();
 		refreshAttachBotsMenu();
 		updateHistoryGeometry();
 		updateControlsVisibility();
@@ -3288,6 +3295,7 @@ void HistoryWidget::showHistory(
 		}
 		refreshSuggestPostToggle();
 		refreshScheduledToggle();
+		refreshQuickPhraseToggle();
 		refreshSendGiftToggle();
 		refreshSendAsToggle();
 
@@ -3837,6 +3845,7 @@ void HistoryWidget::setupScheduledToggle() {
 	}) | rpl::flatten_latest(
 	) | rpl::on_next([=] {
 		refreshScheduledToggle();
+		refreshQuickPhraseToggle();
 		updateControlsVisibility();
 		updateControlsGeometry();
 	}, lifetime());
@@ -3858,6 +3867,72 @@ void HistoryWidget::refreshScheduledToggle() {
 	} else if (_scheduled && !has) {
 		_scheduled.destroy();
 	}
+}
+
+void HistoryWidget::refreshQuickPhraseToggle() {
+	const auto has = _history
+		&& _canSendMessages
+		&& !AyuFeatures::QuickPhrases::List().empty();
+	if (!_quickPhrase && has) {
+		_quickPhrase.create(this, st::ayuQuickPhraseToggle);
+		_quickPhrase->setAccessibleName(tr::ayu_QuickPhrasesTitle(tr::now));
+		_quickPhrase->setAcceptBoth(true);
+		_quickPhrase->show();
+		_quickPhrase->clicks(
+		) | rpl::on_next([=](Qt::MouseButton button) {
+			const auto phrases = AyuFeatures::QuickPhrases::List();
+			if (phrases.empty()) {
+				return;
+			} else if (button == Qt::RightButton) {
+				showQuickPhrasesMenu();
+			} else {
+				sendQuickPhrase(phrases.front());
+			}
+		}, _quickPhrase->lifetime());
+		orderWidgets();
+	} else if (_quickPhrase && !has) {
+		_quickPhrase.destroy();
+	}
+}
+
+void HistoryWidget::showQuickPhrasesMenu() {
+	_quickPhrasesMenu = base::make_unique_q<Ui::PopupMenu>(
+		this,
+		st::popupMenuWithIcons);
+	for (const auto &phrase : AyuFeatures::QuickPhrases::List()) {
+		_quickPhrasesMenu->addAction(phrase, [=] {
+			sendQuickPhrase(phrase);
+		});
+	}
+	_quickPhrasesMenu->popup(QCursor::pos());
+}
+
+void HistoryWidget::sendQuickPhrase(
+		const QString &phrase,
+		Api::SendOptions options) {
+	if (!_history || !_canSendMessages || phrase.isEmpty()) {
+		return;
+	}
+	auto action = Api::SendAction(_history, options);
+	action.clearDraft = false;
+	auto message = Api::MessageToSend(std::move(action));
+	message.textWithTags = { phrase };
+	const auto withPaymentApproved = [=](int approved) {
+		auto copy = options;
+		copy.starsApproved = approved;
+		sendQuickPhrase(phrase, copy);
+	};
+	if (showSendMessageError(
+			message.textWithTags,
+			false,
+			withPaymentApproved,
+			message.action.options)) {
+		return;
+	}
+	session().api().sendMessage(std::move(message));
+	session().changes().historyUpdated(
+		_history,
+		Data::HistoryUpdate::Flag::MessageSent);
 }
 
 void HistoryWidget::refreshSendGiftToggle() {
@@ -4137,6 +4212,9 @@ void HistoryWidget::updateControlsVisibility() {
 		if (_scheduled) {
 			_scheduled->hide();
 		}
+		if (_quickPhrase) {
+			_quickPhrase->hide();
+		}
 		if (_toggleSuggestPost) {
 			_toggleSuggestPost->hide();
 		}
@@ -4266,6 +4344,14 @@ void HistoryWidget::updateControlsVisibility() {
 					rightButtonsChanged = true;
 				}
 			}
+			if (_quickPhrase) {
+				const auto was = _quickPhrase->isVisible();
+				const auto now = (!_editMsgId) && (!hideExtra);
+				if (was != now) {
+					_quickPhrase->setVisible(now);
+					rightButtonsChanged = true;
+				}
+			}
 			if (_toggleSuggestPost) {
 				const auto was = _toggleSuggestPost->isVisible();
 				const auto now = !_suggestOptions;
@@ -4337,6 +4423,9 @@ void HistoryWidget::updateControlsVisibility() {
 		}
 		if (_scheduled) {
 			_scheduled->hide();
+		}
+		if (_quickPhrase) {
+			_quickPhrase->hide();
 		}
 		if (_toggleSuggestPost) {
 			_toggleSuggestPost->hide();
@@ -7458,6 +7547,10 @@ void HistoryWidget::moveFieldControls() {
 		_scheduled->moveToRight(right, buttonsBottom);
 		right += _scheduled->width();
 	}
+	if (_quickPhrase && !_quickPhrase->isHidden()) {
+		_quickPhrase->moveToRight(right, buttonsBottom);
+		right += _quickPhrase->width();
+	}
 	if (_ttlInfo) {
 		_ttlInfo->move(width() - right - _ttlInfo->width(), buttonsBottom);
 	}
@@ -7529,6 +7622,9 @@ void HistoryWidget::updateFieldSize() {
 	}
 	if (_scheduled && !_scheduled->isHidden()) {
 		fieldWidth -= _scheduled->width();
+	}
+	if (_quickPhrase && !_quickPhrase->isHidden()) {
+		fieldWidth -= _quickPhrase->width();
 	}
 	if (_ttlInfo && _ttlInfo->isVisible() && settings.showAutoDeleteButtonInMessageField()) {
 		fieldWidth -= _ttlInfo->width();
@@ -10737,6 +10833,7 @@ bool HistoryWidget::updateCanSendMessage() {
 	}
 	refreshSuggestPostToggle();
 	refreshScheduledToggle();
+	refreshQuickPhraseToggle();
 	refreshSendGiftToggle();
 	refreshSilentToggle();
 	return true;

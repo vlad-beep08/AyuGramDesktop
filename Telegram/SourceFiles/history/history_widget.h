@@ -767,6 +767,11 @@ private:
 
 	void setupScheduledToggle();
 	void refreshScheduledToggle();
+	void refreshQuickPhraseToggle();
+	void showQuickPhrasesMenu();
+	void sendQuickPhrase(
+		const QString &phrase,
+		Api::SendOptions options = {});
 	void refreshSendGiftToggle();
 	void refreshSuggestPostToggle();
 	void applySuggestOptions(
@@ -935,6 +940,8 @@ private:
 	object_ptr<Ui::IconButton> _giftToUser = { nullptr };
 	object_ptr<Ui::SilentToggle> _silent = { nullptr };
 	object_ptr<Ui::IconButton> _scheduled = { nullptr };
+	object_ptr<Ui::IconButton> _quickPhrase = { nullptr };
+	base::unique_qptr<Ui::PopupMenu> _quickPhrasesMenu;
 	std::unique_ptr<HistoryView::Controls::TTLButton> _ttlInfo;
 	const std::unique_ptr<VoiceRecordBar> _voiceRecordBar;
 	const std::unique_ptr<ForwardPanel> _forwardPanel;

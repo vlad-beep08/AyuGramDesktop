@@ -293,6 +293,7 @@ public:
 	[[nodiscard]] bool stripImageMetadata() const { return _stripImageMetadata.current(); }
 	[[nodiscard]] bool stripTrackingParameters() const { return _stripTrackingParameters.current(); }
 	[[nodiscard]] bool confirmAllLinks() const { return _confirmAllLinks.current(); }
+	[[nodiscard]] const QString &quickPhrases() const { return _quickPhrases.current(); }
 	[[nodiscard]] bool removeMessageTail() const { return _removeMessageTail.current(); }
 	[[nodiscard]] bool disableNotificationsDelay() const { return _disableNotificationsDelay.current(); }
 	[[nodiscard]] bool localPremium() const { return _localPremium.current(); }
@@ -379,6 +380,7 @@ public:
 	void setStripImageMetadata(bool val);
 	void setStripTrackingParameters(bool val);
 	void setConfirmAllLinks(bool val);
+	void setQuickPhrases(const QString &val);
 	void setDisableOpenLinkWarning(bool val);
 	void setWideMultiplier(double val);
 	void setSpoofWebviewAsAndroid(bool val);
@@ -499,6 +501,7 @@ public:
 	[[nodiscard]] rpl::producer<bool> stripImageMetadataValue() const { return _stripImageMetadata.value(); }
 	[[nodiscard]] rpl::producer<bool> stripTrackingParametersValue() const { return _stripTrackingParameters.value(); }
 	[[nodiscard]] rpl::producer<bool> confirmAllLinksValue() const { return _confirmAllLinks.value(); }
+	[[nodiscard]] rpl::producer<QString> quickPhrasesChanges() const { return _quickPhrases.changes(); }
 	[[nodiscard]] rpl::producer<bool> materialSwitchesChanges() const { return _materialSwitches.changes(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailValue() const { return _removeMessageTail.value(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailChanges() const { return _removeMessageTail.changes(); }
@@ -665,6 +668,7 @@ private:
 	rpl::variable<bool> _stripImageMetadata = false;
 	rpl::variable<bool> _stripTrackingParameters = false;
 	rpl::variable<bool> _confirmAllLinks = false;
+	rpl::variable<QString> _quickPhrases;
 	rpl::variable<bool> _removeMessageTail = false;
 	rpl::variable<bool> _disableNotificationsDelay = false;
 	rpl::variable<bool> _localPremium = false;

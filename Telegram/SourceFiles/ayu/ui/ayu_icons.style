@@ -20,6 +20,19 @@ ayuSReadMenuIcon: icon {{ "ayu/sread", menuIconColor }};
 ayuStreamerModeMenuIcon: icon {{ "ayu/streamer", menuIconColor }};
 ayuToBeginningMenuIcon: icon {{ "ayu/to_beginning", menuIconColor }};
 ayuRepeatMenuIcon: icon {{ "ayu/repeat", menuIconColor }};
+
+ayuQuickPhraseToggle: IconButton(defaultIconButton) {
+	width: 44px;
+	height: 46px;
+
+	icon: icon {{ "ayu/repeat", historyComposeIconFg }};
+	iconOver: icon {{ "ayu/repeat", historyComposeIconFgOver }};
+
+	rippleAreaPosition: point(2px, 3px);
+	rippleAreaSize: 40px;
+	ripple: defaultRippleAnimationBgOver;
+}
+
 ayuContactsMutualIcon: icon {{ "ayu/contacts_mutual", contactsStatusFg }};
 ayuContactsMutualIconOver: icon {{ "ayu/contacts_mutual", contactsStatusFgOver }};
 
