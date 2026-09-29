@@ -141,6 +141,11 @@ jobs:
             ${{ runner.OS }}-${{ env.ARCH }}-qt-${{ env.CACHE_KEY }}-
             ${{ runner.OS }}-${{ env.ARCH }}-qt-
 
+      - name: Remember libraries state.
+        id: libs-before
+        shell: bash
+        run: echo "hash=$(find "$TBUILD/ThirdParty/cache_keys" "$LibrariesPath/cache_keys" -type f -print0 2>/dev/null | sort -z | xargs -0 -r cat | sha256sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
       - name: Libraries.
         id: libraries
         timeout-minutes: 290
@@ -152,15 +157,21 @@ jobs:
         shell: bash
         run: find $LibrariesPath '(' '(' ! '(' -name '*.lib' -o -name '*.a' -o -name '*.exe' -o -name '*.h' -o -name '*.hpp' -o -name '*.inc' -o -name '*.cmake' -o -name '*.pc' -o -path '*/include/*' -o -path '*/objects-*' -o -path '*/cache_keys/*' -o -path '*/patches/*' -o -path '*/nv-codec-headers/*' ')' -type f ')' -o -empty ')' -delete
 
-      - name: Save ThirdParty cache.
+      - name: Check libraries state.
+        id: libs-after
         if: always()
+        shell: bash
+        run: echo "hash=$(find "$TBUILD/ThirdParty/cache_keys" "$LibrariesPath/cache_keys" -type f -print0 2>/dev/null | sort -z | xargs -0 -r cat | sha256sum | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Save ThirdParty cache.
+        if: always() && steps.libs-after.outputs.hash != steps.libs-before.outputs.hash
         uses: actions/cache/save@v4
         with:
           path: ${{ env.TBUILD }}\ThirdParty
           key: ${{ runner.OS }}-${{ env.ARCH }}-third-party-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save Libraries cache.
-        if: always()
+        if: always() && steps.libs-after.outputs.hash != steps.libs-before.outputs.hash
         uses: actions/cache/save@v4
         with:
           path: |
@@ -172,7 +183,7 @@ jobs:
           key: ${{ runner.OS }}-${{ env.ARCH }}-libs-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save Qt cache.
-        if: always()
+        if: always() && steps.libs-after.outputs.hash != steps.libs-before.outputs.hash
         uses: actions/cache/save@v4
         with:
           path: |
@@ -184,12 +195,25 @@ jobs:
         if: steps.libraries.outcome != 'success'
         run: exit 1
 
+      - name: Restore build folder cache.
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}\out
+          key: ${{ runner.OS }}-${{ env.ARCH }}-out-${{ env.CACHE_KEY }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.OS }}-${{ env.ARCH }}-out-${{ env.CACHE_KEY }}-
+
+      - name: Prepare incremental build.
+        shell: bash
+        run: python "$TBUILD/$REPO_NAME/.github/scripts/prepare_incremental.py" "$TBUILD/$REPO_NAME"
+
       - name: AyuGram build.
+        id: build
         run: |
           cd %TBUILD%\%REPO_NAME%\Telegram
 
           call configure.bat ^
-          %ARCH% ^
+          -G "Ninja Multi-Config" ^
           %TDESKTOP_BUILD_API% ^
           -D CMAKE_CONFIGURATION_TYPES=Debug ^
           -D CMAKE_MSVC_DEBUG_INFORMATION_FORMAT= ^
@@ -197,6 +221,17 @@ jobs:
           -D DESKTOP_APP_DISABLE_CRASH_REPORTS=ON
 
           cmake --build ..\out --config Debug --parallel
+
+      - name: Remember built commit.
+        if: always() && steps.build.outcome != 'skipped'
+        run: echo %GITHUB_SHA%>%TBUILD%\%REPO_NAME%\out\ayu_build_sha.txt
+
+      - name: Save build folder cache.
+        if: always() && steps.build.outcome != 'skipped'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}\out
+          key: ${{ runner.OS }}-${{ env.ARCH }}-out-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Move artifact.
         run: |
