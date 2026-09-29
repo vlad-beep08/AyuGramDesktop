@@ -41,7 +41,7 @@ constexpr auto kPngSignatureSize = 8;
 constexpr auto kPngChunkOverhead = 12;
 
 [[nodiscard]] int Byte(const QByteArray &bytes, qsizetype index) {
-	return int(uchar(bytes[index]));
+	return int(uchar(bytes.at(int(index))));
 }
 
 [[nodiscard]] int ReadBig16(const QByteArray &bytes, qsizetype index) {
