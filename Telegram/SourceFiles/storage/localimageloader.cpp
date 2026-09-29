@@ -45,6 +45,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/utils/telegram_helpers.h"
+#include "ayu/features/strip_metadata/strip_metadata.h"
 
 
 namespace {
@@ -791,6 +792,24 @@ void FileLoadTask::process(ProcessArgs &&args) {
 			}
 			fullimage = Images::Opaque(std::move(fullimage));
 			fullimagebytes = fullimageformat = QByteArray();
+		}
+	}
+	if (AyuFeatures::StripMetadata::Enabled()) {
+		if (!fullimagebytes.isEmpty()) {
+			if (auto stripped = AyuFeatures::StripMetadata::Strip(
+					fullimagebytes)) {
+				fullimagebytes = std::move(*stripped);
+			}
+		}
+		if (_type == SendMediaType::File) {
+			if (auto stripped = AyuFeatures::StripMetadata::StripFile(
+					_filepath,
+					_content,
+					filemime,
+					filesize)) {
+				_content = std::move(*stripped);
+				filesize = _content.size();
+			}
 		}
 	}
 	_result->filesize = qMin(filesize, qint64(UINT_MAX));

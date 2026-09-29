@@ -42,6 +42,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "ayu/ayu_settings.h"
 #include "ayu/ayu_url_handlers.h"
+#include "ayu/features/link_privacy/link_privacy.h"
 #include "ayu/features/streamer_mode/streamer_mode.h"
 
 
@@ -327,7 +328,8 @@ std::shared_ptr<ClickHandler> UiIntegration::createLinkHandler(
 	switch (data.type) {
 	case EntityType::Url:
 		return (!data.data.isEmpty()
-			&& UrlClickHandler::IsSuspicious(data.data))
+			&& (UrlClickHandler::IsSuspicious(data.data)
+				|| AyuFeatures::LinkPrivacy::ConfirmAllLinks()))
 			? std::make_shared<HiddenUrlClickHandler>(data.data)
 			: Integration::createLinkHandler(data, context);
 
@@ -442,12 +444,16 @@ bool UiIntegration::handleUrlClick(
 		return true;
 	}
 
-	auto parsed = UrlForAutoLogin(url);
+	const auto cleaned = AyuFeatures::LinkPrivacy::CleanUrl(url);
+	auto parsed = UrlForAutoLogin(cleaned);
 	const auto domain = DomainForAutoLogin(parsed);
 	const auto skip = context.value<ClickHandlerContext>().skipBotAutoLogin;
-	if (skip || !BotAutoLogin(url, domain, context)) {
-		File::OpenUrl(
-			UrlWithAutoLoginToken(url, std::move(parsed), domain, context));
+	if (skip || !BotAutoLogin(cleaned, domain, context)) {
+		File::OpenUrl(UrlWithAutoLoginToken(
+			cleaned,
+			std::move(parsed),
+			domain,
+			context));
 	}
 	return true;
 }

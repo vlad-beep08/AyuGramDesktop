@@ -9071,3 +9071,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_ReminderSet" = "Reminder set for {date}.";
 "ayu_ReminderTitle" = "Reminder";
 "ayu_ReminderOpen" = "Open";
+"ayu_ConfirmAllLinks" = "Confirm All External Links";
+"ayu_StripTrackingParameters" = "Remove Tracking From Links";
+"ayu_StripImageMetadata" = "Remove Photo Metadata";
+"ayu_StripImageMetadataDescription" = "Removes location, camera model and other hidden data from JPEG and PNG images sent as files. Image orientation is kept.";

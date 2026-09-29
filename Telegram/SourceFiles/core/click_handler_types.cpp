@@ -47,6 +47,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_settings.h"
+#include "ayu/features/link_privacy/link_privacy.h"
 
 
 namespace {
@@ -287,6 +288,7 @@ void HiddenUrlClickHandler::Open(QString url, QVariant context) {
 			return result;
 		}()));
 	} else {
+		url = AyuFeatures::LinkPrivacy::CleanUrl(url);
 		const auto parsedUrl = url.startsWith(u"tonsite://"_q)
 			? QUrl(url)
 			: QUrl::fromUserInput(url);
@@ -315,8 +317,11 @@ void HiddenUrlClickHandler::Open(QString url, QVariant context) {
 			|| (confirmAfterIvFallback && !canTryIv)
 			|| (HiddenUrlRequiresConfirmation(parsedUrl)
 				&& !skipConfirmation);
-		if (!AyuSettings::getInstance().disableOpenLinkWarning()
-			&& requiresConfirmation) {
+		const auto confirmAll = AyuFeatures::LinkPrivacy::ConfirmAllLinks()
+			&& !skipConfirmation;
+		if (confirmAll
+			|| (!AyuSettings::getInstance().disableOpenLinkWarning()
+				&& requiresConfirmation)) {
 			if (!my.show) {
 				Core::App().hideMediaView();
 			}

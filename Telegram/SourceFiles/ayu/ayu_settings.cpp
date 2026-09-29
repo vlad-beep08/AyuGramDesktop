@@ -656,6 +656,24 @@ void AyuSettings::setSaveDraftsHistory(bool val) {
 	save();
 }
 
+void AyuSettings::setStripImageMetadata(bool val) {
+	if (_stripImageMetadata.current() == val) return;
+	_stripImageMetadata = val;
+	save();
+}
+
+void AyuSettings::setStripTrackingParameters(bool val) {
+	if (_stripTrackingParameters.current() == val) return;
+	_stripTrackingParameters = val;
+	save();
+}
+
+void AyuSettings::setConfirmAllLinks(bool val) {
+	if (_confirmAllLinks.current() == val) return;
+	_confirmAllLinks = val;
+	save();
+}
+
 void AyuSettings::setIncreaseWebviewHeight(bool val) {
 	if (_increaseWebviewHeight.current() == val) return;
 	_increaseWebviewHeight = val;
@@ -1115,6 +1133,9 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"materialSwitches", s._materialSwitches.current()},
 		{"undoSendDelay", s._undoSendDelay.current()},
 		{"saveDraftsHistory", s._saveDraftsHistory.current()},
+		{"stripImageMetadata", s._stripImageMetadata.current()},
+		{"stripTrackingParameters", s._stripTrackingParameters.current()},
+		{"confirmAllLinks", s._confirmAllLinks.current()},
 		{"removeMessageTail", s._removeMessageTail.current()},
 		{"disableNotificationsDelay", s._disableNotificationsDelay.current()},
 		{"localPremium", s._localPremium.current()},
@@ -1221,6 +1242,9 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._materialSwitches = j.value("materialSwitches", defaults._materialSwitches.current());
 	s._undoSendDelay = j.value("undoSendDelay", defaults._undoSendDelay.current());
 	s._saveDraftsHistory = j.value("saveDraftsHistory", defaults._saveDraftsHistory.current());
+	s._stripImageMetadata = j.value("stripImageMetadata", defaults._stripImageMetadata.current());
+	s._stripTrackingParameters = j.value("stripTrackingParameters", defaults._stripTrackingParameters.current());
+	s._confirmAllLinks = j.value("confirmAllLinks", defaults._confirmAllLinks.current());
 	s._removeMessageTail = j.value("removeMessageTail", defaults._removeMessageTail.current());
 	s._disableNotificationsDelay = j.value("disableNotificationsDelay", defaults._disableNotificationsDelay.current());
 	s._localPremium = j.value("localPremium", defaults._localPremium.current());

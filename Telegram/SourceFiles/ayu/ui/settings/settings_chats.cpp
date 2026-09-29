@@ -482,6 +482,17 @@ void BuildSending(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 	});
 	builder.addSkip();
 	builder.addDividerText(tr::ayu_SaveDraftsHistoryDescription());
+	builder.addSkip();
+
+	ayu.addSettingToggle({
+		.id = u"ayu/stripImageMetadata"_q,
+		.title = tr::ayu_StripImageMetadata(),
+		.getter = &AyuSettings::stripImageMetadata,
+		.setter = &AyuSettings::setStripImageMetadata,
+		.keywords = { u"exif"_q, u"gps"_q, u"metadata"_q },
+	});
+	builder.addSkip();
+	builder.addDividerText(tr::ayu_StripImageMetadataDescription());
 }
 
 const auto kMeta = BuildHelper({

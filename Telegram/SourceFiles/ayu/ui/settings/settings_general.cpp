@@ -181,6 +181,22 @@ void BuildQoLToggles(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 		.setter = &AyuSettings::setDisableOpenLinkWarning,
 	});
 
+	ayu.addSettingToggle({
+		.id = u"ayu/confirmAllLinks"_q,
+		.title = tr::ayu_ConfirmAllLinks(),
+		.getter = &AyuSettings::confirmAllLinks,
+		.setter = &AyuSettings::setConfirmAllLinks,
+		.keywords = { u"link"_q, u"url"_q, u"phishing"_q },
+	});
+
+	ayu.addSettingToggle({
+		.id = u"ayu/stripTrackingParameters"_q,
+		.title = tr::ayu_StripTrackingParameters(),
+		.getter = &AyuSettings::stripTrackingParameters,
+		.setter = &AyuSettings::setStripTrackingParameters,
+		.keywords = { u"utm"_q, u"tracking"_q, u"fbclid"_q },
+	});
+
 	ayu.addCollapsibleToggle({
 		.id = u"ayu/similarChannels"_q,
 		.title = tr::ayu_DisableSimilarChannels(),

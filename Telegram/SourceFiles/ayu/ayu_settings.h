@@ -290,6 +290,9 @@ public:
 	[[nodiscard]] bool materialSwitches() const { return _materialSwitches.current(); }
 	[[nodiscard]] int undoSendDelay() const { return _undoSendDelay.current(); }
 	[[nodiscard]] bool saveDraftsHistory() const { return _saveDraftsHistory.current(); }
+	[[nodiscard]] bool stripImageMetadata() const { return _stripImageMetadata.current(); }
+	[[nodiscard]] bool stripTrackingParameters() const { return _stripTrackingParameters.current(); }
+	[[nodiscard]] bool confirmAllLinks() const { return _confirmAllLinks.current(); }
 	[[nodiscard]] bool removeMessageTail() const { return _removeMessageTail.current(); }
 	[[nodiscard]] bool disableNotificationsDelay() const { return _disableNotificationsDelay.current(); }
 	[[nodiscard]] bool localPremium() const { return _localPremium.current(); }
@@ -373,6 +376,9 @@ public:
 	void setMessageBubbleRadius(int val);
 	void setUndoSendDelay(int val);
 	void setSaveDraftsHistory(bool val);
+	void setStripImageMetadata(bool val);
+	void setStripTrackingParameters(bool val);
+	void setConfirmAllLinks(bool val);
 	void setDisableOpenLinkWarning(bool val);
 	void setWideMultiplier(double val);
 	void setSpoofWebviewAsAndroid(bool val);
@@ -490,6 +496,9 @@ public:
 	[[nodiscard]] rpl::producer<bool> materialSwitchesValue() const { return _materialSwitches.value(); }
 	[[nodiscard]] rpl::producer<int> undoSendDelayValue() const { return _undoSendDelay.value(); }
 	[[nodiscard]] rpl::producer<bool> saveDraftsHistoryValue() const { return _saveDraftsHistory.value(); }
+	[[nodiscard]] rpl::producer<bool> stripImageMetadataValue() const { return _stripImageMetadata.value(); }
+	[[nodiscard]] rpl::producer<bool> stripTrackingParametersValue() const { return _stripTrackingParameters.value(); }
+	[[nodiscard]] rpl::producer<bool> confirmAllLinksValue() const { return _confirmAllLinks.value(); }
 	[[nodiscard]] rpl::producer<bool> materialSwitchesChanges() const { return _materialSwitches.changes(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailValue() const { return _removeMessageTail.value(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailChanges() const { return _removeMessageTail.changes(); }
@@ -653,6 +662,9 @@ private:
 	rpl::variable<bool> _materialSwitches = true;
 	rpl::variable<int> _undoSendDelay = 0;
 	rpl::variable<bool> _saveDraftsHistory = false;
+	rpl::variable<bool> _stripImageMetadata = false;
+	rpl::variable<bool> _stripTrackingParameters = false;
+	rpl::variable<bool> _confirmAllLinks = false;
 	rpl::variable<bool> _removeMessageTail = false;
 	rpl::variable<bool> _disableNotificationsDelay = false;
 	rpl::variable<bool> _localPremium = false;
