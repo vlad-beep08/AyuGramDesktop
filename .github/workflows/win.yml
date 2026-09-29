@@ -24,6 +24,7 @@ jobs:
   windows:
     name: Windows
     runs-on: windows-latest
+    timeout-minutes: 360
 
     env:
       PREPARE_PATH: "Telegram/build/prepare/prepare.py"
@@ -84,15 +85,17 @@ jobs:
           nuget sources Disable -Name "Microsoft Visual Studio Offline Packages"
           nuget sources Add -Source https://api.nuget.org/v3/index.json & exit 0
 
-      - name: ThirdParty cache.
-        uses: actions/cache@v4
+      - name: Restore ThirdParty cache.
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.TBUILD }}\ThirdParty
-          key: ${{ runner.OS }}-${{ runner.arch }}-third-party-${{ env.CACHE_KEY }}
-          restore-keys: ${{ runner.OS }}-${{ runner.arch }}-third-party-
+          key: ${{ runner.OS }}-${{ env.ARCH }}-third-party-${{ env.CACHE_KEY }}
+          restore-keys: |
+            ${{ runner.OS }}-${{ env.ARCH }}-third-party-${{ env.CACHE_KEY }}-
+            ${{ runner.OS }}-${{ env.ARCH }}-third-party-
 
-      - name: Libraries cache.
-        uses: actions/cache@v4
+      - name: Restore Libraries cache.
+        uses: actions/cache/restore@v4
         with:
           path: |
             ${{ env.LibrariesPath }}\*
@@ -100,25 +103,64 @@ jobs:
             !${{ env.LibrariesPath }}\[qQ]t[_-]*
             ${{ env.LibrariesPath }}\cache_keys\*
             !${{ env.LibrariesPath }}\cache_keys\[qQ]t[_-]*
-          key: ${{ runner.OS }}-${{ env.ARCH }}-libs-v2-${{ env.CACHE_KEY }}
-          restore-keys: ${{ runner.OS }}-${{ env.ARCH }}-libs-v2-
+          key: ${{ runner.OS }}-${{ env.ARCH }}-libs-${{ env.CACHE_KEY }}
+          restore-keys: |
+            ${{ runner.OS }}-${{ env.ARCH }}-libs-${{ env.CACHE_KEY }}-
+            ${{ runner.OS }}-${{ env.ARCH }}-libs-
 
-      - name: Qt cache.
-        uses: actions/cache@v4
+      - name: Restore Qt cache.
+        uses: actions/cache/restore@v4
         with:
           path: |
             ${{ env.LibrariesPath }}\[qQ]t[_-]*
             ${{ env.LibrariesPath }}\cache_keys\[qQ]t[_-]*
           key: ${{ runner.OS }}-${{ env.ARCH }}-qt-${{ env.CACHE_KEY }}
-          restore-keys: ${{ runner.OS }}-${{ env.ARCH }}-qt-
+          restore-keys: |
+            ${{ runner.OS }}-${{ env.ARCH }}-qt-${{ env.CACHE_KEY }}-
+            ${{ runner.OS }}-${{ env.ARCH }}-qt-
 
       - name: Libraries.
+        id: libraries
+        timeout-minutes: 290
         run: |
           %TBUILD%\%REPO_NAME%\Telegram\build\prepare\win.bat skip-release silent
 
       - name: Free up some disk space.
+        if: always()
         shell: bash
         run: find $LibrariesPath '(' '(' ! '(' -name '*.lib' -o -name '*.a' -o -name '*.exe' -o -name '*.h' -o -name '*.hpp' -o -name '*.inc' -o -name '*.cmake' -o -name '*.pc' -o -path '*/include/*' -o -path '*/objects-*' -o -path '*/cache_keys/*' -o -path '*/patches/*' -o -path '*/nv-codec-headers/*' ')' -type f ')' -o -empty ')' -delete
+
+      - name: Save ThirdParty cache.
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.TBUILD }}\ThirdParty
+          key: ${{ runner.OS }}-${{ env.ARCH }}-third-party-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save Libraries cache.
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ env.LibrariesPath }}\*
+            !${{ env.LibrariesPath }}\cache_keys
+            !${{ env.LibrariesPath }}\[qQ]t[_-]*
+            ${{ env.LibrariesPath }}\cache_keys\*
+            !${{ env.LibrariesPath }}\cache_keys\[qQ]t[_-]*
+          key: ${{ runner.OS }}-${{ env.ARCH }}-libs-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Save Qt cache.
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ env.LibrariesPath }}\[qQ]t[_-]*
+            ${{ env.LibrariesPath }}\cache_keys\[qQ]t[_-]*
+          key: ${{ runner.OS }}-${{ env.ARCH }}-qt-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Stop if libraries are not ready.
+        if: steps.libraries.outcome != 'success'
+        run: exit 1
 
       - name: AyuGram build.
         run: |
