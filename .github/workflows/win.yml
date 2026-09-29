@@ -42,6 +42,28 @@ jobs:
           echo TBUILD=%GITHUB_WORKSPACE%\TBuild>>%GITHUB_ENV%
           echo LibrariesPath=%GITHUB_WORKSPACE%\TBuild\Libraries\win64>>%GITHUB_ENV%
 
+      - name: Free runner disk space.
+        shell: pwsh
+        run: |
+          Get-PSDrive C | Select-Object Used, Free
+          $unused = @(
+            'C:\Android',
+            'C:\ghcup',
+            'C:\Rust',
+            'C:\Julia',
+            'C:\Miniconda',
+            'C:\hostedtoolcache\windows\go',
+            'C:\hostedtoolcache\windows\Ruby',
+            'C:\hostedtoolcache\windows\PyPy',
+            'C:\hostedtoolcache\windows\CodeQL'
+          )
+          foreach ($path in $unused) {
+            if (Test-Path $path) {
+              cmd /c "rmdir /s /q `"$path`""
+            }
+          }
+          Get-PSDrive C | Select-Object Used, Free
+
       - name: Get repository name.
         shell: bash
         run: echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
