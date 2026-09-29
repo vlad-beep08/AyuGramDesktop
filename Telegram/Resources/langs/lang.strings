@@ -9074,9 +9074,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_SendWithWatermark" = "Send With Invisible Mark";
 "ayu_WatermarkSentTo" = "Invisible mark: sent to {name}";
 "ayu_WatermarkUnknownRecipient" = "Unknown recipient";
-"ayu_QuickPhrasesTitle" = "Quick Phrases";
-"ayu_QuickPhrasesPlaceholder" = "One phrase per line";
-"ayu_QuickPhrasesAbout" = "A button next to the message field sends the first phrase in one click. Right-click it to choose another phrase. Up to 10 phrases.";
+"ayu_QuickPhraseButton" = "Quick Phrase Button";
+"ayu_QuickPhraseButtonAbout" = "A button next to the message field sends the quick phrase in one click.";
 "ayu_ConfirmAllLinks" = "Confirm All External Links";
 "ayu_StripTrackingParameters" = "Remove Tracking From Links";
 "ayu_StripImageMetadata" = "Remove Photo Metadata";

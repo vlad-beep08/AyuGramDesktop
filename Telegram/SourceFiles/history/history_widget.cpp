@@ -222,12 +222,15 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/features/message_shot/message_shot.h"
 #include "ayu/features/forward/ayu_forward.h"
 #include "ayu/features/undo_send/undo_send.h"
-#include "ayu/features/quick_phrases/quick_phrases.h"
 #include "styles/style_ayu_icons.h"
 #include "boxes/abstract_box.h"
 
 
 namespace {
+
+[[nodiscard]] QString QuickPhraseText() {
+	return u"\u0436\u043E\u043F\u0430"_q;
+}
 
 constexpr auto kMessagesPerPageFirst = 30;
 constexpr auto kMessagesPerPage = 50;
@@ -929,7 +932,7 @@ HistoryWidget::HistoryWidget(
 		AyuSettings::getInstance().showEmojiPopupChanges() | rpl::to_empty,
 		AyuSettings::getInstance().channelBottomButtonChanges() | rpl::to_empty,
 		AyuSettings::getInstance().removeMessageTailChanges() | rpl::to_empty,
-		AyuSettings::getInstance().quickPhrasesChanges() | rpl::to_empty
+		AyuSettings::getInstance().showQuickPhraseButtonChanges() | rpl::to_empty
 	) | rpl::on_next([=] {
 		refreshSendGiftToggle();
 		refreshQuickPhraseToggle();
@@ -3872,55 +3875,32 @@ void HistoryWidget::refreshScheduledToggle() {
 void HistoryWidget::refreshQuickPhraseToggle() {
 	const auto has = _history
 		&& _canSendMessages
-		&& !AyuFeatures::QuickPhrases::List().empty();
+		&& AyuSettings::getInstance().showQuickPhraseButton();
 	if (!_quickPhrase && has) {
 		_quickPhrase.create(this, st::ayuQuickPhraseToggle);
-		_quickPhrase->setAccessibleName(tr::ayu_QuickPhrasesTitle(tr::now));
-		_quickPhrase->setAcceptBoth(true);
+		_quickPhrase->setAccessibleName(tr::ayu_QuickPhraseButton(tr::now));
 		_quickPhrase->show();
-		_quickPhrase->clicks(
-		) | rpl::on_next([=](Qt::MouseButton button) {
-			const auto phrases = AyuFeatures::QuickPhrases::List();
-			if (phrases.empty()) {
-				return;
-			} else if (button == Qt::RightButton) {
-				showQuickPhrasesMenu();
-			} else {
-				sendQuickPhrase(phrases.front());
-			}
-		}, _quickPhrase->lifetime());
+		_quickPhrase->addClickHandler([=] {
+			sendQuickPhrase();
+		});
 		orderWidgets();
 	} else if (_quickPhrase && !has) {
 		_quickPhrase.destroy();
 	}
 }
 
-void HistoryWidget::showQuickPhrasesMenu() {
-	_quickPhrasesMenu = base::make_unique_q<Ui::PopupMenu>(
-		this,
-		st::popupMenuWithIcons);
-	for (const auto &phrase : AyuFeatures::QuickPhrases::List()) {
-		_quickPhrasesMenu->addAction(phrase, [=] {
-			sendQuickPhrase(phrase);
-		});
-	}
-	_quickPhrasesMenu->popup(QCursor::pos());
-}
-
-void HistoryWidget::sendQuickPhrase(
-		const QString &phrase,
-		Api::SendOptions options) {
-	if (!_history || !_canSendMessages || phrase.isEmpty()) {
+void HistoryWidget::sendQuickPhrase(Api::SendOptions options) {
+	if (!_history || !_canSendMessages) {
 		return;
 	}
 	auto action = Api::SendAction(_history, options);
 	action.clearDraft = false;
 	auto message = Api::MessageToSend(std::move(action));
-	message.textWithTags = { phrase };
+	message.textWithTags = { QuickPhraseText() };
 	const auto withPaymentApproved = [=](int approved) {
 		auto copy = options;
 		copy.starsApproved = approved;
-		sendQuickPhrase(phrase, copy);
+		sendQuickPhrase(copy);
 	};
 	if (showSendMessageError(
 			message.textWithTags,

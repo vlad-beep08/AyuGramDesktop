@@ -8,7 +8,6 @@
 
 #include "lang_auto.h"
 #include "ayu/ayu_settings.h"
-#include "ayu/features/quick_phrases/quick_phrases.h"
 #include "ayu/ui/boxes/edit_mark_box.h"
 #include "ayu/ui/components/message_preview.h"
 #include "ayu/ui/settings/ayu_builder.h"
@@ -496,17 +495,14 @@ void BuildSending(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 	builder.addDividerText(tr::ayu_StripImageMetadataDescription());
 	builder.addSkip();
 
-	const auto controller = builder.controller();
-	builder.addButton({
-		.id = u"ayu/quickPhrases"_q,
-		.title = tr::ayu_QuickPhrasesTitle(),
-		.st = &st::settingsButtonNoIcon,
-		.onClick = [=] {
-			AyuFeatures::QuickPhrases::ShowEditBox(controller);
-		},
+	ayu.addSettingToggle({
+		.id = u"ayu/showQuickPhraseButton"_q,
+		.title = tr::ayu_QuickPhraseButton(),
+		.getter = &AyuSettings::showQuickPhraseButton,
+		.setter = &AyuSettings::setShowQuickPhraseButton,
 	});
 	builder.addSkip();
-	builder.addDividerText(tr::ayu_QuickPhrasesAbout());
+	builder.addDividerText(tr::ayu_QuickPhraseButtonAbout());
 }
 
 const auto kMeta = BuildHelper({

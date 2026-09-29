@@ -674,9 +674,9 @@ void AyuSettings::setConfirmAllLinks(bool val) {
 	save();
 }
 
-void AyuSettings::setQuickPhrases(const QString &val) {
-	if (_quickPhrases.current() == val) return;
-	_quickPhrases = val;
+void AyuSettings::setShowQuickPhraseButton(bool val) {
+	if (_showQuickPhraseButton.current() == val) return;
+	_showQuickPhraseButton = val;
 	save();
 }
 
@@ -1142,7 +1142,7 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"stripImageMetadata", s._stripImageMetadata.current()},
 		{"stripTrackingParameters", s._stripTrackingParameters.current()},
 		{"confirmAllLinks", s._confirmAllLinks.current()},
-		{"quickPhrases", s._quickPhrases.current()},
+		{"showQuickPhraseButton", s._showQuickPhraseButton.current()},
 		{"removeMessageTail", s._removeMessageTail.current()},
 		{"disableNotificationsDelay", s._disableNotificationsDelay.current()},
 		{"localPremium", s._localPremium.current()},
@@ -1252,7 +1252,7 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._stripImageMetadata = j.value("stripImageMetadata", defaults._stripImageMetadata.current());
 	s._stripTrackingParameters = j.value("stripTrackingParameters", defaults._stripTrackingParameters.current());
 	s._confirmAllLinks = j.value("confirmAllLinks", defaults._confirmAllLinks.current());
-	s._quickPhrases = j.value("quickPhrases", defaults._quickPhrases.current());
+	s._showQuickPhraseButton = j.value("showQuickPhraseButton", defaults._showQuickPhraseButton.current());
 	s._removeMessageTail = j.value("removeMessageTail", defaults._removeMessageTail.current());
 	s._disableNotificationsDelay = j.value("disableNotificationsDelay", defaults._disableNotificationsDelay.current());
 	s._localPremium = j.value("localPremium", defaults._localPremium.current());

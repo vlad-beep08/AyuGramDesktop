@@ -257,8 +257,6 @@ set(ayugram_files
         ayu/features/link_privacy/link_privacy.h
         ayu/features/watermark/watermark.cpp
         ayu/features/watermark/watermark.h
-        ayu/features/quick_phrases/quick_phrases.cpp
-        ayu/features/quick_phrases/quick_phrases.h
         ayu/data/messages_storage.cpp
         ayu/data/messages_storage.h
         ayu/data/entities.h
