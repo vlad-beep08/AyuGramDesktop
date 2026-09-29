@@ -241,6 +241,16 @@ set(ayugram_files
         ayu/features/filters/filters_cache_controller.h
         ayu/features/filters/filters_utils.cpp
         ayu/features/filters/filters_utils.h
+        ayu/features/undo_send/undo_send.cpp
+        ayu/features/undo_send/undo_send.h
+        ayu/features/local_store/local_store.cpp
+        ayu/features/local_store/local_store.h
+        ayu/features/bookmarks/bookmarks.cpp
+        ayu/features/bookmarks/bookmarks.h
+        ayu/features/reminders/reminders.cpp
+        ayu/features/reminders/reminders.h
+        ayu/features/drafts_history/drafts_history.cpp
+        ayu/features/drafts_history/drafts_history.h
         ayu/data/messages_storage.cpp
         ayu/data/messages_storage.h
         ayu/data/entities.h

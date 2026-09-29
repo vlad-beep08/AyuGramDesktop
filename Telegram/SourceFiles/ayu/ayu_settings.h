@@ -288,6 +288,8 @@ public:
 	[[nodiscard]] bool increaseWebviewHeight() const { return _increaseWebviewHeight.current(); }
 	[[nodiscard]] bool increaseWebviewWidth() const { return _increaseWebviewWidth.current(); }
 	[[nodiscard]] bool materialSwitches() const { return _materialSwitches.current(); }
+	[[nodiscard]] int undoSendDelay() const { return _undoSendDelay.current(); }
+	[[nodiscard]] bool saveDraftsHistory() const { return _saveDraftsHistory.current(); }
 	[[nodiscard]] bool removeMessageTail() const { return _removeMessageTail.current(); }
 	[[nodiscard]] bool disableNotificationsDelay() const { return _disableNotificationsDelay.current(); }
 	[[nodiscard]] bool localPremium() const { return _localPremium.current(); }
@@ -369,6 +371,8 @@ public:
 	void setCollapseSimilarChannels(bool val);
 	void setHideSimilarChannels(bool val);
 	void setMessageBubbleRadius(int val);
+	void setUndoSendDelay(int val);
+	void setSaveDraftsHistory(bool val);
 	void setDisableOpenLinkWarning(bool val);
 	void setWideMultiplier(double val);
 	void setSpoofWebviewAsAndroid(bool val);
@@ -484,6 +488,8 @@ public:
 	[[nodiscard]] rpl::producer<bool> increaseWebviewWidthValue() const { return _increaseWebviewWidth.value(); }
 	[[nodiscard]] rpl::producer<bool> increaseWebviewWidthChanges() const { return _increaseWebviewWidth.changes(); }
 	[[nodiscard]] rpl::producer<bool> materialSwitchesValue() const { return _materialSwitches.value(); }
+	[[nodiscard]] rpl::producer<int> undoSendDelayValue() const { return _undoSendDelay.value(); }
+	[[nodiscard]] rpl::producer<bool> saveDraftsHistoryValue() const { return _saveDraftsHistory.value(); }
 	[[nodiscard]] rpl::producer<bool> materialSwitchesChanges() const { return _materialSwitches.changes(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailValue() const { return _removeMessageTail.value(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailChanges() const { return _removeMessageTail.changes(); }
@@ -645,6 +651,8 @@ private:
 	rpl::variable<bool> _increaseWebviewHeight = false;
 	rpl::variable<bool> _increaseWebviewWidth = false;
 	rpl::variable<bool> _materialSwitches = true;
+	rpl::variable<int> _undoSendDelay = 0;
+	rpl::variable<bool> _saveDraftsHistory = false;
 	rpl::variable<bool> _removeMessageTail = false;
 	rpl::variable<bool> _disableNotificationsDelay = false;
 	rpl::variable<bool> _localPremium = false;

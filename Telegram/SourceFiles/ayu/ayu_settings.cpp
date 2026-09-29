@@ -516,6 +516,7 @@ void AyuSettings::validate() {
 	}
 
 	validateRange(_messageBubbleRadius, 0, 16, defaults._messageBubbleRadius);
+	validateRange(_undoSendDelay, 0, 10, defaults._undoSendDelay);
 	validateRange(_wideMultiplier, 0.5, 4.0, defaults._wideMultiplier);
 	validateRange(_avatarCorners, 0, AyuUiSettings::kMaxAvatarCorners, defaults._avatarCorners);
 
@@ -640,6 +641,18 @@ void AyuSettings::setSpoofWebviewAsAndroid(bool val) {
 void AyuSettings::setDisableOpenLinkWarning(bool val) {
 	if (_disableOpenLinkWarning.current() == val) return;
 	_disableOpenLinkWarning = val;
+	save();
+}
+
+void AyuSettings::setUndoSendDelay(int val) {
+	if (_undoSendDelay.current() == val) return;
+	_undoSendDelay = val;
+	save();
+}
+
+void AyuSettings::setSaveDraftsHistory(bool val) {
+	if (_saveDraftsHistory.current() == val) return;
+	_saveDraftsHistory = val;
 	save();
 }
 
@@ -1100,6 +1113,8 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"increaseWebviewHeight", s._increaseWebviewHeight.current()},
 		{"increaseWebviewWidth", s._increaseWebviewWidth.current()},
 		{"materialSwitches", s._materialSwitches.current()},
+		{"undoSendDelay", s._undoSendDelay.current()},
+		{"saveDraftsHistory", s._saveDraftsHistory.current()},
 		{"removeMessageTail", s._removeMessageTail.current()},
 		{"disableNotificationsDelay", s._disableNotificationsDelay.current()},
 		{"localPremium", s._localPremium.current()},
@@ -1204,6 +1219,8 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._increaseWebviewHeight = j.value("increaseWebviewHeight", defaults._increaseWebviewHeight.current());
 	s._increaseWebviewWidth = j.value("increaseWebviewWidth", defaults._increaseWebviewWidth.current());
 	s._materialSwitches = j.value("materialSwitches", defaults._materialSwitches.current());
+	s._undoSendDelay = j.value("undoSendDelay", defaults._undoSendDelay.current());
+	s._saveDraftsHistory = j.value("saveDraftsHistory", defaults._saveDraftsHistory.current());
 	s._removeMessageTail = j.value("removeMessageTail", defaults._removeMessageTail.current());
 	s._disableNotificationsDelay = j.value("disableNotificationsDelay", defaults._disableNotificationsDelay.current());
 	s._localPremium = j.value("localPremium", defaults._localPremium.current());

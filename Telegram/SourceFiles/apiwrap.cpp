@@ -110,6 +110,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/ayu_worker.h"
 #include "ayu/utils/telegram_helpers.h"
 #include "ayu/features/forward/ayu_forward.h"
+#include "ayu/features/drafts_history/drafts_history.h"
 
 
 namespace {
@@ -4707,6 +4708,7 @@ void ApiWrap::sendMessage(
 		return;
 	}
 	local().saveRecentSentHashtags(textWithTags.text);
+	AyuFeatures::DraftsHistory::Forget(history, textWithTags.text);
 
 	auto sending = TextWithEntities();
 	auto left = TextWithEntities {

@@ -11,6 +11,7 @@
 #include "ayu/ayu_ui_settings.h"
 #include "ayu/ayu_worker.h"
 #include "ayu/data/ayu_database.h"
+#include "ayu/features/reminders/reminders.h"
 #include "ayu/ui/ayu_logo.h"
 #include "features/translator/ayu_translator.h"
 #include "lang/lang_instance.h"
@@ -60,6 +61,10 @@ void initTranslator() {
 	Ayu::Translator::TranslateManager::init();
 }
 
+void initReminders() {
+	AyuFeatures::Reminders::Start();
+}
+
 void initIcon() {
 #ifdef Q_OS_WIN
 	AyuAssets::loadAppIco();
@@ -75,6 +80,7 @@ void init() {
 	initWorker();
 	initRCManager();
 	initTranslator();
+	initReminders();
 }
 
 }

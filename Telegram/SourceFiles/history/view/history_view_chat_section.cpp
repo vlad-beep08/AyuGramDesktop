@@ -105,6 +105,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "ayu/ayu_settings.h"
 #include "ayu/features/message_shot/message_shot.h"
+#include "ayu/features/undo_send/undo_send.h"
 #include "base/unixtime.h"
 
 
@@ -1678,8 +1679,11 @@ void ChatWidget::sendTextWithTags(
 
 	const auto nextLocalMessageId = session().data().nextLocalMessageId();
 	const auto hasText = !message.textWithTags.text.trimmed().isEmpty();
+	const auto delayed = hasText
+		&& AyuFeatures::UndoSend::ShouldDelay(options, ephemeral);
 
 	if (const auto field = _composeControls->fieldForMention(); field
+		&& !delayed
 		&& hasText
 		&& message.webPage.url.isEmpty()
 		&& (field->document()->size().height() <= field->height())) {
@@ -1691,7 +1695,25 @@ void ChatWidget::sendTextWithTags(
 		});
 	}
 
-	session().api().sendMessage(std::move(message), nextLocalMessageId);
+	if (delayed) {
+		const auto weak = base::make_weak(this);
+		AyuFeatures::UndoSend::Delay(
+			controller()->uiShow(),
+			std::move(message),
+			[=](const TextWithTags &text) {
+				const auto strong = weak.get();
+				if (!strong
+					|| !strong->_composeControls->getTextWithAppliedMarkdown(
+						).text.isEmpty()) {
+					return false;
+				}
+				strong->_composeControls->setText(text);
+				strong->_composeControls->focus();
+				return true;
+			});
+	} else {
+		session().api().sendMessage(std::move(message), nextLocalMessageId);
+	}
 
 	_composeControls->clear();
 	if (_repliesRootId) {

@@ -221,6 +221,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/utils/telegram_helpers.h"
 #include "ayu/features/message_shot/message_shot.h"
 #include "ayu/features/forward/ayu_forward.h"
+#include "ayu/features/undo_send/undo_send.h"
 #include "boxes/abstract_box.h"
 
 
@@ -5823,8 +5824,11 @@ void HistoryWidget::sendTextWithTags(
 
 	const auto nextLocalMessageId = session().data().nextLocalMessageId();
 	const auto hasText = !message.textWithTags.text.trimmed().isEmpty();
+	const auto delayed = hasText
+		&& AyuFeatures::UndoSend::ShouldDelay(options, ephemeral);
 
-	if (hasText
+	if (!delayed
+		&& hasText
 		&& message.webPage.url.isEmpty()
 		&& (_field->document()->size().height() <= _field->height())) {
 		controller()->sendingAnimation().appendSending({
@@ -5837,7 +5841,27 @@ void HistoryWidget::sendTextWithTags(
 	// Just a flag not to drop reply info if we're not sending anything.
 	_justMarkingAsRead = !hasText
 		&& message.webPage.url.isEmpty();
-	session().api().sendMessage(std::move(message), nextLocalMessageId);
+	if (delayed) {
+		const auto weak = base::make_weak(this);
+		const auto history = _history;
+		AyuFeatures::UndoSend::Delay(
+			controller()->uiShow(),
+			std::move(message),
+			[=](const TextWithTags &text) {
+				const auto strong = weak.get();
+				if (!strong
+					|| (strong->_history != history)
+					|| !strong->_field->empty()) {
+					return false;
+				}
+				strong->_field->setTextWithTags(text);
+				strong->_field->setCursorPosition(int(text.text.size()));
+				strong->setInnerFocus();
+				return true;
+			});
+	} else {
+		session().api().sendMessage(std::move(message), nextLocalMessageId);
+	}
 	_justMarkingAsRead = false;
 
 	clearFieldText();
@@ -5853,11 +5877,13 @@ void HistoryWidget::sendTextWithTags(
 	if (!_keyboard->hasMarkup() && _keyboard->forceReply() && !_kbReplyTo) {
 		toggleKeyboard();
 	}
-	session().changes().historyUpdated(
-		_history,
-		(options.scheduled
-			? Data::HistoryUpdate::Flag::ScheduledSent
-			: Data::HistoryUpdate::Flag::MessageSent));
+	if (!delayed) {
+		session().changes().historyUpdated(
+			_history,
+			(options.scheduled
+				? Data::HistoryUpdate::Flag::ScheduledSent
+				: Data::HistoryUpdate::Flag::MessageSent));
+	}
 	if (done) {
 		done();
 	}

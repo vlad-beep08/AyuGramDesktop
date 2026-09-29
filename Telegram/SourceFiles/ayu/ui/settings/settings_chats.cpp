@@ -445,6 +445,45 @@ void BuildMessageFieldPopups(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 	});
 }
 
+void BuildSending(SectionBuilder &builder, AyuSectionBuilder &ayu) {
+	constexpr auto kMaxUndoSendDelay = 10;
+
+	builder.addDivider();
+	builder.addSkip();
+	builder.addSubsectionTitle(tr::ayu_SendingHeader());
+
+	ayu.addSlider({
+		.id = u"ayu/undoSendDelay"_q,
+		.title = tr::ayu_UndoSendDelay(),
+		.steps = kMaxUndoSendDelay + 1,
+		.current = AyuSettings::getInstance().undoSendDelay(),
+		.indexToValue = [](int index) { return index; },
+		.onChanged = nullptr,
+		.onFinalChanged = [](int index) {
+			AyuSettings::getInstance().setUndoSendDelay(index);
+		},
+		.formatLabel = [](int index) {
+			return index
+				? tr::ayu_UndoSendDelaySeconds(tr::now, lt_count, index)
+				: tr::ayu_UndoSendDelayOff(tr::now);
+		},
+		.keywords = { u"undo"_q, u"delay"_q, u"cancel"_q },
+	});
+	builder.addSkip();
+	builder.addDividerText(tr::ayu_UndoSendDelayDescription());
+	builder.addSkip();
+
+	ayu.addSettingToggle({
+		.id = u"ayu/saveDraftsHistory"_q,
+		.title = tr::ayu_SaveDraftsHistory(),
+		.getter = &AyuSettings::saveDraftsHistory,
+		.setter = &AyuSettings::setSaveDraftsHistory,
+		.keywords = { u"draft"_q, u"history"_q },
+	});
+	builder.addSkip();
+	builder.addDividerText(tr::ayu_SaveDraftsHistoryDescription());
+}
+
 const auto kMeta = BuildHelper({
 	.id = AyuChats::Id(),
 	.parentId = AyuMain::Id(),
@@ -462,6 +501,7 @@ const auto kMeta = BuildHelper({
 	BuildContextMenuElements(builder, ayu);
 	BuildMessageFieldElements(builder, ayu);
 	BuildMessageFieldPopups(builder, ayu);
+	BuildSending(builder, ayu);
 	builder.addSkip();
 });
 

@@ -1132,6 +1132,8 @@ void AddMessageActions(
 		AyuUi::AddUserMessagesAction(menu, request.item);
 		AyuUi::AddRepeatMessageAction(menu, request.item, context);
 		AyuUi::AddMessageDetailsAction(menu, request.item);
+		AyuUi::AddBookmarkAction(menu, request.item);
+		AyuUi::AddRemindAction(menu, request.item);
 	}
 
 	AddPostLinkAction(menu, request);

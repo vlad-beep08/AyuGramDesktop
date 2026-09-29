@@ -16,6 +16,9 @@
 #include "ayu/features/filters/filters_controller.h"
 #include "ayu/features/forward/ayu_forward.h"
 #include "ayu/features/forward/ayu_forward_rich.h"
+#include "ayu/features/bookmarks/bookmarks.h"
+#include "ayu/features/drafts_history/drafts_history.h"
+#include "ayu/features/reminders/reminders.h"
 #include "ayu/ui/context_menu/menu_item_subtext.h"
 #include "ayu/ui/message_history/history_section.h"
 #include "ayu/ui/settings/filters/edit_filter.h"
@@ -260,7 +263,16 @@ void AddAyuGramActions(PeerData *peerData,
 	const auto showFilters = settings.filtersEnabled()
 		&& (!user || user->isBot());
 	const auto saveDeletedMessages = settings.saveDeletedMessages();
-	if (!showFilters && !saveDeletedMessages) {
+	const auto session = &sessionController->session();
+	const auto history = peerData->owner().history(peerData);
+	const auto hasBookmarks = !AyuFeatures::Bookmarks::List(
+		session,
+		peerData->id).empty();
+	const auto hasAnyBookmarks = hasBookmarks
+		|| !AyuFeatures::Bookmarks::List(session).empty();
+	const auto hasDrafts = AyuFeatures::DraftsHistory::HasEntries(history);
+	const auto showLocalTools = hasAnyBookmarks || hasDrafts;
+	if (!showFilters && !saveDeletedMessages && !showLocalTools) {
 		return;
 	}
 
@@ -273,6 +285,40 @@ void AddAyuGramActions(PeerData *peerData,
 		.icon = &st::menuIconGroupReactions,
 		.fillSubmenu = [=](not_null<Ui::PopupMenu*> menu) {
 			const auto addAction = Ui::Menu::CreateAddActionCallback(menu);
+			if (hasBookmarks) {
+				addAction(
+					tr::ayu_BookmarksMenuText(tr::now),
+					[=]
+					{
+						AyuFeatures::Bookmarks::ShowBox(
+							sessionController,
+							peerData->id);
+					},
+					&st::menuIconFave);
+			}
+			if (hasAnyBookmarks) {
+				addAction(
+					tr::ayu_AllBookmarksMenuText(tr::now),
+					[=]
+					{
+						AyuFeatures::Bookmarks::ShowBox(sessionController);
+					},
+					&st::menuIconFave);
+			}
+			if (hasDrafts) {
+				addAction(
+					tr::ayu_DraftsHistoryMenuText(tr::now),
+					[=]
+					{
+						AyuFeatures::DraftsHistory::ShowBox(
+							sessionController,
+							history);
+					},
+					&st::menuIconEdit);
+			}
+			if (showLocalTools && (showFilters || saveDeletedMessages)) {
+				addAction({ .isSeparator = true });
+			}
 			if (showFilters) {
 				addAction(
 					tr::ayu_ViewFiltersMenuText(tr::now),
@@ -1001,6 +1047,39 @@ void AddCreateFilterAction(not_null<Ui::PopupMenu*> menu,
 			controller->show(Settings::RegexEditBox(&filter, {}, getDialogIdFromPeer(item->history()->peer), true));
 		},
 		&st::menuIconAddToFolder);
+}
+
+void AddBookmarkAction(not_null<Ui::PopupMenu*> menu, HistoryItem *item) {
+	if (!item || !item->isRegular()) {
+		return;
+	}
+	const auto history = item->history();
+	const auto itemId = item->fullId();
+	const auto bookmarked = AyuFeatures::Bookmarks::Has(item);
+	menu->addAction(
+		(bookmarked
+			? tr::ayu_BookmarkRemove(tr::now)
+			: tr::ayu_BookmarkAdd(tr::now)),
+		[=]
+		{
+			const auto item = history->owner().message(itemId);
+			if (!item) {
+				return;
+			}
+			const auto added = AyuFeatures::Bookmarks::Toggle(item);
+			if (const auto window = history->session().tryResolveWindow()) {
+				window->showToast(added
+					? tr::ayu_BookmarkAdded(tr::now)
+					: tr::ayu_BookmarkRemoved(tr::now));
+			}
+		},
+		bookmarked ? &st::menuIconUnfave : &st::menuIconFave);
+}
+
+void AddRemindAction(not_null<Ui::PopupMenu*> menu, HistoryItem *item) {
+	if (item) {
+		AyuFeatures::Reminders::AddMenuAction(menu, item);
+	}
 }
 
 } // namespace AyuUi
