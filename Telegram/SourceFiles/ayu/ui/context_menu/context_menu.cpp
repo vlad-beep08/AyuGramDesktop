@@ -19,6 +19,7 @@
 #include "ayu/features/bookmarks/bookmarks.h"
 #include "ayu/features/drafts_history/drafts_history.h"
 #include "ayu/features/reminders/reminders.h"
+#include "ayu/features/watermark/watermark.h"
 #include "ayu/ui/context_menu/menu_item_subtext.h"
 #include "ayu/ui/message_history/history_section.h"
 #include "ayu/ui/settings/filters/edit_filter.h"
@@ -1079,6 +1080,12 @@ void AddBookmarkAction(not_null<Ui::PopupMenu*> menu, HistoryItem *item) {
 void AddRemindAction(not_null<Ui::PopupMenu*> menu, HistoryItem *item) {
 	if (item) {
 		AyuFeatures::Reminders::AddMenuAction(menu, item);
+	}
+}
+
+void AddWatermarkAction(not_null<Ui::PopupMenu*> menu, HistoryItem *item) {
+	if (item) {
+		AyuFeatures::Watermark::AddMenuAction(menu, item);
 	}
 }
 

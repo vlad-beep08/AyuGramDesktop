@@ -255,6 +255,8 @@ set(ayugram_files
         ayu/features/strip_metadata/strip_metadata.h
         ayu/features/link_privacy/link_privacy.cpp
         ayu/features/link_privacy/link_privacy.h
+        ayu/features/watermark/watermark.cpp
+        ayu/features/watermark/watermark.h
         ayu/data/messages_storage.cpp
         ayu/data/messages_storage.h
         ayu/data/entities.h

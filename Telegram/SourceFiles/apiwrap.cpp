@@ -111,6 +111,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/utils/telegram_helpers.h"
 #include "ayu/features/forward/ayu_forward.h"
 #include "ayu/features/drafts_history/drafts_history.h"
+#include "ayu/features/watermark/watermark.h"
 
 
 namespace {
@@ -4709,6 +4710,9 @@ void ApiWrap::sendMessage(
 	}
 	local().saveRecentSentHashtags(textWithTags.text);
 	AyuFeatures::DraftsHistory::Forget(history, textWithTags.text);
+	if (message.action.options.ayuWatermark) {
+		AyuFeatures::Watermark::Apply(textWithTags, peer->id);
+	}
 
 	auto sending = TextWithEntities();
 	auto left = TextWithEntities {

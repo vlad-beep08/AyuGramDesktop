@@ -38,6 +38,7 @@ struct SendOptions {
 	bool mediaSpoiler = false;
 	crl::time ttlSeconds = 0;
 	SuggestOptions suggest;
+	bool ayuWatermark = false;
 
 	friend inline bool operator==(
 		const SendOptions &,

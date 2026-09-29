@@ -757,6 +757,20 @@ FillMenuResult FillSendMenu(
 			[=] { action({ Api::SendOptions{ .silent = true } }, details); },
 			sendWithoutSound ? &icons.menuUnmute : &icons.menuMute);
 	}
+	const auto plainText = (details.spoiler == SpoilerState::None)
+		&& (details.caption == CaptionState::None)
+		&& (details.photoQuality == PhotoQualityState::None)
+		&& !details.price.has_value();
+	if (sending
+		&& plainText
+		&& (type == Type::Scheduled || type == Type::ScheduledToUser)) {
+		menu->addAction(
+			tr::ayu_SendWithWatermark(tr::now),
+			[=] {
+				action({ Api::SendOptions{ .ayuWatermark = true } }, details);
+			},
+			&st::menuIconLock);
+	}
 	if (sending && type != Type::SilentOnly) {
 		menu->addAction(
 			((type == Type::Reminder)

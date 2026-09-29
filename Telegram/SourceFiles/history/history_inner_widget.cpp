@@ -3132,6 +3132,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 		AyuUi::AddMessageDetailsAction(_menu, item);
 		AyuUi::AddBookmarkAction(_menu, item);
 		AyuUi::AddRemindAction(_menu, item);
+		AyuUi::AddWatermarkAction(_menu, item);
 	};
 	const auto addPhotoActions = [&](not_null<PhotoData*> photo, HistoryItem *item) {
 		const auto media = photo->activeMediaView();
