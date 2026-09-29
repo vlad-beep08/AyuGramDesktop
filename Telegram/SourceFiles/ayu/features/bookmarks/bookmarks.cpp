@@ -17,6 +17,7 @@
 #include "main/main_session.h"
 #include "settings/settings_common.h"
 #include "ui/layers/generic_box.h"
+#include "ui/widgets/buttons.h"
 #include "ui/widgets/labels.h"
 #include "ui/wrap/vertical_layout.h"
 #include "window/window_session_controller.h"

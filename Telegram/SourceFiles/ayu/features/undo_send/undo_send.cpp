@@ -13,6 +13,7 @@
 #include "chat_helpers/compose/compose_show.h"
 #include "data/data_changes.h"
 #include "history/history.h"
+#include "lang/lang_text_entity.h"
 #include "main/main_session.h"
 #include "ui/toast/toast.h"
 
