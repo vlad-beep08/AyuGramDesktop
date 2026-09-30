@@ -128,6 +128,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "data/data_ai_compose_tones.h"
 #include "ayu/ayu_settings.h"
+#include "styles/style_ayu_icons.h"
 #include "history/history_item_components.h"
 
 
@@ -1186,11 +1187,37 @@ ComposeControls::ComposeControls(
 			}
 		}, _wrap->lifetime());
 	}
+	if (descriptor.ayuQuickPhrase) {
+		AyuSettings::getInstance().showQuickPhraseButtonValue(
+		) | rpl::on_next([=](bool shown) {
+			if (!_ayuQuickPhrase && shown) {
+				_ayuQuickPhrase = base::make_unique_q<Ui::IconButton>(
+					_wrap.get(),
+					st::ayuQuickPhraseToggle);
+				_ayuQuickPhrase->show();
+				_ayuQuickPhrase->clicks(
+				) | rpl::filter(
+					rpl::mappers::_1 == Qt::LeftButton
+				) | rpl::to_empty | rpl::start_to_stream(
+					_ayuQuickPhraseRequests,
+					_ayuQuickPhrase->lifetime());
+				orderControls();
+			} else if (_ayuQuickPhrase && !shown) {
+				_ayuQuickPhrase = nullptr;
+			}
+			updateControlsVisibility();
+			updateControlsGeometry(_wrap->size());
+		}, _wrap->lifetime());
+	}
 	init();
 }
 
 rpl::producer<> ComposeControls::showScheduledRequests() const {
 	return _showScheduledRequests.events();
+}
+
+rpl::producer<> ComposeControls::ayuQuickPhraseRequests() const {
+	return _ayuQuickPhraseRequests.events();
 }
 
 ComposeControls::~ComposeControls() {
@@ -4145,6 +4172,9 @@ void ComposeControls::updateControlsGeometry(QSize size) {
 		- ((_scheduled && !_scheduled->isHidden())
 			? _scheduled->width()
 			: 0)
+		- ((_ayuQuickPhrase && !_ayuQuickPhrase->isHidden())
+			? _ayuQuickPhrase->width()
+			: 0)
 		- ((_ttlInfo
 			&& _ttlInfo->isVisible()
 			&& settings.showAutoDeleteButtonInMessageField())
@@ -4249,6 +4279,12 @@ void ComposeControls::updateControlsGeometry(QSize size) {
 			right += _scheduled->width();
 		}
 	}
+	if (_ayuQuickPhrase) {
+		_ayuQuickPhrase->moveToRight(right, buttonsTop);
+		if (!_ayuQuickPhrase->isHidden()) {
+			right += _ayuQuickPhrase->width();
+		}
+	}
 	if (_ttlInfo && settings.showAutoDeleteButtonInMessageField()) {
 		_ttlInfo->move(size.width() - right - _ttlInfo->width(), buttonsTop);
 	}
@@ -4290,6 +4326,9 @@ void ComposeControls::updateControlsVisibility() {
 	}
 	if (_scheduled) {
 		_scheduled->setVisible(!isEditingMessage() && !hide);
+	}
+	if (_ayuQuickPhrase) {
+		_ayuQuickPhrase->setVisible(!isEditingMessage() && !hide);
 	}
 	if (_commentsShown) {
 		_commentsShown->setVisible(!_commentsShownHidden.current());

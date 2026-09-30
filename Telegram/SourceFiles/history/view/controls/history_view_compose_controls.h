@@ -138,6 +138,7 @@ struct ComposeControlsDescriptor {
 	bool voiceLockFromBottom = false;
 	ChatHelpers::ComposeFeatures features;
 	rpl::producer<bool> scheduledToggleValue;
+	bool ayuQuickPhrase = false;
 };
 
 class ComposeControls final {
@@ -199,6 +200,7 @@ public:
 	[[nodiscard]] rpl::producer<bool> tabbedPanelShownValue() const;
 	[[nodiscard]] rpl::producer<> cancelRequests() const;
 	[[nodiscard]] rpl::producer<Api::SendOptions> sendRequests() const;
+	[[nodiscard]] rpl::producer<> ayuQuickPhraseRequests() const;
 	[[nodiscard]] rpl::producer<VoiceToSend> sendVoiceRequests() const;
 	[[nodiscard]] rpl::producer<QString> sendCommandRequests() const;
 	[[nodiscard]] rpl::producer<MessageToEdit> editRequests() const;
@@ -522,6 +524,8 @@ private:
 	std::unique_ptr<Controls::TTLButton> _ttlInfo;
 	base::unique_qptr<Controls::CharactersLimitLabel> _charsLimitation;
 	base::unique_qptr<Ui::IconButton> _scheduled;
+	base::unique_qptr<Ui::IconButton> _ayuQuickPhrase;
+	rpl::event_stream<> _ayuQuickPhraseRequests;
 
 	std::unique_ptr<InlineBots::Layout::Widget> _inlineResults;
 	std::unique_ptr<ChatHelpers::TabbedPanel> _tabbedPanel;

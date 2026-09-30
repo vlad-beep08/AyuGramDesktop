@@ -39,6 +39,7 @@ struct SendOptions {
 	crl::time ttlSeconds = 0;
 	SuggestOptions suggest;
 	bool ayuWatermark = false;
+	int ayuSelfDestruct = 0;
 
 	friend inline bool operator==(
 		const SendOptions &,

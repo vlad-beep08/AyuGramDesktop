@@ -257,6 +257,24 @@ set(ayugram_files
         ayu/features/link_privacy/link_privacy.h
         ayu/features/watermark/watermark.cpp
         ayu/features/watermark/watermark.h
+        ayu/features/hidden_chats/hidden_chats.cpp
+        ayu/features/hidden_chats/hidden_chats.h
+        ayu/features/keyword_alerts/keyword_alerts.cpp
+        ayu/features/keyword_alerts/keyword_alerts.h
+        ayu/features/self_destruct/self_destruct.cpp
+        ayu/features/self_destruct/self_destruct.h
+        ayu/features/ocr/ocr.cpp
+        ayu/features/ocr/ocr.h
+        ayu/features/contact_card/contact_card.cpp
+        ayu/features/contact_card/contact_card.h
+        ayu/features/data_transfer/data_transfer.cpp
+        ayu/features/data_transfer/data_transfer.h
+        ayu/features/command_palette/command_palette.cpp
+        ayu/features/command_palette/command_palette.h
+        ayu/features/translations/translations.cpp
+        ayu/features/translations/translations.h
+        ayu/features/quick_phrase/quick_phrase.cpp
+        ayu/features/quick_phrase/quick_phrase.h
         ayu/data/messages_storage.cpp
         ayu/data/messages_storage.h
         ayu/data/entities.h

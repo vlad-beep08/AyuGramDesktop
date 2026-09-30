@@ -517,6 +517,7 @@ void AyuSettings::validate() {
 
 	validateRange(_messageBubbleRadius, 0, 16, defaults._messageBubbleRadius);
 	validateRange(_undoSendDelay, 0, 10, defaults._undoSendDelay);
+	validateRange(_selfDestructSeconds, 5, 86400, defaults._selfDestructSeconds);
 	validateRange(_wideMultiplier, 0.5, 4.0, defaults._wideMultiplier);
 	validateRange(_avatarCorners, 0, AyuUiSettings::kMaxAvatarCorners, defaults._avatarCorners);
 
@@ -677,6 +678,18 @@ void AyuSettings::setConfirmAllLinks(bool val) {
 void AyuSettings::setShowQuickPhraseButton(bool val) {
 	if (_showQuickPhraseButton.current() == val) return;
 	_showQuickPhraseButton = val;
+	save();
+}
+
+void AyuSettings::setAlertKeywords(const QString &val) {
+	if (_alertKeywords.current() == val) return;
+	_alertKeywords = val;
+	save();
+}
+
+void AyuSettings::setSelfDestructSeconds(int val) {
+	if (_selfDestructSeconds.current() == val) return;
+	_selfDestructSeconds = val;
 	save();
 }
 
@@ -1143,6 +1156,8 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"stripTrackingParameters", s._stripTrackingParameters.current()},
 		{"confirmAllLinks", s._confirmAllLinks.current()},
 		{"showQuickPhraseButton", s._showQuickPhraseButton.current()},
+		{"alertKeywords", s._alertKeywords.current()},
+		{"selfDestructSeconds", s._selfDestructSeconds.current()},
 		{"removeMessageTail", s._removeMessageTail.current()},
 		{"disableNotificationsDelay", s._disableNotificationsDelay.current()},
 		{"localPremium", s._localPremium.current()},
@@ -1253,6 +1268,8 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._stripTrackingParameters = j.value("stripTrackingParameters", defaults._stripTrackingParameters.current());
 	s._confirmAllLinks = j.value("confirmAllLinks", defaults._confirmAllLinks.current());
 	s._showQuickPhraseButton = j.value("showQuickPhraseButton", defaults._showQuickPhraseButton.current());
+	s._alertKeywords = j.value("alertKeywords", defaults._alertKeywords.current());
+	s._selfDestructSeconds = j.value("selfDestructSeconds", defaults._selfDestructSeconds.current());
 	s._removeMessageTail = j.value("removeMessageTail", defaults._removeMessageTail.current());
 	s._disableNotificationsDelay = j.value("disableNotificationsDelay", defaults._disableNotificationsDelay.current());
 	s._localPremium = j.value("localPremium", defaults._localPremium.current());

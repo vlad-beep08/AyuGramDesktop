@@ -56,6 +56,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "ayu/ayu_settings.h"
 #include "ayu/utils/telegram_helpers.h"
+#include "ayu/features/hidden_chats/hidden_chats.h"
+#include "ayu/features/keyword_alerts/keyword_alerts.h"
 
 
 namespace Window {
@@ -362,6 +364,13 @@ System::SkipState System::computeSkipState(
 		return { SkipState::Skip };
 	}
 
+	if (messageType) {
+		if (AyuFeatures::HiddenChats::IsConcealed(item->history().get())) {
+			return { SkipState::Skip };
+		} else if (AyuFeatures::KeywordAlerts::Matches(item)) {
+			return withSilent(SkipState::DontSkip);
+		}
+	}
 	if (messageType) {
 		notifySettings->request(thread);
 	} else if (notifyBy->blockStatus() == PeerData::BlockStatus::Unknown) {

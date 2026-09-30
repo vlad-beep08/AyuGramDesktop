@@ -222,15 +222,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/features/message_shot/message_shot.h"
 #include "ayu/features/forward/ayu_forward.h"
 #include "ayu/features/undo_send/undo_send.h"
+#include "ayu/features/quick_phrase/quick_phrase.h"
 #include "styles/style_ayu_icons.h"
 #include "boxes/abstract_box.h"
 
 
 namespace {
-
-[[nodiscard]] QString QuickPhraseText() {
-	return u"\u0436\u043E\u043F\u0430"_q;
-}
 
 constexpr auto kMessagesPerPageFirst = 30;
 constexpr auto kMessagesPerPage = 50;
@@ -3896,7 +3893,7 @@ void HistoryWidget::sendQuickPhrase(Api::SendOptions options) {
 	auto action = Api::SendAction(_history, options);
 	action.clearDraft = false;
 	auto message = Api::MessageToSend(std::move(action));
-	message.textWithTags = { QuickPhraseText() };
+	message.textWithTags = { AyuFeatures::QuickPhrase::Text() };
 	const auto withPaymentApproved = [=](int approved) {
 		auto copy = options;
 		copy.starsApproved = approved;

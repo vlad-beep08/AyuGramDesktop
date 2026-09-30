@@ -294,6 +294,8 @@ public:
 	[[nodiscard]] bool stripTrackingParameters() const { return _stripTrackingParameters.current(); }
 	[[nodiscard]] bool confirmAllLinks() const { return _confirmAllLinks.current(); }
 	[[nodiscard]] bool showQuickPhraseButton() const { return _showQuickPhraseButton.current(); }
+	[[nodiscard]] const QString &alertKeywords() const { return _alertKeywords.current(); }
+	[[nodiscard]] int selfDestructSeconds() const { return _selfDestructSeconds.current(); }
 	[[nodiscard]] bool removeMessageTail() const { return _removeMessageTail.current(); }
 	[[nodiscard]] bool disableNotificationsDelay() const { return _disableNotificationsDelay.current(); }
 	[[nodiscard]] bool localPremium() const { return _localPremium.current(); }
@@ -381,6 +383,8 @@ public:
 	void setStripTrackingParameters(bool val);
 	void setConfirmAllLinks(bool val);
 	void setShowQuickPhraseButton(bool val);
+	void setAlertKeywords(const QString &val);
+	void setSelfDestructSeconds(int val);
 	void setDisableOpenLinkWarning(bool val);
 	void setWideMultiplier(double val);
 	void setSpoofWebviewAsAndroid(bool val);
@@ -502,6 +506,7 @@ public:
 	[[nodiscard]] rpl::producer<bool> stripTrackingParametersValue() const { return _stripTrackingParameters.value(); }
 	[[nodiscard]] rpl::producer<bool> confirmAllLinksValue() const { return _confirmAllLinks.value(); }
 	[[nodiscard]] rpl::producer<bool> showQuickPhraseButtonChanges() const { return _showQuickPhraseButton.changes(); }
+	[[nodiscard]] rpl::producer<bool> showQuickPhraseButtonValue() const { return _showQuickPhraseButton.value(); }
 	[[nodiscard]] rpl::producer<bool> materialSwitchesChanges() const { return _materialSwitches.changes(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailValue() const { return _removeMessageTail.value(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailChanges() const { return _removeMessageTail.changes(); }
@@ -669,6 +674,8 @@ private:
 	rpl::variable<bool> _stripTrackingParameters = false;
 	rpl::variable<bool> _confirmAllLinks = false;
 	rpl::variable<bool> _showQuickPhraseButton = true;
+	rpl::variable<QString> _alertKeywords;
+	rpl::variable<int> _selfDestructSeconds = 30;
 	rpl::variable<bool> _removeMessageTail = false;
 	rpl::variable<bool> _disableNotificationsDelay = false;
 	rpl::variable<bool> _localPremium = false;

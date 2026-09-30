@@ -112,6 +112,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/features/forward/ayu_forward.h"
 #include "ayu/features/drafts_history/drafts_history.h"
 #include "ayu/features/watermark/watermark.h"
+#include "ayu/features/contact_card/contact_card.h"
+#include "ayu/features/self_destruct/self_destruct.h"
 
 
 namespace {
@@ -4713,6 +4715,7 @@ void ApiWrap::sendMessage(
 	if (message.action.options.ayuWatermark) {
 		AyuFeatures::Watermark::Apply(textWithTags, peer->id);
 	}
+	AyuFeatures::ContactCard::RememberSent(history);
 
 	auto sending = TextWithEntities();
 	auto left = TextWithEntities {
@@ -4753,6 +4756,12 @@ void ApiWrap::sendMessage(
 			randomId,
 			peer->id,
 			sending.text);
+		if (action.options.ayuSelfDestruct > 0) {
+			AyuFeatures::SelfDestruct::Track(
+				_session,
+				newId,
+				action.options.ayuSelfDestruct);
+		}
 
 		MTPstring msgText(MTP_string(sending.text));
 		auto flags = NewMessageFlags(peer);

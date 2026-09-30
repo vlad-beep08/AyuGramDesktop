@@ -213,6 +213,7 @@ void AddPhotoActions(
 				CopyImage(photo);
 			}
 		}, &st::menuIconCopy);
+		AyuUi::AddOcrAction(menu, photo);
 	}
 	if (photo->hasAttachedStickers()) {
 		const auto controller = list->controller();

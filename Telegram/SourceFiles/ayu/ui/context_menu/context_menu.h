@@ -51,6 +51,7 @@ void AddBurnAction(not_null<Ui::PopupMenu*> menu, HistoryItem *item);
 void AddBookmarkAction(not_null<Ui::PopupMenu*> menu, HistoryItem *item);
 void AddRemindAction(not_null<Ui::PopupMenu*> menu, HistoryItem *item);
 void AddWatermarkAction(not_null<Ui::PopupMenu*> menu, HistoryItem *item);
+void AddOcrAction(not_null<Ui::PopupMenu*> menu, not_null<PhotoData*> photo);
 void AddCreateFilterAction(not_null<Ui::PopupMenu*> menu,
 						   not_null<Window::SessionController*> controller,
 						   HistoryItem *item,

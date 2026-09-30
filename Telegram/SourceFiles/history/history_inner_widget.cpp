@@ -3144,6 +3144,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 			_menu->addAction(tr::lng_context_copy_image(tr::now), [=] {
 				copyContextImage(photo, itemId);
 			}, &st::menuIconCopy);
+			AyuUi::AddOcrAction(_menu, photo);
 		}
 		if (photo->hasAttachedStickers()) {
 			_menu->addAction(tr::lng_context_attached_stickers(tr::now), [=] {

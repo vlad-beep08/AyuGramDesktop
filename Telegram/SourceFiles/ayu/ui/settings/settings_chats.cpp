@@ -8,6 +8,10 @@
 
 #include "lang_auto.h"
 #include "ayu/ayu_settings.h"
+#include "ayu/features/data_transfer/data_transfer.h"
+#include "ayu/features/hidden_chats/hidden_chats.h"
+#include "ayu/features/keyword_alerts/keyword_alerts.h"
+#include "ayu/features/self_destruct/self_destruct.h"
 #include "ayu/ui/boxes/edit_mark_box.h"
 #include "ayu/ui/components/message_preview.h"
 #include "ayu/ui/settings/ayu_builder.h"
@@ -505,6 +509,77 @@ void BuildSending(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 	builder.addDividerText(tr::ayu_QuickPhraseButtonAbout());
 }
 
+void BuildExtras(SectionBuilder &builder, AyuSectionBuilder &ayu) {
+	const auto controller = builder.controller();
+
+	builder.addDivider();
+	builder.addSkip();
+	builder.addSubsectionTitle(tr::ayu_ExtrasHeader());
+
+	const auto options = AyuFeatures::SelfDestruct::DurationOptions();
+	const auto current = AyuSettings::getInstance().selfDestructSeconds();
+	const auto found = ranges::find(options, current);
+	ayu.addSlider({
+		.id = u"ayu/selfDestructSeconds"_q,
+		.title = tr::ayu_SelfDestructTimer(),
+		.steps = int(options.size()),
+		.current = (found != end(options))
+			? int(found - begin(options))
+			: 1,
+		.indexToValue = [=](int index) { return options[index]; },
+		.onChanged = nullptr,
+		.onFinalChanged = [=](int index) {
+			AyuSettings::getInstance().setSelfDestructSeconds(
+				options[index]);
+		},
+		.formatLabel = [=](int index) {
+			return AyuFeatures::SelfDestruct::DurationText(options[index]);
+		},
+	});
+	builder.addSkip();
+	builder.addDividerText(tr::ayu_SelfDestructAbout());
+	builder.addSkip();
+
+	builder.addButton({
+		.id = u"ayu/keywordAlerts"_q,
+		.title = tr::ayu_KeywordAlertsTitle(),
+		.st = &st::settingsButtonNoIcon,
+		.onClick = [=] {
+			AyuFeatures::KeywordAlerts::ShowEditBox(controller);
+		},
+	});
+	builder.addButton({
+		.id = u"ayu/hiddenChatsPin"_q,
+		.title = tr::ayu_HiddenChatsPinTitle(),
+		.st = &st::settingsButtonNoIcon,
+		.onClick = [=] {
+			AyuFeatures::HiddenChats::ShowPinBox(controller);
+		},
+	});
+	builder.addSkip();
+	builder.addDividerText(tr::ayu_HiddenChatsAbout());
+	builder.addSkip();
+
+	builder.addButton({
+		.id = u"ayu/dataExport"_q,
+		.title = tr::ayu_DataExport(),
+		.st = &st::settingsButtonNoIcon,
+		.onClick = [=] {
+			AyuFeatures::DataTransfer::Export(controller);
+		},
+	});
+	builder.addButton({
+		.id = u"ayu/dataImport"_q,
+		.title = tr::ayu_DataImport(),
+		.st = &st::settingsButtonNoIcon,
+		.onClick = [=] {
+			AyuFeatures::DataTransfer::Import(controller);
+		},
+	});
+	builder.addSkip();
+	builder.addDividerText(tr::ayu_DataTransferAbout());
+}
+
 const auto kMeta = BuildHelper({
 	.id = AyuChats::Id(),
 	.parentId = AyuMain::Id(),
@@ -523,6 +598,7 @@ const auto kMeta = BuildHelper({
 	BuildMessageFieldElements(builder, ayu);
 	BuildMessageFieldPopups(builder, ayu);
 	BuildSending(builder, ayu);
+	BuildExtras(builder, ayu);
 	builder.addSkip();
 });
 

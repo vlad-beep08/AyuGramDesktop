@@ -107,6 +107,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/ayu_infra.h"
 #include "ayu/ayu_settings.h"
 #include "ayu/features/streamer_mode/streamer_mode.h"
+#include "ayu/features/command_palette/command_palette.h"
+#include "ayu/features/hidden_chats/hidden_chats.h"
 
 
 namespace Core {
@@ -1935,6 +1937,21 @@ void Application::startShortcuts() {
 		});
 		request->check(Command::Close) && request->handle([=] {
 			return closeActiveWindow();
+		});
+		request->check(Command::AyuPanic) && request->handle([] {
+			AyuFeatures::HiddenChats::Panic();
+			return true;
+		});
+		request->check(Command::AyuCommandPalette) && request->handle([=] {
+			const auto window = activeWindow();
+			const auto controller = window
+				? window->sessionController()
+				: nullptr;
+			if (!controller) {
+				return false;
+			}
+			AyuFeatures::CommandPalette::Show(controller);
+			return true;
 		});
 	}, _lifetime);
 }

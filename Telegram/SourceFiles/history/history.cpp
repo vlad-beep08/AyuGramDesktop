@@ -85,6 +85,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "ayu/ayu_settings.h"
 #include "ayu/ayu_state.h"
+#include "ayu/features/hidden_chats/hidden_chats.h"
 
 
 namespace {
@@ -3386,6 +3387,9 @@ bool History::trackUnreadMessages() const {
 }
 
 bool History::shouldBeInChatList() const {
+	if (AyuFeatures::HiddenChats::IsConcealed(this)) {
+		return false;
+	}
 	if (peer->migrateTo() || !folderKnown()) {
 		return false;
 	} else if (const auto community = peer->asChannel()

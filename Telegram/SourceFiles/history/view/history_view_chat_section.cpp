@@ -106,6 +106,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/ayu_settings.h"
 #include "ayu/features/message_shot/message_shot.h"
 #include "ayu/features/undo_send/undo_send.h"
+#include "ayu/features/quick_phrase/quick_phrase.h"
 #include "base/unixtime.h"
 
 
@@ -285,6 +286,7 @@ ChatWidget::ChatWidget(
 				return session().scheduledMessages().hasFor(_topic);
 			}) | rpl::type_erased
 			: rpl::single(false),
+		.ayuQuickPhrase = true,
 	}))
 , _translateBar(
 	std::make_unique<TranslateBar>(_topBars.get(), controller, _history))
@@ -885,6 +887,11 @@ void ChatWidget::setupComposeControls() {
 	_composeControls->sendRequests(
 	) | rpl::on_next([=](Api::SendOptions options) {
 		send(options);
+	}, lifetime());
+
+	_composeControls->ayuQuickPhraseRequests(
+	) | rpl::on_next([=] {
+		sendQuickPhrase();
 	}, lifetime());
 
 	_composeControls->scrollToMaxRequests(
@@ -1626,6 +1633,23 @@ void ChatWidget::sendRichDraftWithoutFormatting(
 		options,
 		nullptr);
 	_composeControls->applyCloudDraft();
+}
+
+void ChatWidget::sendQuickPhrase() {
+	auto action = prepareSendAction({});
+	action.clearDraft = false;
+	auto message = Api::MessageToSend(std::move(action));
+	message.textWithTags = { AyuFeatures::QuickPhrase::Text() };
+	auto request = SendingErrorRequest{
+		.topicRootId = _topic ? _topic->rootId() : MsgId(0),
+		.text = &message.textWithTags,
+	};
+	request.messagesCount = ComputeSendingMessagesCount(_history, request);
+	if (const auto error = GetErrorForSending(_peer, request)) {
+		Data::ShowSendErrorToast(controller(), _peer, error);
+		return;
+	}
+	session().api().sendMessage(std::move(message));
 }
 
 void ChatWidget::sendTextWithTags(

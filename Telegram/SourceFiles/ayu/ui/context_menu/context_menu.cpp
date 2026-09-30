@@ -20,6 +20,9 @@
 #include "ayu/features/drafts_history/drafts_history.h"
 #include "ayu/features/reminders/reminders.h"
 #include "ayu/features/watermark/watermark.h"
+#include "ayu/features/contact_card/contact_card.h"
+#include "ayu/features/hidden_chats/hidden_chats.h"
+#include "ayu/features/ocr/ocr.h"
 #include "ayu/ui/context_menu/menu_item_subtext.h"
 #include "ayu/ui/message_history/history_section.h"
 #include "ayu/ui/settings/filters/edit_filter.h"
@@ -272,10 +275,7 @@ void AddAyuGramActions(PeerData *peerData,
 	const auto hasAnyBookmarks = hasBookmarks
 		|| !AyuFeatures::Bookmarks::List(session).empty();
 	const auto hasDrafts = AyuFeatures::DraftsHistory::HasEntries(history);
-	const auto showLocalTools = hasAnyBookmarks || hasDrafts;
-	if (!showFilters && !saveDeletedMessages && !showLocalTools) {
-		return;
-	}
+	const auto showLocalTools = true;
 
 	const auto topic = peerData->isForum() && thread ? thread->asTopic() : nullptr;
 	const auto topicId = topic ? topic->rootId().bare : 0;
@@ -286,6 +286,22 @@ void AddAyuGramActions(PeerData *peerData,
 		.icon = &st::menuIconGroupReactions,
 		.fillSubmenu = [=](not_null<Ui::PopupMenu*> menu) {
 			const auto addAction = Ui::Menu::CreateAddActionCallback(menu);
+			addAction(
+				tr::ayu_ContactCardMenuText(tr::now),
+				[=]
+				{
+					AyuFeatures::ContactCard::Show(sessionController, peerData);
+				},
+				&st::menuIconProfile);
+			addAction(
+				(AyuFeatures::HiddenChats::IsHidden(history.get())
+					? tr::ayu_HiddenChatsUnhideChat(tr::now)
+					: tr::ayu_HiddenChatsHideChat(tr::now)),
+				[=]
+				{
+					AyuFeatures::HiddenChats::Toggle(sessionController, history);
+				},
+				&st::menuIconLock);
 			if (hasBookmarks) {
 				addAction(
 					tr::ayu_BookmarksMenuText(tr::now),
@@ -1087,6 +1103,10 @@ void AddWatermarkAction(not_null<Ui::PopupMenu*> menu, HistoryItem *item) {
 	if (item) {
 		AyuFeatures::Watermark::AddMenuAction(menu, item);
 	}
+}
+
+void AddOcrAction(not_null<Ui::PopupMenu*> menu, not_null<PhotoData*> photo) {
+	AyuFeatures::Ocr::AddMenuAction(menu, photo);
 }
 
 } // namespace AyuUi

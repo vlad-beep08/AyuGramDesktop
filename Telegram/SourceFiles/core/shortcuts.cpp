@@ -129,6 +129,9 @@ const auto CommandByName = base::flat_map<QString, Command>{
 
 	{ u"record_voice"_q      , Command::RecordVoice },
 
+	{ u"ayu_panic"_q         , Command::AyuPanic },
+	{ u"ayu_command_palette"_q , Command::AyuCommandPalette },
+
 	// Shortcuts that have no default values.
 	{ u"message"_q                       , Command::JustSendMessage },
 	{ u"message_silently"_q              , Command::SendSilentMessage },
@@ -535,6 +538,9 @@ void Manager::fillDefaults() {
 	set(u"ctrl+]"_q, Command::ShowChatPreview);
 
 	set(u"ctrl+r"_q, Command::RecordVoice);
+
+	set(u"ctrl+shift+h"_q, Command::AyuPanic);
+	set(u"ctrl+shift+p"_q, Command::AyuCommandPalette);
 
 	_defaults = keysCurrents();
 }

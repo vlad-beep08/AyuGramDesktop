@@ -300,6 +300,7 @@ private:
 
 	[[nodiscard]] Api::SendAction prepareSendAction(
 		Api::SendOptions options) const;
+	void sendQuickPhrase();
 	void sendTextWithTags(
 		TextWithTags textWithTags,
 		bool useCurrentWebPageDraft,

@@ -6,6 +6,8 @@
 // Copyright @Radolyn, 2026
 #include "ayu/ayu_lang.h"
 
+#include "ayu/features/translations/translations.h"
+
 #include "qjsondocument.h"
 #include "core/application.h"
 #include "core/core_settings.h"
@@ -40,6 +42,7 @@ AyuLanguage::AyuLanguage() = default;
 void AyuLanguage::init() {
 	if (!instance) instance = new AyuLanguage;
 	instance->loadCachedLanguage();
+	AyuFeatures::Translations::ApplyBuiltIn();
 }
 
 AyuLanguage *AyuLanguage::currentInstance() {
@@ -210,4 +213,5 @@ void AyuLanguage::applyLanguageJson(QJsonDocument doc) {
 		Lang::GetInstance().applyValue(key.toUtf8(), val.toUtf8());
 	}
 	Lang::GetInstance().updatePluralRules();
+	AyuFeatures::Translations::ApplyBuiltIn();
 }

@@ -89,6 +89,9 @@ enum class Command {
 	SupportScrollToCurrent,
 	SupportHistoryBack,
 	SupportHistoryForward,
+
+	AyuPanic,
+	AyuCommandPalette,
 };
 
 [[maybe_unused]] constexpr auto kShowFolder = {
