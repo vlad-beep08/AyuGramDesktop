@@ -193,6 +193,7 @@ jobs:
           key: ${{ runner.OS }}-${{ env.ARCH }}-release-out-${{ env.CACHE_KEY }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.OS }}-${{ env.ARCH }}-release-out-${{ env.CACHE_KEY }}-
+            ${{ runner.OS }}-${{ env.ARCH }}-release-out-
 
       - name: Prepare incremental build.
         shell: bash
