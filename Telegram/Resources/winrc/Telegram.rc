@@ -27,7 +27,7 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
+#pragma code_page(65001)
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -60,11 +60,11 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "Netgram"
-            VALUE "FileDescription", "Netgram Desktop"
+            VALUE "CompanyName", "Чикенграм"
+            VALUE "FileDescription", "Чикенграм"
             VALUE "FileVersion", "7.0.9.0"
             VALUE "LegalCopyright", "Copyright (C) 2014-2026"
-            VALUE "ProductName", "Netgram Desktop"
+            VALUE "ProductName", "Чикенграм"
             VALUE "ProductVersion", "7.0.9.0"
         END
     END

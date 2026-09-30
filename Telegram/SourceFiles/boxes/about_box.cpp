@@ -6,6 +6,7 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "boxes/about_box.h"
+#include "ayu/features/branding/branding.h"
 
 #include "base/platform/base_platform_info.h"
 #include "core/application.h"
@@ -55,7 +56,7 @@ rpl::producer<TextWithEntities> Text() {
 } // namespace
 
 void AboutBox(not_null<Ui::GenericBox*> box, Window::SessionController* controller) {
-	box->setTitle(rpl::single(u"Netgram Desktop"_q));
+	box->setTitle(rpl::single(AyuFeatures::Branding::Name()));
 
 	auto layout = box->verticalLayout();
 

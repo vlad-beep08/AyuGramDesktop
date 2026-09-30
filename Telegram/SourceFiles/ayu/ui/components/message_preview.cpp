@@ -5,6 +5,7 @@
 //
 // Copyright @Radolyn, 2026
 #include "ayu/ui/components/message_preview.h"
+#include "ayu/features/branding/branding.h"
 
 #include "ayu/ayu_settings.h"
 #include "base/unixtime.h"
@@ -75,7 +76,7 @@ MessagePreview::MessagePreview(
 
 	const auto ayugramUser = HistoryView::GenerateUser(
 		history,
-		u"Netgram"_q);
+		AyuFeatures::Branding::Name());
 	const auto messageItem = history->addNewLocalMessage({
 		.id = history->nextNonHistoryEntryId(),
 		.flags = (MessageFlag::FakeHistoryItem

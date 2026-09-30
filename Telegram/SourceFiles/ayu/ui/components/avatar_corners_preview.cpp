@@ -5,6 +5,7 @@
 //
 // Copyright @Radolyn, 2026
 #include "ayu/ui/components/avatar_corners_preview.h"
+#include "ayu/features/branding/branding.h"
 
 #include "apiwrap.h"
 #include "data/data_peer.h"
@@ -30,7 +31,7 @@ AvatarCornersPreview::AvatarCornersPreview(
 	Ui::EmptyUserpic::UserpicColor(
 		Data::DecideColorIndex(
 			peerFromChannel(ChannelId(2331068091)))),
-	u"Netgram"_q) {
+	AyuFeatures::Branding::Name()) {
 	const auto &row = st::defaultDialogRow;
 	setFixedHeight(row.height);
 	setCursor(Qt::PointingHandCursor);
@@ -63,7 +64,7 @@ void AvatarCornersPreview::paintEvent(QPaintEvent *e) {
 		_emptyUserpic.paintCircle(p, userpicX, userpicY, width(), photoSize);
 	}
 
-	const auto nameText = u"Netgram"_q;
+	const auto nameText = AyuFeatures::Branding::Name();
 	p.setPen(st::dialogsNameFg);
 	p.setFont(st::semiboldFont);
 	p.drawText(row.nameLeft + xShift, row.nameTop + st::semiboldFont->ascent, nameText);

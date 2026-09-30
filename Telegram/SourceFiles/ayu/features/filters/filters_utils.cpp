@@ -5,6 +5,7 @@
 //
 // Copyright @Radolyn, 2026
 #include "ayu/features/filters/filters_utils.h"
+#include "ayu/features/branding/branding.h"
 
 #include "apiwrap.h"
 #include "lang_auto.h"
@@ -357,7 +358,8 @@ void FilterUtils::publishFilters() {
 
 	QHttpPart titlePart;
 	titlePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"title\""));
-	titlePart.setBody("Netgram Filters");
+	titlePart.setBody(
+		QString(AyuFeatures::Branding::Name() + u" Filters"_q).toUtf8());
 
 	multiPart->append(contentPart);
 	multiPart->append(syntaxPart);

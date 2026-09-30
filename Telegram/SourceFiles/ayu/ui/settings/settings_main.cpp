@@ -5,6 +5,7 @@
 //
 // Copyright @Radolyn, 2026
 #include "ayu/ui/settings/settings_main.h"
+#include "ayu/features/branding/branding.h"
 
 #include "settings/sections/settings_main.h"
 #include "lang_auto.h"
@@ -66,9 +67,10 @@ void BuildVersionInfo(SectionBuilder &builder) {
 		return {
 			.widget = object_ptr<Ui::FlatLabel>(
 				ctx.container,
-				rpl::single(
-					QString("Netgram Desktop v")
-					+ QString::fromLatin1(AppVersionStr)),
+				rpl::single(QString(
+					AyuFeatures::Branding::Name()
+					+ u" v"_q
+					+ QString::fromLatin1(AppVersionStr))),
 				st::boxTitle),
 			.align = style::al_top,
 		};
@@ -98,7 +100,7 @@ void BuildCategories(SectionBuilder &builder) {
 	builder.addSubsectionTitle(tr::ayu_CategoriesHeader());
 
 	builder.addSectionButton({
-		.title = rpl::single(QString("Netgram")),
+		.title = rpl::single(AyuFeatures::Branding::Name()),
 		.targetSection = AyuGhost::Id(),
 		.icon = { &st::menuIconGroupReactions },
 	});

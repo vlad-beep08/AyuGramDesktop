@@ -275,6 +275,8 @@ set(ayugram_files
         ayu/features/translations/translations.h
         ayu/features/quick_phrase/quick_phrase.cpp
         ayu/features/quick_phrase/quick_phrase.h
+        ayu/features/branding/branding.cpp
+        ayu/features/branding/branding.h
         ayu/data/messages_storage.cpp
         ayu/data/messages_storage.h
         ayu/data/entities.h
@@ -2492,7 +2494,7 @@ else()
         set(bundle_identifier "one.ayugram.AyuGramDesktop")
     endif()
     set(bundle_entitlements "Telegram.entitlements")
-    set(output_name "Netgram")
+    set(output_name "Chickengram")
 endif()
 
 if (CMAKE_GENERATOR STREQUAL Xcode)
@@ -2541,7 +2543,7 @@ get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if (APPLE
     OR is_multi_config
     OR NOT CMAKE_EXECUTABLE_SUFFIX STREQUAL ""
-    OR NOT "${output_name}" STREQUAL "Netgram")
+    OR NOT "${output_name}" STREQUAL "Chickengram")
     set(output_folder ${CMAKE_BINARY_DIR})
 else()
     set(output_folder ${CMAKE_BINARY_DIR}/bin)

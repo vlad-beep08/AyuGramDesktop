@@ -58,6 +58,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ui/ayu_logo.h"
+#include "ayu/features/branding/branding.h"
 
 
 namespace Window {
@@ -865,7 +866,7 @@ void MainWindow::updateTitle() {
 		: Dialogs::Key();
 	const auto thread = key ? key.thread() : nullptr;
 	if (!thread) {
-		setTitle((user.isEmpty() ? u"Netgram"_q : user) + added);
+		setTitle((user.isEmpty() ? AyuFeatures::Branding::Name() : user) + added);
 		return;
 	}
 	const auto history = thread->owningHistory();

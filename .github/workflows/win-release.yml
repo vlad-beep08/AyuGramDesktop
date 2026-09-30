@@ -36,7 +36,6 @@ jobs:
       - name: Free runner disk space.
         shell: pwsh
         run: |
-          Get-PSDrive C | Select-Object Used, Free
           $unused = @(
             'C:\Android',
             'C:\ghcup',
@@ -50,10 +49,9 @@ jobs:
           )
           foreach ($path in $unused) {
             if (Test-Path $path) {
-              cmd /c "rmdir /s /q `"$path`""
+              Start-Process -FilePath cmd.exe -ArgumentList "/c rmdir /s /q `"$path`"" -WindowStyle Hidden
             }
           }
-          Get-PSDrive C | Select-Object Used, Free
 
       - name: Get repository name.
         shell: bash
@@ -214,6 +212,19 @@ jobs:
 
           cmake --build ..\out --config Release --parallel -- -k 0
 
+      - name: Move artifact.
+        run: |
+          set OUT=%TBUILD%\%REPO_NAME%\out\Release
+          mkdir artifact
+          move %OUT%\Chickengram.exe artifact/
+
+      - uses: actions/upload-artifact@v4
+        name: Upload artifact.
+        with:
+          name: Chickengram-x64-release
+          path: artifact\
+          retention-days: 7
+
       - name: Remember built commit.
         if: always() && steps.build.outcome != 'skipped'
         run: echo %GITHUB_SHA%>%TBUILD%\%REPO_NAME%\out\ayu_build_sha.txt
@@ -224,16 +235,3 @@ jobs:
         with:
           path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}\out
           key: ${{ runner.OS }}-${{ env.ARCH }}-release-out-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Move artifact.
-        run: |
-          set OUT=%TBUILD%\%REPO_NAME%\out\Release
-          mkdir artifact
-          move %OUT%\Netgram.exe artifact/
-
-      - uses: actions/upload-artifact@v4
-        name: Upload artifact.
-        with:
-          name: Netgram-x64-release
-          path: artifact\
-          retention-days: 7

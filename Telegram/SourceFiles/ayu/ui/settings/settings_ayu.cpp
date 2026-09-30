@@ -5,6 +5,7 @@
 //
 // Copyright @Radolyn, 2026
 #include "ayu/ui/settings/settings_ayu.h"
+#include "ayu/features/branding/branding.h"
 
 #include "lang_auto.h"
 #include "ayu/ayu_settings.h"
@@ -681,7 +682,7 @@ void BuildOther(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 const auto kMeta = BuildHelper({
 	.id = AyuGhost::Id(),
 	.parentId = AyuMain::Id(),
-	.title = u"Netgram"_q,
+	.title = AyuFeatures::Branding::Name(),
 	.icon = &st::menuIconGroupReactions,
 }, [](SectionBuilder &builder) {
 	auto ayu = AyuSectionBuilder(builder);
@@ -700,7 +701,7 @@ const auto kMeta = BuildHelper({
 } // namespace
 
 rpl::producer<QString> AyuGhost::title() {
-	return rpl::single(QString("Netgram"));
+	return rpl::single(AyuFeatures::Branding::Name());
 }
 
 AyuGhost::AyuGhost(
