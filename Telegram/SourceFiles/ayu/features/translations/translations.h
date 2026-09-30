@@ -8,6 +8,7 @@
 
 namespace AyuFeatures::Translations {
 
+[[nodiscard]] QString Rebrand(const QString &key, QString value);
 void ApplyBuiltIn();
 
 } // namespace AyuFeatures::Translations

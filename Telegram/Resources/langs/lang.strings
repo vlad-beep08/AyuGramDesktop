@@ -8623,7 +8623,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram keys generated
 
-"ayu_AyuPreferences" = "AyuGram Preferences";
+"ayu_AyuPreferences" = "Netgram Preferences";
 "ayu_DocsText" = "Documentation";
 "ayu_CategoryGeneral" = "General";
 "ayu_CategoryAppearance" = "Appearance";
@@ -8681,7 +8681,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_ExportDatabaseButton" = "Export Database";
 "ayu_ImportDatabaseButton" = "Import Database";
 "ayu_QoLTogglesHeader" = "Useful features";
-"ayu_KeepAliveService" = "AyuGram Push Service";
+"ayu_KeepAliveService" = "Netgram Push Service";
 "ayu_KeepAliveServiceNote" = "We recommend migrating to **FCM** version.";
 "ayu_DisableAds" = "Disable Ads";
 "ayu_DisableStories" = "Disable Stories";
@@ -8722,7 +8722,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_CrashReporting" = "Crash Reporting";
 "ayu_CrashReportingDescription" = "When this option is enabled, you'll be prompted to send a report after the app crashes. You can decide whether to send it or not.";
 "ayu_ResetSettings" = "Reset Settings";
-"ayu_ResetSettingsConfirmation" = "Are you sure you want to reset **all** AyuGram preferences to their defaults?";
+"ayu_ResetSettingsConfirmation" = "Are you sure you want to reset **all** Netgram preferences to their defaults?";
 "ayu_DisableColorfulCover" = "Disable adaptive color";
 "ayu_EnableColorfulCover" = "Enable adaptive color";
 "ayu_CustomizationHeader" = "Customization";
@@ -8781,14 +8781,14 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_SettingsBiggerWindow" = "Bigger Window";
 "ayu_SettingsIncreaseWebviewHeight" = "Increase Content Height";
 "ayu_SettingsIncreaseWebviewWidth" = "Increase Content Width";
-"ayu_ExportDataTitle" = "Export AyuGram Database?";
+"ayu_ExportDataTitle" = "Export Netgram Database?";
 "ayu_ExportDataDescription" = "It will be exported to the public folder under Saved Attachments.";
 "ayu_ExportDataConfirm" = "Yes, export";
 "ayu_ExportDataCancel" = "No, close window";
 "ayu_ExportDataSuccess" = "Database exported successfully.";
 "ayu_ExportDataFailure" = "Failed to export database.";
 "ayu_ImportDataNotFound" = "No database to import.";
-"ayu_ImportDataTitle" = "Import AyuGram Database?";
+"ayu_ImportDataTitle" = "Import Netgram Database?";
 "ayu_ImportDataDescription" = "It will replace the current database.";
 "ayu_ImportDataConfirm" = "Yes, replace existing";
 "ayu_ImportDataCancel" = "No, close window";
@@ -8855,7 +8855,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_FiltersClearPopupAltActionText" = "Clear unknown";
 "ayu_AppIconHeader" = "App Icon";
 "ayu_IconDefault" = "Default";
-"ayu_IconAlternative" = "AyuGram Alt";
+"ayu_IconAlternative" = "Netgram Alt";
 "ayu_IconDiscord" = "Discord";
 "ayu_IconSpotify" = "Spotify";
 "ayu_IconExtera" = "extera";
@@ -8865,8 +8865,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_IconAyuTyan" = "AyuTyan";
 "ayu_WALMode" = "Enable WAL mode";
 "ayu_PushNotificationCount" = "FCM notifications received";
-"ayu_AyuAttachments" = "AyuGram Attachments Folder";
-"ayu_AyuDatabase" = "AyuGram Messages Database";
+"ayu_AyuAttachments" = "Netgram Attachments Folder";
+"ayu_AyuDatabase" = "Netgram Messages Database";
 "ayu_TelegramCacheDatabase" = "Telegram Messages Database";
 "ayu_ConfirmationsTitle" = "Send Confirmations";
 "ayu_StickerConfirmation" = "Stickers";
@@ -9015,7 +9015,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_PluginVersion" = "Version";
 "ayu_PluginNoDescription" = "No description provided.";
 "ayu_PluginNoAuthor" = "Unknown Author";
-"ayu_PluginsNotAvailable" = "Plugins are not supported by AyuGram Desktop yet.";
+"ayu_PluginsNotAvailable" = "Plugins are not supported by Netgram Desktop yet.";
 "ayu_SessionTerminated" = "Session **{item}** was terminated. You may still browse cached messages.";
 "ayu_InvalidConnectionLayerNote" = "You should re-login due to an error during the update.";
 "ayu_LocalPremiumNotice" = "You're using **local** Telegram Premium.\nIt **won't** give you any benefits.\n**Enjoy the star near your nickname!**";
@@ -9024,15 +9024,15 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_OfficialResourcePopup" = "**{item}** is the official resource of **exteraGram** or **AyuGram**.";
 "ayu_MutualContactInfo" = "This contact is mutual.";
 "ayu_SessionInfoOfficialApp" = "Official app";
-"ayu_SettingsWatermark" = "AyuGram is developed and maintained by Radolyn Labs.";
+"ayu_SettingsWatermark" = "Netgram is based on AyuGram by Radolyn Labs.";
 "ayu_SettingsDescription" = "Telegram Desktop fork focused on customization and ToS-breaking features.";
 "ayu_ConfirmationSticker" = "Do you want to send this sticker?";
 "ayu_ConfirmationGIF" = "Do you want to send this GIF?";
 "ayu_ConfirmationVoice" = "Do you want to send this voice message?";
 "ayu_ConfirmationRound" = "Do you want to send this round video?";
-"ayu_IntroAbout" = "Welcome to the AyuGram Desktop.\nMake Telegram your own.";
+"ayu_IntroAbout" = "Welcome to the Netgram Desktop.\nMake Telegram your own.";
 "ayu_AboutText1" = "ToS breaking Telegram client based on {api_link}.";
-"ayu_UpdateAyuGram" = "Update AyuGram";
+"ayu_UpdateAyuGram" = "Update Netgram";
 "ayu_UtilityRestartRequired" = "The app will close in 5 seconds.";
 "ayu_SendingHeader" = "Sending";
 "ayu_UndoSendDelay" = "Undo Send Delay";
@@ -9046,7 +9046,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_UndoSendCancelled" = "Message not sent.";
 "ayu_UndoSendCancelledCopied" = "Message not sent. Its text is copied to the clipboard.";
 "ayu_SaveDraftsHistory" = "Save Draft History";
-"ayu_SaveDraftsHistoryDescription" = "Keeps text you typed but did not send, so you can get it back from the chat's AyuGram menu. Stored only on this device.";
+"ayu_SaveDraftsHistoryDescription" = "Keeps text you typed but did not send, so you can get it back from the chat's Netgram menu. Stored only on this device.";
 "ayu_DraftsHistoryMenuText" = "Draft History";
 "ayu_DraftsHistoryTitle" = "Draft History";
 "ayu_DraftsHistoryAbout" = "Click a draft to copy it.";
@@ -9085,18 +9085,18 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_ContactCardLastSentNever" = "You haven't written here from this app yet";
 "ayu_ContactCardNotes" = "Notes";
 "ayu_ContactCardTags" = "Tags, separated by commas";
-"ayu_DataExport" = "Export AyuGram Data";
-"ayu_DataImport" = "Import AyuGram Data";
-"ayu_DataExported" = "AyuGram data exported.";
+"ayu_DataExport" = "Export Netgram Data";
+"ayu_DataImport" = "Import Netgram Data";
+"ayu_DataExported" = "Netgram data exported.";
 "ayu_DataTransferFailed" = "Could not read or write the backup file.";
-"ayu_DataTransferAbout" = "Saves AyuGram settings, bookmarks, reminders, draft history, contact cards and hidden chats to one file, so you can move them to another computer.";
+"ayu_DataTransferAbout" = "Saves Netgram settings, bookmarks, reminders, draft history, contact cards and hidden chats to one file, so you can move them to another computer.";
 "ayu_DurationSeconds#one" = "{count} sec";
 "ayu_DurationSeconds#other" = "{count} sec";
 "ayu_DurationMinutes#one" = "{count} min";
 "ayu_DurationMinutes#other" = "{count} min";
 "ayu_DurationHours#one" = "{count} h";
 "ayu_DurationHours#other" = "{count} h";
-"ayu_HiddenChatsAbout" = "Hide a chat from its AyuGram menu. Hidden chats disappear from the chat list and their notifications stop until you show them with Ctrl+Shift+P → Show Hidden Chats. Ctrl+Shift+H hides them again instantly. This only hides chats in this app, it is not encryption.";
+"ayu_HiddenChatsAbout" = "Hide a chat from its Netgram menu. Hidden chats disappear from the chat list and their notifications stop until you show them with Ctrl+Shift+P → Show Hidden Chats. Ctrl+Shift+H hides them again instantly. This only hides chats in this app, it is not encryption.";
 "ayu_HiddenChatsPinTitle" = "Hidden Chats PIN";
 "ayu_HiddenChatsCurrentPin" = "Current PIN";
 "ayu_HiddenChatsNewPin" = "New PIN (4-12 digits)";
@@ -9122,7 +9122,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_OcrNothingFound" = "No text found in this image.";
 "ayu_PaletteTitle" = "Commands";
 "ayu_PalettePlaceholder" = "Type a command";
-"ayu_PaletteAyuSettings" = "AyuGram Settings";
+"ayu_PaletteAyuSettings" = "Netgram Settings";
 "ayu_PaletteGhostMode" = "Toggle Ghost Mode";
 "ayu_PaletteGhostModeOn" = "Ghost mode is on.";
 "ayu_PaletteGhostModeOff" = "Ghost mode is off.";
@@ -9131,7 +9131,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_SelfDestructAbout" = "Right-click the send button and choose Send and Delete to delete the message for everyone after this time. Works only while the app is running.";
 "ayu_SendSelfDestruct" = "Send and Delete in {duration}";
 "ayu_ShortcutPanic" = "Hide hidden chats instantly";
-"ayu_ShortcutPalette" = "Open AyuGram commands";
+"ayu_ShortcutPalette" = "Open Netgram commands";
 "ayu_ConfirmAllLinks" = "Confirm All External Links";
 "ayu_StripTrackingParameters" = "Remove Tracking From Links";
 "ayu_StripImageMetadata" = "Remove Photo Metadata";

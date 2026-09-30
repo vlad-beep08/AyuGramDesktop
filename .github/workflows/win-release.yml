@@ -229,11 +229,11 @@ jobs:
         run: |
           set OUT=%TBUILD%\%REPO_NAME%\out\Release
           mkdir artifact
-          move %OUT%\AyuGram.exe artifact/
+          move %OUT%\Netgram.exe artifact/
 
       - uses: actions/upload-artifact@v4
         name: Upload artifact.
         with:
-          name: AyuGram-x64-release
+          name: Netgram-x64-release
           path: artifact\
           retention-days: 7

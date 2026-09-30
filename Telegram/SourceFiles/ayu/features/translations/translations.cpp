@@ -6,6 +6,7 @@
 // Copyright @Radolyn, 2026
 #include "ayu/features/translations/translations.h"
 
+#include "base/flat_set.h"
 #include "lang/lang_instance.h"
 
 namespace AyuFeatures::Translations {
@@ -40,7 +41,7 @@ struct Entry {
 		{ "ayu_UndoSendCancelled", "Сообщение не отправлено." },
 		{ "ayu_UndoSendCancelledCopied", "Сообщение не отправлено. Текст скопирован в буфер обмена." },
 		{ "ayu_SaveDraftsHistory", "Сохранять историю черновиков" },
-		{ "ayu_SaveDraftsHistoryDescription", "Хранит текст, который вы набрали, но не отправили. Вернуть его можно через меню AyuGram в чате. Хранится только на этом устройстве." },
+		{ "ayu_SaveDraftsHistoryDescription", "Хранит текст, который вы набрали, но не отправили. Вернуть его можно через меню Netgram в чате. Хранится только на этом устройстве." },
 		{ "ayu_DraftsHistoryMenuText", "История черновиков" },
 		{ "ayu_DraftsHistoryTitle", "История черновиков" },
 		{ "ayu_DraftsHistoryAbout", "Нажмите на черновик, чтобы скопировать его." },
@@ -85,11 +86,11 @@ struct Entry {
 		{ "ayu_ContactCardLastSentNever", "Вы ещё не писали сюда из этого приложения" },
 		{ "ayu_ContactCardNotes", "Заметки" },
 		{ "ayu_ContactCardTags", "Теги через запятую" },
-		{ "ayu_DataExport", "Экспорт данных AyuGram" },
-		{ "ayu_DataImport", "Импорт данных AyuGram" },
-		{ "ayu_DataExported", "Данные AyuGram экспортированы." },
+		{ "ayu_DataExport", "Экспорт данных Netgram" },
+		{ "ayu_DataImport", "Импорт данных Netgram" },
+		{ "ayu_DataExported", "Данные Netgram экспортированы." },
 		{ "ayu_DataTransferFailed", "Не удалось прочитать или записать файл резервной копии." },
-		{ "ayu_DataTransferAbout", "Сохраняет настройки AyuGram, закладки, напоминания, историю черновиков, карточки контактов и скрытые чаты в один файл, чтобы перенести их на другой компьютер." },
+		{ "ayu_DataTransferAbout", "Сохраняет настройки Netgram, закладки, напоминания, историю черновиков, карточки контактов и скрытые чаты в один файл, чтобы перенести их на другой компьютер." },
 		{ "ayu_DurationSeconds#one", "{count} сек" },
 		{ "ayu_DurationSeconds#few", "{count} сек" },
 		{ "ayu_DurationSeconds#many", "{count} сек" },
@@ -102,7 +103,7 @@ struct Entry {
 		{ "ayu_DurationHours#few", "{count} ч" },
 		{ "ayu_DurationHours#many", "{count} ч" },
 		{ "ayu_DurationHours#other", "{count} ч" },
-		{ "ayu_HiddenChatsAbout", "Скрыть чат можно в его меню AyuGram. Скрытые чаты пропадают из списка, и уведомления из них не приходят, пока вы не покажете их через Ctrl+Shift+P → «Показать скрытые чаты». Ctrl+Shift+H мгновенно прячет их снова. Это только скрытие в этом приложении, а не шифрование." },
+		{ "ayu_HiddenChatsAbout", "Скрыть чат можно в его меню Netgram. Скрытые чаты пропадают из списка, и уведомления из них не приходят, пока вы не покажете их через Ctrl+Shift+P → «Показать скрытые чаты». Ctrl+Shift+H мгновенно прячет их снова. Это только скрытие в этом приложении, а не шифрование." },
 		{ "ayu_HiddenChatsPinTitle", "PIN скрытых чатов" },
 		{ "ayu_HiddenChatsCurrentPin", "Текущий PIN" },
 		{ "ayu_HiddenChatsNewPin", "Новый PIN (4–12 цифр)" },
@@ -128,7 +129,7 @@ struct Entry {
 		{ "ayu_OcrNothingFound", "На этой картинке не найден текст." },
 		{ "ayu_PaletteTitle", "Команды" },
 		{ "ayu_PalettePlaceholder", "Начните вводить команду" },
-		{ "ayu_PaletteAyuSettings", "Настройки AyuGram" },
+		{ "ayu_PaletteAyuSettings", "Настройки Netgram" },
 		{ "ayu_PaletteGhostMode", "Режим призрака вкл/выкл" },
 		{ "ayu_PaletteGhostModeOn", "Режим призрака включён." },
 		{ "ayu_PaletteGhostModeOff", "Режим призрака выключен." },
@@ -137,12 +138,27 @@ struct Entry {
 		{ "ayu_SelfDestructAbout", "Нажмите правой кнопкой на кнопку отправки и выберите «Отправить и удалить», чтобы сообщение удалилось у всех через это время. Работает, только пока приложение запущено." },
 		{ "ayu_SendSelfDestruct", "Отправить и удалить через {duration}" },
 		{ "ayu_ShortcutPanic", "Мгновенно спрятать скрытые чаты" },
-		{ "ayu_ShortcutPalette", "Открыть команды AyuGram" },
+		{ "ayu_ShortcutPalette", "Открыть команды Netgram" },
+		{ "ayu_SettingsWatermark", "Netgram основан на AyuGram от Radolyn Labs." },
 	};
 	return result;
 }
 
 } // namespace
+
+QString Rebrand(const QString &key, QString value) {
+	static const auto keepOriginal = base::flat_set<QString>{
+		u"ayu_FirstLaunchAlert"_q,
+		u"ayu_ExteraChatsAlert"_q,
+		u"ayu_SupporterPopup"_q,
+		u"ayu_OfficialResourcePopup"_q,
+		u"ayu_SettingsWatermark"_q,
+	};
+	if (keepOriginal.contains(key.section(u'#', 0, 0))) {
+		return value;
+	}
+	return value.replace(u"AyuGram"_q, u"Netgram"_q);
+}
 
 void ApplyBuiltIn() {
 	if (!IsRussian()) {
