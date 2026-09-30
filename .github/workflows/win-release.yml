@@ -1,9 +1,9 @@
-name: Windows.
+name: Windows Release.
 
 on:
   workflow_dispatch:
   push:
-    branches-ignore:
+    branches:
       - ayu-release
     paths-ignore:
       - 'docs/**'
@@ -113,10 +113,10 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.TBUILD }}\ThirdParty
-          key: ${{ runner.OS }}-${{ env.ARCH }}-third-party-${{ env.CACHE_KEY }}
+          key: ${{ runner.OS }}-${{ env.ARCH }}-release-third-party-${{ env.CACHE_KEY }}
           restore-keys: |
-            ${{ runner.OS }}-${{ env.ARCH }}-third-party-${{ env.CACHE_KEY }}-
-            ${{ runner.OS }}-${{ env.ARCH }}-third-party-
+            ${{ runner.OS }}-${{ env.ARCH }}-release-third-party-${{ env.CACHE_KEY }}-
+            ${{ runner.OS }}-${{ env.ARCH }}-release-third-party-
 
       - name: Restore Libraries cache.
         uses: actions/cache/restore@v4
@@ -127,10 +127,10 @@ jobs:
             !${{ env.LibrariesPath }}\[qQ]t[_-]*
             ${{ env.LibrariesPath }}\cache_keys\*
             !${{ env.LibrariesPath }}\cache_keys\[qQ]t[_-]*
-          key: ${{ runner.OS }}-${{ env.ARCH }}-libs-${{ env.CACHE_KEY }}
+          key: ${{ runner.OS }}-${{ env.ARCH }}-release-libs-${{ env.CACHE_KEY }}
           restore-keys: |
-            ${{ runner.OS }}-${{ env.ARCH }}-libs-${{ env.CACHE_KEY }}-
-            ${{ runner.OS }}-${{ env.ARCH }}-libs-
+            ${{ runner.OS }}-${{ env.ARCH }}-release-libs-${{ env.CACHE_KEY }}-
+            ${{ runner.OS }}-${{ env.ARCH }}-release-libs-
 
       - name: Restore Qt cache.
         uses: actions/cache/restore@v4
@@ -138,10 +138,10 @@ jobs:
           path: |
             ${{ env.LibrariesPath }}\[qQ]t[_-]*
             ${{ env.LibrariesPath }}\cache_keys\[qQ]t[_-]*
-          key: ${{ runner.OS }}-${{ env.ARCH }}-qt-${{ env.CACHE_KEY }}
+          key: ${{ runner.OS }}-${{ env.ARCH }}-release-qt-${{ env.CACHE_KEY }}
           restore-keys: |
-            ${{ runner.OS }}-${{ env.ARCH }}-qt-${{ env.CACHE_KEY }}-
-            ${{ runner.OS }}-${{ env.ARCH }}-qt-
+            ${{ runner.OS }}-${{ env.ARCH }}-release-qt-${{ env.CACHE_KEY }}-
+            ${{ runner.OS }}-${{ env.ARCH }}-release-qt-
 
       - name: Remember libraries state.
         id: libs-before
@@ -152,7 +152,7 @@ jobs:
         id: libraries
         timeout-minutes: 290
         run: |
-          %TBUILD%\%REPO_NAME%\Telegram\build\prepare\win.bat skip-release silent
+          %TBUILD%\%REPO_NAME%\Telegram\build\prepare\win.bat silent
 
       - name: Free up some disk space.
         if: always()
@@ -170,7 +170,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ env.TBUILD }}\ThirdParty
-          key: ${{ runner.OS }}-${{ env.ARCH }}-third-party-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: ${{ runner.OS }}-${{ env.ARCH }}-release-third-party-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save Libraries cache.
         if: always() && steps.libs-after.outputs.hash != steps.libs-before.outputs.hash
@@ -182,7 +182,7 @@ jobs:
             !${{ env.LibrariesPath }}\[qQ]t[_-]*
             ${{ env.LibrariesPath }}\cache_keys\*
             !${{ env.LibrariesPath }}\cache_keys\[qQ]t[_-]*
-          key: ${{ runner.OS }}-${{ env.ARCH }}-libs-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: ${{ runner.OS }}-${{ env.ARCH }}-release-libs-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save Qt cache.
         if: always() && steps.libs-after.outputs.hash != steps.libs-before.outputs.hash
@@ -191,7 +191,7 @@ jobs:
           path: |
             ${{ env.LibrariesPath }}\[qQ]t[_-]*
             ${{ env.LibrariesPath }}\cache_keys\[qQ]t[_-]*
-          key: ${{ runner.OS }}-${{ env.ARCH }}-qt-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: ${{ runner.OS }}-${{ env.ARCH }}-release-qt-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Stop if libraries are not ready.
         if: steps.libraries.outcome != 'success'
@@ -201,9 +201,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}\out
-          key: ${{ runner.OS }}-${{ env.ARCH }}-out-${{ env.CACHE_KEY }}-${{ github.sha }}
+          key: ${{ runner.OS }}-${{ env.ARCH }}-release-out-${{ env.CACHE_KEY }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.OS }}-${{ env.ARCH }}-out-${{ env.CACHE_KEY }}-
+            ${{ runner.OS }}-${{ env.ARCH }}-release-out-${{ env.CACHE_KEY }}-
 
       - name: Prepare incremental build.
         shell: bash
@@ -217,12 +217,12 @@ jobs:
           call configure.bat ^
           -G "Ninja Multi-Config" ^
           %TDESKTOP_BUILD_API% ^
-          -D CMAKE_CONFIGURATION_TYPES=Debug ^
+          -D CMAKE_CONFIGURATION_TYPES=Release ^
           -D CMAKE_MSVC_DEBUG_INFORMATION_FORMAT= ^
           -D DESKTOP_APP_DISABLE_AUTOUPDATE=ON ^
           -D DESKTOP_APP_DISABLE_CRASH_REPORTS=ON
 
-          cmake --build ..\out --config Debug --parallel -- -k 0
+          cmake --build ..\out --config Release --parallel -- -k 0
 
       - name: Remember built commit.
         if: always() && steps.build.outcome != 'skipped'
@@ -233,17 +233,17 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}\out
-          key: ${{ runner.OS }}-${{ env.ARCH }}-out-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: ${{ runner.OS }}-${{ env.ARCH }}-release-out-${{ env.CACHE_KEY }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Move artifact.
         run: |
-          set OUT=%TBUILD%\%REPO_NAME%\out\Debug
+          set OUT=%TBUILD%\%REPO_NAME%\out\Release
           mkdir artifact
           move %OUT%\AyuGram.exe artifact/
 
       - uses: actions/upload-artifact@v4
         name: Upload artifact.
         with:
-          name: AyuGram-x64-debug
+          name: AyuGram-x64-release
           path: artifact\
           retention-days: 7
