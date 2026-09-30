@@ -89,7 +89,7 @@ void Save() {
 	return Key(peer->session().userId().bare, peer->id.value);
 }
 
-[[nodiscard]] QString BirthdayText(const Data::Birthday &birthday) {
+[[nodiscard]] QString FormatBirthday(const Data::Birthday &birthday) {
 	auto result = QString::number(birthday.day()).rightJustified(2, u'0');
 	result.append(u'.');
 	result.append(QString::number(birthday.month()).rightJustified(2, u'0'));
@@ -128,7 +128,7 @@ void FillBox(
 			info.push_back(tr::ayu_ContactCardBirthday(
 				tr::now,
 				lt_date,
-				BirthdayText(birthday)));
+				FormatBirthday(birthday)));
 		}
 	}
 	info.push_back(LastSentText(card.lastSent));

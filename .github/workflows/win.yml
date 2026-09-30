@@ -220,7 +220,7 @@ jobs:
           -D DESKTOP_APP_DISABLE_AUTOUPDATE=ON ^
           -D DESKTOP_APP_DISABLE_CRASH_REPORTS=ON
 
-          cmake --build ..\out --config Debug --parallel
+          cmake --build ..\out --config Debug --parallel -- -k 0
 
       - name: Remember built commit.
         if: always() && steps.build.outcome != 'skipped'

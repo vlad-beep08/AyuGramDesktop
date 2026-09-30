@@ -20,6 +20,7 @@
 #include "ui/layers/generic_box.h"
 #include "ui/widgets/fields/password_input.h"
 #include "ui/widgets/labels.h"
+#include "ui/ui_utility.h"
 #include "window/window_session_controller.h"
 #include "styles/style_layers.h"
 #include "styles/style_widgets.h"
@@ -180,6 +181,25 @@ void SetHidden(not_null<History*> history, bool hidden) {
 	history->updateChatListExistence();
 }
 
+[[nodiscard]] Ui::PasswordInput *AddPinField(
+		not_null<Ui::GenericBox*> box,
+		rpl::producer<QString> placeholder) {
+	const auto &st = st::defaultInputField;
+	auto container = object_ptr<Ui::RpWidget>(box);
+	container->resize(container->width(), st.heightMin);
+	const auto field = Ui::CreateChild<Ui::PasswordInput>(
+		container.data(),
+		st,
+		std::move(placeholder));
+	container->widthValue(
+	) | rpl::on_next([=](int width) {
+		field->resize(width, field->height());
+		field->moveToLeft(0, 0);
+	}, container->lifetime());
+	box->addRow(std::move(container));
+	return field;
+}
+
 void FillPinBox(
 		not_null<Ui::GenericBox*> box,
 		not_null<Window::SessionController*> controller,
@@ -189,19 +209,10 @@ void FillPinBox(
 
 	const auto hadPin = HasPin();
 	const auto current = hadPin
-		? box->addRow(object_ptr<Ui::PasswordInput>(
-			box,
-			st::defaultInputField,
-			tr::ayu_HiddenChatsCurrentPin()))
+		? AddPinField(box, tr::ayu_HiddenChatsCurrentPin())
 		: nullptr;
-	const auto pin = box->addRow(object_ptr<Ui::PasswordInput>(
-		box,
-		st::defaultInputField,
-		tr::ayu_HiddenChatsNewPin()));
-	const auto repeat = box->addRow(object_ptr<Ui::PasswordInput>(
-		box,
-		st::defaultInputField,
-		tr::ayu_HiddenChatsRepeatPin()));
+	const auto pin = AddPinField(box, tr::ayu_HiddenChatsNewPin());
+	const auto repeat = AddPinField(box, tr::ayu_HiddenChatsRepeatPin());
 	box->addRow(object_ptr<Ui::FlatLabel>(
 		box,
 		tr::ayu_HiddenChatsPinAbout(),
@@ -248,10 +259,7 @@ void FillUnlockBox(
 	box->setTitle(tr::ayu_HiddenChatsUnlockTitle());
 	box->setWidth(st::boxWidth);
 
-	const auto pin = box->addRow(object_ptr<Ui::PasswordInput>(
-		box,
-		st::defaultInputField,
-		tr::ayu_HiddenChatsEnterPin()));
+	const auto pin = AddPinField(box, tr::ayu_HiddenChatsEnterPin());
 	box->setFocusCallback([=] {
 		pin->setFocusFast();
 	});
