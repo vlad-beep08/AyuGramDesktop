@@ -14,6 +14,9 @@
 #include "ayu/features/drafts_history/drafts_history.h"
 #include "ayu/features/hidden_chats/hidden_chats.h"
 #include "ayu/features/keyword_alerts/keyword_alerts.h"
+#include "ayu/ui/design/design_widgets.h"
+#include "base/event_filter.h"
+#include "core/application.h"
 #include "ayu/ui/settings/settings_main.h"
 #include "dialogs/dialogs_key.h"
 #include "history/history.h"
@@ -24,10 +27,18 @@
 #include "ui/widgets/fields/input_field.h"
 #include "ui/wrap/slide_wrap.h"
 #include "ui/wrap/vertical_layout.h"
+#include "window/window_controller.h"
 #include "window/window_session_controller.h"
 #include "styles/style_layers.h"
 #include "styles/style_settings.h"
 #include "styles/style_widgets.h"
+
+#include <QtGui/QKeyEvent>
+#include <QtWidgets/QAbstractSpinBox>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPlainTextEdit>
+#include <QtWidgets/QTextEdit>
 
 namespace AyuFeatures::CommandPalette {
 namespace {
@@ -35,13 +46,17 @@ namespace {
 struct Command {
 	QString title;
 	Fn<void()> run;
+	QString hotkey;
 };
 
 [[nodiscard]] std::vector<Command> Commands(
 		not_null<Window::SessionController*> controller) {
 	auto result = std::vector<Command>();
-	const auto add = [&](QString title, Fn<void()> run) {
-		result.push_back({ std::move(title), std::move(run) });
+	const auto add = [&](
+			QString title,
+			Fn<void()> run,
+			QString hotkey = QString()) {
+		result.push_back({ std::move(title), std::move(run), std::move(hotkey) });
 	};
 	const auto session = &controller->session();
 	const auto history = controller->activeChatCurrent().history();
@@ -82,7 +97,7 @@ struct Command {
 	});
 	add(tr::ayu_PalettePanic(tr::now), [] {
 		HiddenChats::Panic();
-	});
+	}, u"Ctrl+Shift+H"_q);
 	add(tr::ayu_KeywordAlertsTitle(tr::now), [=] {
 		KeywordAlerts::ShowEditBox(controller);
 	});
@@ -109,52 +124,110 @@ void FillBox(
 	struct Row {
 		QString search;
 		Fn<void()> run;
-		not_null<Ui::SlideWrap<Ui::SettingsButton>*> wrap;
+		not_null<Ui::SlideWrap<AyuDesign::ListRow>*> wrap;
 	};
-	const auto rows = std::make_shared<std::vector<Row>>();
+	struct State {
+		std::vector<Row> rows;
+		int selected = -1;
+	};
+	const auto state = std::make_shared<State>();
 	const auto content = box->verticalLayout();
 	for (auto &command : Commands(controller)) {
 		const auto wrap = content->add(
-			object_ptr<Ui::SlideWrap<Ui::SettingsButton>>(
+			object_ptr<Ui::SlideWrap<AyuDesign::ListRow>>(
 				content,
-				object_ptr<Ui::SettingsButton>(
+				object_ptr<AyuDesign::ListRow>(
 					content,
-					rpl::single(command.title),
-					st::settingsButtonNoIcon)));
+					command.title,
+					command.hotkey)));
 		wrap->toggle(true, anim::type::instant);
 		const auto run = command.run;
 		wrap->entity()->setClickedCallback([=] {
 			box->closeBox();
 			run();
 		});
-		rows->push_back({
+		state->rows.push_back({
 			.search = command.title.toLower(),
 			.run = run,
 			.wrap = wrap,
 		});
 	}
 
-	const auto filter = [=] {
+	const auto visible = [=] {
+		auto result = std::vector<int>();
+		for (auto i = 0; i != int(state->rows.size()); ++i) {
+			if (state->rows[i].wrap->toggled()) {
+				result.push_back(i);
+			}
+		}
+		return result;
+	};
+	const auto select = [=](int index) {
+		const auto count = int(state->rows.size());
+		if (state->selected >= 0 && state->selected < count) {
+			state->rows[state->selected].wrap->entity()->setSelected(false);
+		}
+		state->selected = index;
+		if (index >= 0 && index < count) {
+			state->rows[index].wrap->entity()->setSelected(true);
+		}
+	};
+	const auto selectFirst = [=] {
+		const auto indices = visible();
+		select(indices.empty() ? -1 : indices.front());
+	};
+	const auto move = [=](int delta) {
+		const auto indices = visible();
+		if (indices.empty()) {
+			return;
+		}
+		const auto i = ranges::find(indices, state->selected);
+		const auto position = (i != end(indices))
+			? int(i - begin(indices)) + delta
+			: (delta > 0 ? 0 : int(indices.size()) - 1);
+		select(indices[std::clamp(position, 0, int(indices.size()) - 1)]);
+	};
+	const auto runSelected = [=] {
+		const auto indices = visible();
+		const auto i = ranges::find(indices, state->selected);
+		const auto index = (i != end(indices))
+			? state->selected
+			: (indices.empty() ? -1 : indices.front());
+		if (index < 0) {
+			return;
+		}
+		const auto run = state->rows[index].run;
+		box->closeBox();
+		run();
+	};
+
+	field->changes(
+	) | rpl::on_next([=] {
 		const auto query = field->getLastText().trimmed().toLower();
-		for (const auto &row : *rows) {
+		for (const auto &row : state->rows) {
 			row.wrap->toggle(
 				query.isEmpty() || row.search.contains(query),
 				anim::type::instant);
 		}
-	};
-	field->changes(
-	) | rpl::on_next(filter, field->lifetime());
+		selectFirst();
+	}, field->lifetime());
 	field->submits(
 	) | rpl::on_next([=](Qt::KeyboardModifiers) {
-		for (const auto &row : *rows) {
-			if (row.wrap->toggled()) {
-				const auto run = row.run;
-				box->closeBox();
-				run();
-				return;
-			}
-		}
+		runSelected();
 	}, field->lifetime());
+	base::install_event_filter(field->rawTextEdit(), [=](
+			not_null<QEvent*> event) {
+		if (event->type() != QEvent::KeyPress) {
+			return base::EventFilterResult::Continue;
+		}
+		const auto key = static_cast<QKeyEvent*>(event.get())->key();
+		if (key == Qt::Key_Up || key == Qt::Key_Down) {
+			move(key == Qt::Key_Up ? -1 : 1);
+			return base::EventFilterResult::Cancel;
+		}
+		return base::EventFilterResult::Continue;
+	});
+	selectFirst();
 
 	box->setFocusCallback([=] {
 		field->setFocusFast();
@@ -164,10 +237,46 @@ void FillBox(
 	});
 }
 
+[[nodiscard]] bool IsTextInput(QWidget *widget) {
+	return qobject_cast<QTextEdit*>(widget)
+		|| qobject_cast<QLineEdit*>(widget)
+		|| qobject_cast<QPlainTextEdit*>(widget)
+		|| qobject_cast<QAbstractSpinBox*>(widget);
+}
+
 } // namespace
 
 void Show(not_null<Window::SessionController*> controller) {
 	controller->show(Box(FillBox, controller));
+}
+
+void InstallGlobalHotkey() {
+	static auto installed = false;
+	if (installed) {
+		return;
+	}
+	installed = true;
+	base::install_event_filter(QCoreApplication::instance(), [](
+			not_null<QEvent*> event) {
+		if (event->type() != QEvent::KeyPress) {
+			return base::EventFilterResult::Continue;
+		}
+		const auto key = static_cast<QKeyEvent*>(event.get());
+		const auto modifiers = key->modifiers() & ~Qt::KeypadModifier;
+		if (key->key() != Qt::Key_K
+			|| modifiers != Qt::ControlModifier
+			|| key->isAutoRepeat()
+			|| IsTextInput(QApplication::focusWidget())) {
+			return base::EventFilterResult::Continue;
+		}
+		const auto window = Core::App().activeWindow();
+		const auto controller = window ? window->sessionController() : nullptr;
+		if (!controller) {
+			return base::EventFilterResult::Continue;
+		}
+		Show(controller);
+		return base::EventFilterResult::Cancel;
+	});
 }
 
 } // namespace AyuFeatures::CommandPalette

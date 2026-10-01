@@ -12,6 +12,9 @@
 #include "ayu/ui/boxes/font_selector.h"
 #include "ayu/ui/components/avatar_corners_preview.h"
 #include "ayu/ui/components/icon_picker.h"
+#include "ayu/ui/design/design_system.h"
+#include "ayu/ui/design/design_themes.h"
+#include "ayu/ui/design/design_widgets.h"
 #include "ayu/ui/settings/ayu_builder.h"
 #include "ayu/ui/settings/settings_ayu_utils.h"
 #include "ayu/ui/settings/settings_main.h"
@@ -48,6 +51,120 @@ bool HasDrawerBots(not_null<Window::SessionController*> controller) {
 		return true;
 	}
 	return false;
+}
+
+void BuildDesign(SectionBuilder &builder, AyuSectionBuilder &ayu) {
+	const auto controller = builder.controller();
+	auto *settings = &AyuSettings::getInstance();
+
+	builder.addSubsectionTitle({
+		.id = u"ayu/design"_q,
+		.title = tr::ayu_DesignHeader(),
+		.keywords = { u"theme"_q, u"design"_q },
+	});
+
+	builder.add([](const WidgetContext &ctx) -> SectionBuilder::WidgetToAdd {
+		auto list = object_ptr<Ui::VerticalLayout>(ctx.container);
+		const auto raw = list.data();
+		using Card = std::pair<QString, AyuDesign::ThemeCard*>;
+		const auto cards = std::make_shared<std::vector<Card>>();
+		const auto refresh = [=] {
+			const auto current = AyuDesign::CurrentThemeId();
+			for (const auto &[id, card] : *cards) {
+				card->setActive(id == current);
+			}
+		};
+		for (const auto &theme : AyuDesign::Themes()) {
+			const auto card = raw->add(object_ptr<AyuDesign::ThemeCard>(
+				raw,
+				theme.title,
+				theme.swatches));
+			cards->push_back({ theme.id, card });
+			const auto id = theme.id;
+			card->setClickedCallback([=] {
+				if (AyuDesign::ApplyTheme(id)) {
+					refresh();
+				}
+			});
+		}
+		refresh();
+		return { .widget = std::move(list) };
+	});
+	builder.addSkip();
+	builder.addDividerText(tr::ayu_DesignThemesAbout());
+	builder.addSkip();
+
+	ayu.addChooseButton({
+		.id = u"ayu/designDensity"_q,
+		.title = tr::ayu_DesignDensity(),
+		.boxTitle = tr::ayu_DesignDensity(),
+		.initialSelection = settings->designDensity(),
+		.options = {
+			tr::ayu_DesignDensityCompact(tr::now),
+			tr::ayu_DesignDensityNormal(tr::now),
+			tr::ayu_DesignDensityComfortable(tr::now),
+		},
+		.setter = [=](int index) {
+			AyuSettings::getInstance().setDesignDensity(index);
+			ShowRestartPrompt(controller);
+		},
+	});
+	ayu.addChooseButton({
+		.id = u"ayu/designCorners"_q,
+		.title = tr::ayu_DesignCorners(),
+		.boxTitle = tr::ayu_DesignCorners(),
+		.initialSelection = settings->designCorners(),
+		.options = {
+			tr::ayu_DesignCornersTelegram(tr::now),
+			tr::ayu_DesignCornersSharp(tr::now),
+			tr::ayu_DesignCornersSoft(tr::now),
+			tr::ayu_DesignCornersRound(tr::now),
+		},
+		.setter = [=](int index) {
+			AyuSettings::getInstance().setDesignCorners(index);
+			ShowRestartPrompt(controller);
+		},
+	});
+	ayu.addChooseButton({
+		.id = u"ayu/designMotion"_q,
+		.title = tr::ayu_DesignMotion(),
+		.boxTitle = tr::ayu_DesignMotion(),
+		.initialSelection = settings->designMotion(),
+		.options = {
+			tr::ayu_DesignMotionFull(tr::now),
+			tr::ayu_DesignMotionReduced(tr::now),
+			tr::ayu_DesignMotionOff(tr::now),
+		},
+		.setter = [](int index) {
+			AyuSettings::getInstance().setDesignMotion(index);
+			AyuDesign::ApplyMotion();
+		},
+	});
+
+	constexpr auto kOpacityMin = 50;
+	constexpr auto kOpacityStep = 5;
+	ayu.addSlider({
+		.id = u"ayu/windowOpacity"_q,
+		.title = tr::ayu_DesignWindowOpacity(),
+		.steps = (100 - kOpacityMin) / kOpacityStep + 1,
+		.current = (settings->windowOpacity() - kOpacityMin) / kOpacityStep,
+		.indexToValue = [](int index) {
+			return kOpacityMin + index * kOpacityStep;
+		},
+		.onChanged = nullptr,
+		.onFinalChanged = [](int index) {
+			AyuSettings::getInstance().setWindowOpacity(
+				kOpacityMin + index * kOpacityStep);
+			AyuDesign::ApplyWindowOpacityToAll();
+		},
+		.formatLabel = [](int index) {
+			return QString::number(kOpacityMin + index * kOpacityStep)
+				+ u"%"_q;
+		},
+	});
+	builder.addSkip();
+	builder.addDividerText(tr::ayu_DesignAbout());
+	builder.addSkip();
 }
 
 void BuildAppIcon(SectionBuilder &builder, AyuSectionBuilder &ayu) {
@@ -383,6 +500,7 @@ const auto kMeta = BuildHelper({
 	auto ayu = AyuSectionBuilder(builder);
 
 	builder.addSkip();
+	BuildDesign(builder, ayu);
 	BuildAppIcon(builder, ayu);
 	BuildAvatarCorners(builder, ayu);
 	BuildAppearance(builder, ayu);

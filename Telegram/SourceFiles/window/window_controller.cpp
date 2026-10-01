@@ -40,6 +40,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "ayu/ayu_settings.h"
 #include "ayu/ayu_state.h"
+#include "ayu/ui/design/design_system.h"
 #include "data/data_story.h"
 
 
@@ -347,6 +348,7 @@ void Controller::firstShow() {
 
 void Controller::finishFirstShow() {
 	_widget.finishFirstShow();
+	AyuDesign::ApplyWindowOpacity(&_widget);
 	checkThemeEditor();
 }
 

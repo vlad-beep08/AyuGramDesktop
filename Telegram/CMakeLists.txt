@@ -145,6 +145,12 @@ set(ayugram_files
         ayu/ui/settings/settings_appearance.h
         ayu/ui/settings/settings_ayu_utils.cpp
         ayu/ui/settings/settings_ayu_utils.h
+        ayu/ui/design/design_system.cpp
+        ayu/ui/design/design_system.h
+        ayu/ui/design/design_themes.cpp
+        ayu/ui/design/design_themes.h
+        ayu/ui/design/design_widgets.cpp
+        ayu/ui/design/design_widgets.h
         ayu/ui/settings/settings_chats.cpp
         ayu/ui/settings/settings_chats.h
         ayu/ui/settings/settings_general.cpp

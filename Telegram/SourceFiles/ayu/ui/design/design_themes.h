@@ -1,0 +1,22 @@
+// This is the source code of AyuGram for Desktop.
+//
+// We do not and cannot prevent the use of our code,
+// but be respectful and credit the original author.
+//
+// Copyright @Radolyn, 2026
+#pragma once
+
+namespace AyuDesign {
+
+struct ThemeInfo {
+	QString id;
+	QString title;
+	QString path;
+	std::vector<QColor> swatches;
+};
+
+[[nodiscard]] std::vector<ThemeInfo> Themes();
+[[nodiscard]] QString CurrentThemeId();
+bool ApplyTheme(const QString &id);
+
+} // namespace AyuDesign

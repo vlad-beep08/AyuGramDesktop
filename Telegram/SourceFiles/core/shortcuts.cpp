@@ -524,6 +524,14 @@ void Manager::fillDefaults() {
 		set(u"%1+%2"_q.arg(ctrl).arg(index), command);
 	}
 
+	auto &&altFolders = ranges::views::zip(
+		kShowFolder,
+		ranges::views::ints(1, ranges::unreachable));
+	for (const auto &[command, index] : altFolders) {
+		set(u"alt+%1"_q.arg(index), command);
+	}
+	set(u"alt+9"_q, Command::ChatSelf);
+
 	set(u"%1+shift+down"_q.arg(ctrl), Command::FolderNext);
 	set(u"%1+shift+up"_q.arg(ctrl), Command::FolderPrevious);
 

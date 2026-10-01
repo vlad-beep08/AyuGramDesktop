@@ -109,6 +109,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/features/streamer_mode/streamer_mode.h"
 #include "ayu/features/command_palette/command_palette.h"
 #include "ayu/features/hidden_chats/hidden_chats.h"
+#include "ayu/ui/design/design_system.h"
 
 
 namespace Core {
@@ -307,6 +308,7 @@ void Application::run() {
 
 	AyuInfra::init();
 	style::StartManager(cScale());
+	AyuDesign::ApplyStyleOverrides();
 	Ui::Accessible::Init();
 	Ui::InitTextOptions();
 	Ui::StartCachedCorners();
@@ -1912,6 +1914,7 @@ void Application::refreshApplicationIcon(Main::Session *session) {
 
 void Application::startShortcuts() {
 	Shortcuts::Start();
+	AyuFeatures::CommandPalette::InstallGlobalHotkey();
 
 	_domain->activeSessionChanges(
 	) | rpl::on_next([=](Main::Session *session) {

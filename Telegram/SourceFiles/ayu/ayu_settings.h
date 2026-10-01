@@ -296,6 +296,11 @@ public:
 	[[nodiscard]] bool showQuickPhraseButton() const { return _showQuickPhraseButton.current(); }
 	[[nodiscard]] const QString &alertKeywords() const { return _alertKeywords.current(); }
 	[[nodiscard]] int selfDestructSeconds() const { return _selfDestructSeconds.current(); }
+	[[nodiscard]] int designDensity() const { return _designDensity.current(); }
+	[[nodiscard]] int designCorners() const { return _designCorners.current(); }
+	[[nodiscard]] int designMotion() const { return _designMotion.current(); }
+	[[nodiscard]] int windowOpacity() const { return _windowOpacity.current(); }
+	[[nodiscard]] const QString &designTheme() const { return _designTheme.current(); }
 	[[nodiscard]] bool removeMessageTail() const { return _removeMessageTail.current(); }
 	[[nodiscard]] bool disableNotificationsDelay() const { return _disableNotificationsDelay.current(); }
 	[[nodiscard]] bool localPremium() const { return _localPremium.current(); }
@@ -385,6 +390,11 @@ public:
 	void setShowQuickPhraseButton(bool val);
 	void setAlertKeywords(const QString &val);
 	void setSelfDestructSeconds(int val);
+	void setDesignDensity(int val);
+	void setDesignCorners(int val);
+	void setDesignMotion(int val);
+	void setWindowOpacity(int val);
+	void setDesignTheme(const QString &val);
 	void setDisableOpenLinkWarning(bool val);
 	void setWideMultiplier(double val);
 	void setSpoofWebviewAsAndroid(bool val);
@@ -507,6 +517,10 @@ public:
 	[[nodiscard]] rpl::producer<bool> confirmAllLinksValue() const { return _confirmAllLinks.value(); }
 	[[nodiscard]] rpl::producer<bool> showQuickPhraseButtonChanges() const { return _showQuickPhraseButton.changes(); }
 	[[nodiscard]] rpl::producer<bool> showQuickPhraseButtonValue() const { return _showQuickPhraseButton.value(); }
+	[[nodiscard]] rpl::producer<int> designDensityValue() const { return _designDensity.value(); }
+	[[nodiscard]] rpl::producer<int> designCornersValue() const { return _designCorners.value(); }
+	[[nodiscard]] rpl::producer<int> designMotionValue() const { return _designMotion.value(); }
+	[[nodiscard]] rpl::producer<int> windowOpacityValue() const { return _windowOpacity.value(); }
 	[[nodiscard]] rpl::producer<bool> materialSwitchesChanges() const { return _materialSwitches.changes(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailValue() const { return _removeMessageTail.value(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailChanges() const { return _removeMessageTail.changes(); }
@@ -676,6 +690,11 @@ private:
 	rpl::variable<bool> _showQuickPhraseButton = true;
 	rpl::variable<QString> _alertKeywords;
 	rpl::variable<int> _selfDestructSeconds = 30;
+	rpl::variable<int> _designDensity = 1;
+	rpl::variable<int> _designCorners = 0;
+	rpl::variable<int> _designMotion = 0;
+	rpl::variable<int> _windowOpacity = 100;
+	rpl::variable<QString> _designTheme;
 	rpl::variable<bool> _removeMessageTail = false;
 	rpl::variable<bool> _disableNotificationsDelay = false;
 	rpl::variable<bool> _localPremium = false;

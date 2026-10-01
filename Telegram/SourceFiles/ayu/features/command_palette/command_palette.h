@@ -13,5 +13,6 @@ class SessionController;
 namespace AyuFeatures::CommandPalette {
 
 void Show(not_null<Window::SessionController*> controller);
+void InstallGlobalHotkey();
 
 } // namespace AyuFeatures::CommandPalette

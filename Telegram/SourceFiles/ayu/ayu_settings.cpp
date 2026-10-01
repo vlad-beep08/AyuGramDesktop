@@ -518,6 +518,10 @@ void AyuSettings::validate() {
 	validateRange(_messageBubbleRadius, 0, 16, defaults._messageBubbleRadius);
 	validateRange(_undoSendDelay, 0, 10, defaults._undoSendDelay);
 	validateRange(_selfDestructSeconds, 5, 86400, defaults._selfDestructSeconds);
+	validateRange(_designDensity, 0, 2, defaults._designDensity);
+	validateRange(_designCorners, 0, 3, defaults._designCorners);
+	validateRange(_designMotion, 0, 2, defaults._designMotion);
+	validateRange(_windowOpacity, 50, 100, defaults._windowOpacity);
 	validateRange(_wideMultiplier, 0.5, 4.0, defaults._wideMultiplier);
 	validateRange(_avatarCorners, 0, AyuUiSettings::kMaxAvatarCorners, defaults._avatarCorners);
 
@@ -690,6 +694,36 @@ void AyuSettings::setAlertKeywords(const QString &val) {
 void AyuSettings::setSelfDestructSeconds(int val) {
 	if (_selfDestructSeconds.current() == val) return;
 	_selfDestructSeconds = val;
+	save();
+}
+
+void AyuSettings::setDesignDensity(int val) {
+	if (_designDensity.current() == val) return;
+	_designDensity = val;
+	save();
+}
+
+void AyuSettings::setDesignCorners(int val) {
+	if (_designCorners.current() == val) return;
+	_designCorners = val;
+	save();
+}
+
+void AyuSettings::setDesignMotion(int val) {
+	if (_designMotion.current() == val) return;
+	_designMotion = val;
+	save();
+}
+
+void AyuSettings::setWindowOpacity(int val) {
+	if (_windowOpacity.current() == val) return;
+	_windowOpacity = val;
+	save();
+}
+
+void AyuSettings::setDesignTheme(const QString &val) {
+	if (_designTheme.current() == val) return;
+	_designTheme = val;
 	save();
 }
 
@@ -1158,6 +1192,11 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"showQuickPhraseButton", s._showQuickPhraseButton.current()},
 		{"alertKeywords", s._alertKeywords.current()},
 		{"selfDestructSeconds", s._selfDestructSeconds.current()},
+		{"designDensity", s._designDensity.current()},
+		{"designCorners", s._designCorners.current()},
+		{"designMotion", s._designMotion.current()},
+		{"windowOpacity", s._windowOpacity.current()},
+		{"designTheme", s._designTheme.current()},
 		{"removeMessageTail", s._removeMessageTail.current()},
 		{"disableNotificationsDelay", s._disableNotificationsDelay.current()},
 		{"localPremium", s._localPremium.current()},
@@ -1270,6 +1309,11 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._showQuickPhraseButton = j.value("showQuickPhraseButton", defaults._showQuickPhraseButton.current());
 	s._alertKeywords = j.value("alertKeywords", defaults._alertKeywords.current());
 	s._selfDestructSeconds = j.value("selfDestructSeconds", defaults._selfDestructSeconds.current());
+	s._designDensity = j.value("designDensity", defaults._designDensity.current());
+	s._designCorners = j.value("designCorners", defaults._designCorners.current());
+	s._designMotion = j.value("designMotion", defaults._designMotion.current());
+	s._windowOpacity = j.value("windowOpacity", defaults._windowOpacity.current());
+	s._designTheme = j.value("designTheme", defaults._designTheme.current());
 	s._removeMessageTail = j.value("removeMessageTail", defaults._removeMessageTail.current());
 	s._disableNotificationsDelay = j.value("disableNotificationsDelay", defaults._disableNotificationsDelay.current());
 	s._localPremium = j.value("localPremium", defaults._localPremium.current());
