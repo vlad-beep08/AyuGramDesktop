@@ -51,6 +51,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_settings.h"
+#include "ayu/ui/design/design_system.h"
+#include "ui/image/image_prepare.h"
+#include "ui/painter.h"
+#include "window/section_widget.h"
 
 
 namespace Window {
@@ -131,6 +135,10 @@ void FiltersMenu::setup() {
 	_outer.paintRequest(
 	) | rpl::on_next([=](QRect clip) {
 		auto p = QPainter(&_outer);
+		if (AyuDesign::WebLayout()) {
+			paintWebBackground(p, clip);
+			return;
+		}
 		p.setPen(Qt::NoPen);
 		p.setBrush(st::windowFiltersButton.textBg);
 		p.drawRect(clip);
@@ -140,11 +148,18 @@ void FiltersMenu::setup() {
 	) | rpl::on_next([=](int height) {
 		const auto width = st::windowFiltersWidth;
 		_outer.setGeometry({ 0, 0, width, height });
-		_menu.resizeToWidth(width);
-		_menu.move(0, 0);
-		_scroll.setGeometry(
-			{ 0, _menu.height(), width, height - _menu.height() });
-		_container->resizeToWidth(width);
+		const auto inner = AyuDesign::WebLayout()
+			? webIsland()
+			: QRect(0, 0, width, height);
+		_menu.resizeToWidth(inner.width());
+		_menu.move(inner.x(), inner.y());
+		_scroll.setGeometry({
+			inner.x(),
+			inner.y() + _menu.height(),
+			inner.width(),
+			inner.height() - _menu.height(),
+		});
+		_container->resizeToWidth(inner.width());
 		_container->move(0, 0);
 	}, _outer.lifetime());
 
@@ -178,6 +193,9 @@ void FiltersMenu::setup() {
 			scrollToButton(j->second);
 		}
 		_reorder->finishReordering();
+		if (AyuDesign::WebLayout()) {
+			_outer.update();
+		}
 	}, _outer.lifetime());
 
 	_menu.setClickedCallback([=] {
@@ -243,6 +261,86 @@ void FiltersMenu::setupMainMenuIcon() {
 
 		_menu.setIconOverride(icon, icon);
 	}, _outer.lifetime());
+}
+
+QRect FiltersMenu::webIsland() const {
+	return AyuDesign::WebFiltersIsland(_outer.size());
+}
+
+void FiltersMenu::paintWebBackground(QPainter &p, QRect clip) {
+	SectionWidget::PaintBackground(
+		p,
+		_session->currentChatTheme(),
+		_parent->size(),
+		clip,
+		_session->isGifPausedAtLeastFor(GifPauseReason::Any));
+	const auto island = webIsland();
+	if (island.isEmpty() || !island.intersects(clip)) {
+		return;
+	}
+	validateWebCache(island);
+	p.drawImage(island.topLeft(), _webCache);
+
+	const auto i = _filters.find(_activeFilterId);
+	if (i == end(_filters) || !i->second || i->second->isHidden()) {
+		return;
+	}
+	const auto button = i->second.get();
+	const auto inset = AyuDesign::WebHeaderPadding();
+	const auto pill = QRect(
+		button->mapTo(&_outer, QPoint()),
+		button->size()
+	).marginsRemoved({ inset, 0, inset, 0 });
+	const auto radius = AyuDesign::WebComposerRadius() - inset;
+	p.save();
+	p.setClipRect(_scroll.geometry());
+	auto hq = PainterHighQualityEnabler(p);
+	p.setPen(Qt::NoPen);
+	p.setBrush(QColor(255, 255, 255, 38));
+	p.drawRoundedRect(pill, radius, radius);
+	p.restore();
+}
+
+void FiltersMenu::validateWebCache(QRect island) {
+	const auto ratio = style::DevicePixelRatio();
+	const auto generation = AyuDesign::BackdropGeneration();
+	if (_webCache.size() == island.size() * ratio
+		&& _webCacheGeneration == generation) {
+		return;
+	}
+	_webCacheGeneration = generation;
+	auto image = QImage(
+		island.size() * ratio,
+		QImage::Format_ARGB32_Premultiplied);
+	image.setDevicePixelRatio(ratio);
+	image.fill(Qt::black);
+	{
+		auto q = QPainter(&image);
+		q.translate(-island.topLeft());
+		SectionWidget::PaintBackground(
+			q,
+			_session->currentChatTheme(),
+			_parent->size(),
+			island);
+	}
+	image = Images::BlurLargeImage(
+		std::move(image),
+		AyuDesign::WebBlurRadius() * ratio);
+	image.setDevicePixelRatio(ratio);
+	{
+		auto q = QPainter(&image);
+		const auto area = QRectF(QPointF(), QSizeF(island.size()));
+		q.fillRect(area, QColor(0, 0, 0, 51));
+		auto hq = PainterHighQualityEnabler(q);
+		const auto radius = AyuDesign::IslandRadius();
+		auto outside = QPainterPath();
+		outside.addRect(area);
+		auto inside = QPainterPath();
+		inside.addRoundedRect(area, radius, radius);
+		q.setCompositionMode(QPainter::CompositionMode_Clear);
+		q.fillPath(outside.subtracted(inside), Qt::black);
+	}
+	_webCache = std::move(image);
 }
 
 void FiltersMenu::scrollToButton(not_null<Ui::RpWidget*> widget) {
@@ -425,7 +523,7 @@ void FiltersMenu::refresh() {
 	}
 	_reorder->start();
 
-	_container->resizeToWidth(_outer.width());
+	_container->resizeToWidth(_scroll.width());
 
 	// After the filters are refreshed, the scroll is reset,
 	// so we have to restore it.

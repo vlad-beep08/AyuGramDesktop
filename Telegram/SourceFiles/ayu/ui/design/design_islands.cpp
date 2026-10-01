@@ -15,29 +15,39 @@ namespace AyuDesign {
 namespace {
 
 constexpr auto kShadowLayers = 4;
-constexpr auto kShadowOpacity = 0.06;
+constexpr auto kIslandShadowOpacity = 0.06;
+constexpr auto kPillShadowOpacity = 0.1;
 
 } // namespace
 
-void PaintIslandShadow(QPainter &p, QRect island) {
-	if (island.isEmpty()) {
+void PaintSoftShadow(
+		QPainter &p,
+		QRect rect,
+		int radius,
+		float64 opacity) {
+	if (rect.isEmpty()) {
 		return;
 	}
 	auto hq = PainterHighQualityEnabler(p);
-	const auto radius = float64(IslandRadius());
 	p.setBrush(Qt::NoBrush);
 	for (auto layer = 0; layer != kShadowLayers; ++layer) {
 		const auto spread = layer + 0.5;
 		auto color = QColor(0, 0, 0);
-		color.setAlphaF(kShadowOpacity
-			* (kShadowLayers - layer)
-			/ kShadowLayers);
+		color.setAlphaF(opacity * (kShadowLayers - layer) / kShadowLayers);
 		p.setPen(QPen(color, 1.));
 		p.drawRoundedRect(
-			QRectF(island).adjusted(-spread, 1. - spread, spread, 1. + spread),
+			QRectF(rect).adjusted(-spread, 1. - spread, spread, 1. + spread),
 			radius + spread,
 			radius + spread);
 	}
+}
+
+void PaintIslandShadow(QPainter &p, QRect island) {
+	PaintSoftShadow(p, island, IslandRadius(), kIslandShadowOpacity);
+}
+
+void PaintPillShadow(QPainter &p, QRect pill, int radius) {
+	PaintSoftShadow(p, pill, radius, kPillShadowOpacity);
 }
 
 IslandCorners::IslandCorners(
@@ -71,6 +81,13 @@ void IslandCorners::setVisible(bool visible) {
 	}
 	_visible = visible;
 	updateGeometry();
+}
+
+void IslandCorners::bindVisibility(not_null<Ui::RpWidget*> target) {
+	target->shownValue(
+	) | rpl::on_next([=](bool shown) {
+		setVisible(shown);
+	}, _lifetime);
 }
 
 void IslandCorners::raise() {

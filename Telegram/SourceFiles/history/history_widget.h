@@ -564,6 +564,12 @@ private:
 	// like send button, emoji button and others.
 	void moveFieldControls();
 	void updateFieldSize();
+	[[nodiscard]] int composeLeft() const;
+	[[nodiscard]] int composeWidth() const;
+	[[nodiscard]] int composeBottomSkip() const;
+	[[nodiscard]] std::vector<QWidget*> composeButtons() const;
+	void updateComposeMasks();
+	void paintComposeFrames(Painter &p);
 	void initAiButton();
 	void updateAiButtonVisibility();
 	void updateAiButtonGeometry();

@@ -88,6 +88,17 @@ enum class State {
 [[nodiscard]] int IslandRadius();
 [[nodiscard]] int WebRowInset();
 [[nodiscard]] int WebRowRadius();
+[[nodiscard]] int WebColumnWidth(int available);
+[[nodiscard]] int WebHeaderGap();
+[[nodiscard]] int WebHeaderPadding();
+[[nodiscard]] int WebComposerBottom();
+[[nodiscard]] int WebComposerGap();
+[[nodiscard]] int WebComposerRadius();
+[[nodiscard]] QRegion RoundedRegion(QSize size, int radius);
+[[nodiscard]] QRect WebFiltersIsland(QSize column);
+[[nodiscard]] int WebBlurRadius();
+[[nodiscard]] int BackdropGeneration();
+void BumpBackdropGeneration();
 [[nodiscard]] QImage WebRowRippleMask(QSize size);
 void PaintWebRowHighlight(QPainter &p, QRect row, const QBrush &brush);
 

@@ -20,6 +20,7 @@
 #include "styles/style_dialogs.h"
 #include "styles/style_layers.h"
 #include "styles/style_widgets.h"
+#include "styles/style_window.h"
 
 namespace AyuDesign {
 namespace {
@@ -36,8 +37,17 @@ constexpr auto kWebRowRadius = 16;
 constexpr auto kWebRowPadding = 9;
 constexpr auto kWebRowPhotoSkip = 8;
 constexpr auto kWebSearchHeight = 42;
+constexpr auto kWebColumnMaxWidth = 728;
+constexpr auto kWebColumnMinWidth = 240;
+constexpr auto kWebHeaderGap = 8;
+constexpr auto kWebHeaderPadding = 4;
+constexpr auto kWebComposerGap = 8;
+constexpr auto kWebComposerRadius = 24;
+constexpr auto kWebFiltersWidth = 104;
+constexpr auto kWebBlurRadius = 25;
 
 auto AppliedLayout = Layout::Classic;
+auto BackdropGenerationValue = 0;
 
 struct RadiusSet {
 	int small = 0;
@@ -138,6 +148,18 @@ void ApplyWebLayout() {
 	search.border = Scaled(2);
 	search.borderActive = Scaled(2);
 	search.borderFgActive = st::activeLineFg;
+
+	static const auto transparent = style::owned_color(QColor(0, 0, 0, 0));
+	Mutable(st::windowFiltersWidth) = Scaled(kWebFiltersWidth);
+	for (const auto button : {
+			&st::windowFiltersButton,
+			&st::windowFiltersButtonTextOnly,
+			&st::windowFiltersButtonIconsOnly,
+			&st::windowFiltersMainMenu }) {
+		auto &mutableButton = Mutable(*button);
+		mutableButton.textBg = transparent.color();
+		mutableButton.textBgActive = transparent.color();
+	}
 }
 
 void ApplyCorners() {
@@ -208,6 +230,60 @@ int WebRowInset() {
 
 int WebRowRadius() {
 	return Scaled(kWebRowRadius);
+}
+
+int WebColumnWidth(int available) {
+	const auto inner = available - 2 * IslandMargin();
+	const auto minimal = std::min(Scaled(kWebColumnMinWidth), available);
+	return std::clamp(inner, minimal, Scaled(kWebColumnMaxWidth));
+}
+
+int WebHeaderGap() {
+	return Scaled(kWebHeaderGap);
+}
+
+int WebHeaderPadding() {
+	return Scaled(kWebHeaderPadding);
+}
+
+int WebComposerBottom() {
+	return IslandMargin();
+}
+
+int WebComposerGap() {
+	return Scaled(kWebComposerGap);
+}
+
+int WebComposerRadius() {
+	return Scaled(kWebComposerRadius);
+}
+
+QRect WebFiltersIsland(QSize column) {
+	const auto margin = IslandMargin();
+	return QRect(
+		margin,
+		margin,
+		column.width() - margin - margin / 2,
+		column.height() - 2 * margin);
+}
+
+int WebBlurRadius() {
+	return Scaled(kWebBlurRadius);
+}
+
+int BackdropGeneration() {
+	return BackdropGenerationValue;
+}
+
+void BumpBackdropGeneration() {
+	++BackdropGenerationValue;
+}
+
+QRegion RoundedRegion(QSize size, int radius) {
+	auto path = QPainterPath();
+	const auto limited = std::min({ radius, size.width() / 2, size.height() / 2 });
+	path.addRoundedRect(QRectF(QPointF(), QSizeF(size)), limited, limited);
+	return QRegion(path.toFillPolygon().toPolygon());
 }
 
 QImage WebRowRippleMask(QSize size) {

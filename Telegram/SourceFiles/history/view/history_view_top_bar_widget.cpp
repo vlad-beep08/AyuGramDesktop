@@ -73,6 +73,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_settings.h"
+#include "ayu/ui/design/design_system.h"
 #include "boxes/peers/edit_participants_box.h"
 #include "data/data_chat_filters.h"
 #include "history/admin_log/history_admin_log_section.h"
@@ -545,7 +546,15 @@ void TopBarWidget::paintEvent(QPaintEvent *e) {
 		: -st::topBarHeight;
 	const auto slidingTop = std::max(selectedButtonsTop, searchFieldTop);
 
-	p.fillRect(QRect(0, 0, width(), st::topBarHeight), st::topBarBg);
+	if (_pill) {
+		auto hq = PainterHighQualityEnabler(p);
+		const auto radius = height() / 2.;
+		p.setPen(Qt::NoPen);
+		p.setBrush(st::topBarBg);
+		p.drawRoundedRect(rect(), radius, radius);
+	} else {
+		p.fillRect(QRect(0, 0, width(), st::topBarHeight), st::topBarBg);
+	}
 	if (slidingTop < 0) {
 		p.translate(0, slidingTop + st::topBarHeight);
 		paintTopBar(p);
@@ -1038,6 +1047,16 @@ void TopBarWidget::setCustomTitle(const QString &title) {
 	}
 }
 
+void TopBarWidget::setPillMode(bool pill) {
+	if (_pill == pill) {
+		return;
+	}
+	_pill = pill;
+	updateInfoButtonVisibility();
+	updateControlsGeometry();
+	update();
+}
+
 void TopBarWidget::setTitleShownRatio(float64 shown) {
 	if (_titleShownRatio != shown) {
 		_titleShownRatio = shown;
@@ -1148,7 +1167,9 @@ void TopBarWidget::updateInfoButtonVisibility() {
 	}
 	const auto shown = (communityChatsListBar() && !rootChatsListBar())
 		? communityUserpicShown()
-		: (_controller->adaptive().isOneColumn() || !_primaryWindow);
+		: (_pill
+			|| _controller->adaptive().isOneColumn()
+			|| !_primaryWindow);
 	_info->setVisible(!_chooseForReportReason && shown);
 }
 
@@ -1243,7 +1264,9 @@ void TopBarWidget::updateControlsGeometry() {
 		_cancelChoose->moveToLeft(_leftTaken, otherButtonsTop);
 		_leftTaken += _cancelChoose->width();
 	} else if (_back->isHidden()) {
-		_leftTaken = st::topBarArrowPadding.right();
+		_leftTaken = (_pill && _info && !_info->isHidden())
+			? AyuDesign::WebHeaderPadding()
+			: st::topBarArrowPadding.right();
 	} else {
 		_leftTaken = anim::interpolate(
 			0,

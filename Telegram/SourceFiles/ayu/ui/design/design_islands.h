@@ -14,7 +14,13 @@ class RpWidget;
 
 namespace AyuDesign {
 
+void PaintSoftShadow(
+	QPainter &p,
+	QRect rect,
+	int radius,
+	float64 opacity);
 void PaintIslandShadow(QPainter &p, QRect island);
+void PaintPillShadow(QPainter &p, QRect pill, int radius);
 
 class IslandCorners final {
 public:
@@ -25,6 +31,7 @@ public:
 
 	void setIsland(QRect island);
 	void setVisible(bool visible);
+	void bindVisibility(not_null<Ui::RpWidget*> target);
 	void raise();
 	void refresh();
 
@@ -41,6 +48,7 @@ private:
 	std::array<Corner, 4> _corners;
 	QRect _island;
 	bool _visible = true;
+	rpl::lifetime _lifetime;
 
 };
 

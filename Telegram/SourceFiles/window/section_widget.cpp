@@ -347,10 +347,12 @@ void SectionWidget::PaintBackground(
 		not_null<QWidget*> widget,
 		QRect clip) {
 	const auto content = controller->content();
+	const auto canvas = content->parentWidget();
 	const auto shared = AyuDesign::WebLayout()
+		&& canvas
 		&& (widget->parentWidget() == content.get());
 	const auto fill = shared
-		? content->size()
+		? canvas->size()
 		: QSize(widget->width(), content->height());
 	if (const auto id = theme->background().giftId) {
 		const auto &state = theme->backgroundState(fill);
@@ -374,7 +376,7 @@ void SectionWidget::PaintBackground(
 		GifPauseReason::Any);
 	if (shared) {
 		auto p = QPainter(widget);
-		const auto shift = widget->pos();
+		const auto shift = widget->mapTo(canvas, QPoint());
 		p.translate(-shift);
 		PaintBackground(p, theme, fill, clip.translated(shift), paused);
 		return;

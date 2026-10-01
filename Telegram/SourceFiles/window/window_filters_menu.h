@@ -72,6 +72,9 @@ private:
 	[[nodiscard]] bool listFocused() const;
 	void openFiltersSettings();
 	void setupDragAndDrop();
+	[[nodiscard]] QRect webIsland() const;
+	void paintWebBackground(QPainter &p, QRect clip);
+	void validateWebCache(QRect island);
 
 	const not_null<SessionController*> _session;
 	const not_null<Ui::RpWidget*> _parent;
@@ -100,6 +103,8 @@ private:
 	} _drag;
 
 	Ui::Animations::Simple _scrollToAnimation;
+	QImage _webCache;
+	int _webCacheGeneration = -1;
 
 };
 

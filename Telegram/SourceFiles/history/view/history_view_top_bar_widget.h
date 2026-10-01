@@ -82,6 +82,7 @@ public:
 		ActiveChat activeChat,
 		SendActionPainter *sendAction);
 	void setCustomTitle(const QString &title);
+	void setPillMode(bool pill);
 	void setTitleShownRatio(float64 shown);
 	[[nodiscard]] int titleLeft() const;
 
@@ -270,6 +271,7 @@ private:
 	Ui::Text::String _titlePeerText;
 	bool _titlePeerTextOnline = false;
 	int _leftTaken = 0;
+	bool _pill = false;
 	int _rightTaken = 0;
 	float64 _titleShownRatio = 1.;
 	bool _animatingMode = false;
