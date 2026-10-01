@@ -41,6 +41,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/ayu_settings.h"
 #include "ayu/features/filters/filters_controller.h"
 #include "ayu/ui/ayu_userpic.h"
+#include "ayu/ui/design/design_system.h"
 
 
 namespace Dialogs {
@@ -292,7 +293,9 @@ void BasicRow::addRipple(
 	if (!_ripple) {
 		addRippleWithMask(
 			origin,
-			Ui::RippleAnimation::RectMask(size),
+			(AyuDesign::WebLayout()
+				? AyuDesign::WebRowRippleMask(size)
+				: Ui::RippleAnimation::RectMask(size)),
 			std::move(updateCallback));
 	} else {
 		_ripple->add(origin);

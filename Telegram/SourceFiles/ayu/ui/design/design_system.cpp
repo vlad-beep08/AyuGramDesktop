@@ -11,6 +11,8 @@
 #include "core/application.h"
 #include "mainwindow.h"
 #include "ui/chat/chat_style_radius.h"
+#include "ui/effects/ripple_animation.h"
+#include "ui/painter.h"
 #include "ui/power_saving.h"
 #include "ui/style/style_core_scale.h"
 #include "window/window_controller.h"
@@ -27,6 +29,15 @@ constexpr auto kMaxWindowOpacity = 100;
 constexpr auto kSelectedAccentMix = 0.12;
 constexpr auto kDisabledAccentMix = 0.5;
 constexpr auto kDangerSurfaceMix = 0.08;
+constexpr auto kIslandMargin = 16;
+constexpr auto kIslandRadius = 24;
+constexpr auto kWebRowInset = 8;
+constexpr auto kWebRowRadius = 16;
+constexpr auto kWebRowPadding = 9;
+constexpr auto kWebRowPhotoSkip = 8;
+constexpr auto kWebSearchHeight = 42;
+
+auto AppliedLayout = Layout::Classic;
 
 struct RadiusSet {
 	int small = 0;
@@ -92,6 +103,43 @@ void ApplyDensity() {
 	Mutable(st::dialogsRowHeight) = row.height;
 }
 
+[[nodiscard]] RowMetrics WebRowMetrics() {
+	switch (CurrentDensity()) {
+	case Density::Compact: return { 60, 44, 8, 11, 33 };
+	case Density::Comfortable: return { 80, 60, 10, 18, 44 };
+	case Density::Normal: break;
+	}
+	return { 72, 54, kWebRowPadding, 15, 39 };
+}
+
+void ApplyWebLayout() {
+	if (AppliedLayout != Layout::WebA) {
+		return;
+	}
+	const auto metrics = WebRowMetrics();
+	const auto side = Scaled(kWebRowInset + kWebRowPadding);
+	auto &row = Mutable(st::defaultDialogRow);
+	row.height = Scaled(metrics.height);
+	row.photoSize = Scaled(metrics.photo);
+	row.padding = QMargins(
+		side,
+		Scaled(metrics.padding),
+		side,
+		Scaled(metrics.padding));
+	row.nameLeft = side + row.photoSize + Scaled(kWebRowPhotoSkip);
+	row.textLeft = row.nameLeft;
+	row.nameTop = Scaled(metrics.nameTop);
+	row.textTop = Scaled(metrics.textTop);
+	Mutable(st::dialogsRowHeight) = row.height;
+
+	auto &search = Mutable(st::dialogsFilter);
+	search.heightMin = Scaled(kWebSearchHeight);
+	search.borderRadius = search.heightMin / 2;
+	search.border = Scaled(2);
+	search.borderActive = Scaled(2);
+	search.borderFgActive = st::activeLineFg;
+}
+
 void ApplyCorners() {
 	const auto corners = CurrentCorners();
 	if (corners == Corners::Telegram) {
@@ -133,6 +181,55 @@ Motion CurrentMotion() {
 	return (value >= 0 && value <= 2)
 		? Motion(value)
 		: Motion::Full;
+}
+
+Layout CurrentLayout() {
+	const auto value = AyuSettings::getInstance().designLayout();
+	return (value == int(Layout::Classic))
+		? Layout::Classic
+		: Layout::WebA;
+}
+
+bool WebLayout() {
+	return (AppliedLayout == Layout::WebA);
+}
+
+int IslandMargin() {
+	return Scaled(kIslandMargin);
+}
+
+int IslandRadius() {
+	return Scaled(kIslandRadius);
+}
+
+int WebRowInset() {
+	return Scaled(kWebRowInset);
+}
+
+int WebRowRadius() {
+	return Scaled(kWebRowRadius);
+}
+
+QImage WebRowRippleMask(QSize size) {
+	const auto radius = WebRowRadius();
+	const auto inset = WebRowInset();
+	return Ui::RippleAnimation::MaskByDrawer(size, false, [&](QPainter &p) {
+		p.drawRoundedRect(
+			QRect(QPoint(), size).marginsRemoved({ inset, 0, inset, 0 }),
+			radius,
+			radius);
+	});
+}
+
+void PaintWebRowHighlight(QPainter &p, QRect row, const QBrush &brush) {
+	auto hq = PainterHighQualityEnabler(p);
+	const auto radius = WebRowRadius();
+	p.setPen(Qt::NoPen);
+	p.setBrush(brush);
+	p.drawRoundedRect(
+		row.marginsRemoved({ WebRowInset(), 0, WebRowInset(), 0 }),
+		radius,
+		radius);
 }
 
 int RadiusPx(Radius radius) {
@@ -292,7 +389,9 @@ QColor Foreground(Role role, State state) {
 }
 
 void ApplyStyleOverrides() {
+	AppliedLayout = CurrentLayout();
 	ApplyDensity();
+	ApplyWebLayout();
 	ApplyCorners();
 }
 

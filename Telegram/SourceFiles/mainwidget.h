@@ -97,6 +97,10 @@ namespace Core {
 class Changelogs;
 } // namespace Core
 
+namespace AyuDesign {
+class IslandCorners;
+} // namespace AyuDesign
+
 extern const char kForceComposeSearchOneColumn[];
 
 class MainWidget final
@@ -311,6 +315,10 @@ private:
 		not_null<const HistoryItem*> item) override;
 
 	void refreshResizeAreas();
+	void setupIslands();
+	void updateIslands(int dialogsWidth);
+	void paintIslandBackdrop(QPainter &p, QRect clip);
+	void refreshIslandBackdrop();
 	template <typename MoveCallback, typename FinishCallback>
 	void createResizeArea(
 		object_ptr<Ui::ResizeArea> &area,
@@ -380,6 +388,9 @@ private:
 
 	struct SettingBackground;
 	std::unique_ptr<SettingBackground> _background;
+
+	std::unique_ptr<AyuDesign::IslandCorners> _dialogsCorners;
+	QRect _dialogsIsland;
 
 	// _changelogs depends on _data, subscribes on chats loading event.
 	const std::unique_ptr<Core::Changelogs> _changelogs;

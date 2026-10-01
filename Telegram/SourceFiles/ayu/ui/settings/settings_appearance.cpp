@@ -95,6 +95,20 @@ void BuildDesign(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 	builder.addSkip();
 
 	ayu.addChooseButton({
+		.id = u"ayu/designLayout"_q,
+		.title = tr::ayu_DesignLayout(),
+		.boxTitle = tr::ayu_DesignLayout(),
+		.initialSelection = settings->designLayout(),
+		.options = {
+			tr::ayu_DesignLayoutWeb(tr::now),
+			tr::ayu_DesignLayoutClassic(tr::now),
+		},
+		.setter = [=](int index) {
+			AyuSettings::getInstance().setDesignLayout(index);
+			ShowRestartPrompt(controller);
+		},
+	});
+	ayu.addChooseButton({
 		.id = u"ayu/designDensity"_q,
 		.title = tr::ayu_DesignDensity(),
 		.boxTitle = tr::ayu_DesignDensity(),

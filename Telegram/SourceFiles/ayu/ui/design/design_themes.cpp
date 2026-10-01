@@ -8,19 +8,48 @@
 
 #include "lang_auto.h"
 #include "ayu/ayu_settings.h"
+#include "data/data_wall_paper.h"
 #include "window/themes/window_theme.h"
 
 namespace AyuDesign {
 namespace {
 
+constexpr auto kWebWallPaperIntensity = 38;
+
 [[nodiscard]] QString ThemePath(const QString &id) {
 	return u":/gui/chickengram/themes/%1.tdesktop-theme"_q.arg(id);
+}
+
+void ApplyWallPaper(const ThemeInfo &theme) {
+	if (theme.wallpaper.empty()) {
+		return;
+	}
+	Window::Theme::Background()->set(
+		Data::DefaultWallPaper().withBackgroundColors(
+			theme.wallpaper
+		).withPatternIntensity(theme.wallpaperIntensity));
 }
 
 } // namespace
 
 std::vector<ThemeInfo> Themes() {
 	return {
+		{
+			.id = u"web-light"_q,
+			.title = tr::ayu_DesignThemeWebLight(tr::now),
+			.path = ThemePath(u"web-light"_q),
+			.swatches = { QColor(0xff, 0xff, 0xff), QColor(0x33, 0x90, 0xec), QColor(0xee, 0xff, 0xde) },
+			.wallpaper = { QColor(0xbd, 0xcd, 0x8c), QColor(0x8e, 0xba, 0x89), QColor(0x83, 0xb2, 0x8f), QColor(0xc5, 0xd3, 0xb0) },
+			.wallpaperIntensity = kWebWallPaperIntensity,
+		},
+		{
+			.id = u"web-dark"_q,
+			.title = tr::ayu_DesignThemeWebDark(tr::now),
+			.path = ThemePath(u"web-dark"_q),
+			.swatches = { QColor(0x21, 0x21, 0x21), QColor(0x87, 0x74, 0xe1), QColor(0x76, 0x6a, 0xc8) },
+			.wallpaper = { QColor(0x4f, 0x5b, 0xd5), QColor(0x96, 0x2f, 0xbf), QColor(0xdd, 0x6c, 0xb9), QColor(0xfe, 0xc4, 0x96) },
+			.wallpaperIntensity = -kWebWallPaperIntensity,
+		},
 		{
 			.id = u"dawn"_q,
 			.title = tr::ayu_DesignThemeDawn(tr::now),
@@ -61,6 +90,7 @@ bool ApplyTheme(const QString &id) {
 			return false;
 		}
 		Window::Theme::KeepApplied();
+		ApplyWallPaper(theme);
 		AyuSettings::getInstance().setDesignTheme(id);
 		return true;
 	}

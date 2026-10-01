@@ -8,6 +8,8 @@
         <file alias="art/ayu/chibi/app_icon.ico">../../art/ayu/chibi/app_icon.ico</file>
         <file alias="art/ayu/chibi2/app.png">../../art/ayu/chibi2/app.png</file>
         <file alias="art/ayu/chibi2/app_icon.ico">../../art/ayu/chibi2/app_icon.ico</file>
+        <file alias="chickengram/themes/web-light.tdesktop-theme">../../chickengram/themes/web-light.tdesktop-theme</file>
+        <file alias="chickengram/themes/web-dark.tdesktop-theme">../../chickengram/themes/web-dark.tdesktop-theme</file>
         <file alias="chickengram/themes/dawn.tdesktop-theme">../../chickengram/themes/dawn.tdesktop-theme</file>
         <file alias="chickengram/themes/sunset.tdesktop-theme">../../chickengram/themes/sunset.tdesktop-theme</file>
         <file alias="chickengram/themes/midnight.tdesktop-theme">../../chickengram/themes/midnight.tdesktop-theme</file>

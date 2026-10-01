@@ -41,6 +41,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_settings.h"
+#include "ayu/ui/design/design_system.h"
 
 
 namespace Window {
@@ -345,9 +346,13 @@ void SectionWidget::PaintBackground(
 		not_null<Ui::ChatTheme*> theme,
 		not_null<QWidget*> widget,
 		QRect clip) {
+	const auto content = controller->content();
+	const auto shared = AyuDesign::WebLayout()
+		&& (widget->parentWidget() == content.get());
+	const auto fill = shared
+		? content->size()
+		: QSize(widget->width(), content->height());
 	if (const auto id = theme->background().giftId) {
-		const auto fillHeight = controller->content()->height();
-		const auto fill = QSize(widget->width(), fillHeight);
 		const auto &state = theme->backgroundState(fill);
 		const auto make = [&] {
 			return MakeWrappedEmoji<Ui::Text::LimitedLoopsEmoji>(
@@ -365,13 +370,22 @@ void SectionWidget::PaintBackground(
 		}
 	}
 
+	const auto paused = controller->isGifPausedAtLeastFor(
+		GifPauseReason::Any);
+	if (shared) {
+		auto p = QPainter(widget);
+		const auto shift = widget->pos();
+		p.translate(-shift);
+		PaintBackground(p, theme, fill, clip.translated(shift), paused);
+		return;
+	}
 	PaintBackground(
 		theme,
 		widget,
-		controller->content()->height(),
-		controller->content()->backgroundFromY(),
+		content->height(),
+		content->backgroundFromY(),
 		clip,
-		controller->isGifPausedAtLeastFor(GifPauseReason::Any));
+		paused);
 }
 
 void SectionWidget::PaintBackground(

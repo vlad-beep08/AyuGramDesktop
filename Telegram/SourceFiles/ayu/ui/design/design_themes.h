@@ -13,6 +13,8 @@ struct ThemeInfo {
 	QString title;
 	QString path;
 	std::vector<QColor> swatches;
+	std::vector<QColor> wallpaper;
+	int wallpaperIntensity = 0;
 };
 
 [[nodiscard]] std::vector<ThemeInfo> Themes();

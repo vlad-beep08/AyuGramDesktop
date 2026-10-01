@@ -27,6 +27,11 @@ enum class Motion {
 	Off = 2,
 };
 
+enum class Layout {
+	WebA = 0,
+	Classic = 1,
+};
+
 enum class Radius {
 	Small,
 	Medium,
@@ -76,6 +81,15 @@ enum class State {
 [[nodiscard]] Density CurrentDensity();
 [[nodiscard]] Corners CurrentCorners();
 [[nodiscard]] Motion CurrentMotion();
+[[nodiscard]] Layout CurrentLayout();
+[[nodiscard]] bool WebLayout();
+
+[[nodiscard]] int IslandMargin();
+[[nodiscard]] int IslandRadius();
+[[nodiscard]] int WebRowInset();
+[[nodiscard]] int WebRowRadius();
+[[nodiscard]] QImage WebRowRippleMask(QSize size);
+void PaintWebRowHighlight(QPainter &p, QRect row, const QBrush &brush);
 
 [[nodiscard]] int RadiusPx(Radius radius);
 [[nodiscard]] int SpacePx(Space space);

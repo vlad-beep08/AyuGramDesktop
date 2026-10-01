@@ -53,6 +53,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/features/filters/filters_controller.h"
+#include "ayu/ui/design/design_system.h"
 #include "styles/style_ayu_icons.h"
 
 
@@ -493,7 +494,14 @@ void PaintRow(
 	if (swipeTranslation) {
 		p.translate(-swipeTranslation, 0);
 	}
-	p.fillRect(geometry, bg);
+	if (AyuDesign::WebLayout() && !context.narrow) {
+		p.fillRect(geometry, *context.currentBg);
+		if (context.active || context.selected) {
+			AyuDesign::PaintWebRowHighlight(p, geometry, bg);
+		}
+	} else {
+		p.fillRect(geometry, bg);
+	}
 	if (!(flags & Flag::TopicJumpRipple)) {
 		auto ripple = context.active
 			? st::dialogsRippleBgActive
@@ -1427,9 +1435,22 @@ void PaintCollapsedRow(
 		const QString &text,
 		int unread,
 		const PaintContext &context) {
-	p.fillRect(
-		QRect{ 0, 0, context.width, st::dialogsImportantBarHeight },
-		context.selected ? st::dialogsBgOver : context.currentBg);
+	const auto collapsed = QRect{
+		0,
+		0,
+		context.width,
+		st::dialogsImportantBarHeight,
+	};
+	if (AyuDesign::WebLayout() && !context.narrow) {
+		p.fillRect(collapsed, *context.currentBg);
+		if (context.selected) {
+			AyuDesign::PaintWebRowHighlight(p, collapsed, st::dialogsBgOver);
+		}
+	} else {
+		p.fillRect(
+			collapsed,
+			context.selected ? st::dialogsBgOver : context.currentBg);
+	}
 
 	row.paintRipple(p, 0, 0, context.width);
 

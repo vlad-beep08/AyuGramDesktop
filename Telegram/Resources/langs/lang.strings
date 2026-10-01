@@ -9133,11 +9133,16 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_ShortcutPanic" = "Hide hidden chats instantly";
 "ayu_ShortcutPalette" = "Open Чикенграм commands";
 "ayu_DesignHeader" = "Design";
+"ayu_DesignThemeWebLight" = "Web Light";
+"ayu_DesignThemeWebDark" = "Web Dark";
 "ayu_DesignThemeDawn" = "Dawn";
 "ayu_DesignThemeSunset" = "Sunset";
 "ayu_DesignThemeMidnight" = "Midnight";
 "ayu_DesignThemeGraphite" = "Graphite";
 "ayu_DesignThemesAbout" = "Themes of the new design system. Standard Telegram themes are in Settings → Chat Settings.";
+"ayu_DesignLayout" = "Interface style";
+"ayu_DesignLayoutWeb" = "Telegram Web";
+"ayu_DesignLayoutClassic" = "Classic";
 "ayu_DesignDensity" = "Interface Density";
 "ayu_DesignDensityCompact" = "Compact";
 "ayu_DesignDensityNormal" = "Normal";
@@ -9152,7 +9157,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_DesignMotionReduced" = "Reduced";
 "ayu_DesignMotionOff" = "Off";
 "ayu_DesignWindowOpacity" = "Window Opacity";
-"ayu_DesignAbout" = "Density and corners apply after restart. Window opacity below 100% may slightly increase CPU usage.";
+"ayu_DesignAbout" = "Interface style, density and corners apply after restart. Window opacity below 100% may slightly increase CPU usage.";
 "ayu_ConfirmAllLinks" = "Confirm All External Links";
 "ayu_StripTrackingParameters" = "Remove Tracking From Links";
 "ayu_StripImageMetadata" = "Remove Photo Metadata";

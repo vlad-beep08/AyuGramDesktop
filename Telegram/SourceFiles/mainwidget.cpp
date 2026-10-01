@@ -40,6 +40,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "window/window_top_bar_wrap.h"
 #include "window/notifications_manager.h"
 #include "window/window_separate_id.h"
+#include "window/section_widget.h"
 #include "window/window_slide_animation.h"
 #include "window/window_history_hider.h"
 #include "window/window_controller.h"
@@ -52,6 +53,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/info_memento.h"
 #include "apiwrap.h"
 #include "dialogs/dialogs_widget.h"
+#include "history/history.h"
 #include "history/history_widget.h"
 #include "history/history_drag_area.h"
 #include "history/history_item_helpers.h" // GetErrorForSending.
@@ -102,6 +104,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/features/forward/ayu_forward.h"
+#include "ayu/ui/design/design_islands.h"
+#include "ayu/ui/design/design_system.h"
 
 
 namespace {
@@ -432,6 +436,7 @@ MainWidget::MainWidget(
 	} else {
 		_history->show();
 	}
+	setupIslands();
 	orderWidgets();
 
 	if (!Core::UpdaterDisabled()) {
@@ -2164,6 +2169,9 @@ void MainWidget::orderWidgets() {
 	if (_dialogs) {
 		_dialogs->raiseWithTooltip();
 	}
+	if (_dialogsCorners) {
+		_dialogsCorners->raise();
+	}
 	if (_player) {
 		_player->raise();
 	}
@@ -2225,10 +2233,13 @@ QPixmap MainWidget::grabForShowAnimation(const Window::SectionSlideParams &param
 		if (_thirdShadow) {
 			_thirdShadow->hide();
 		}
+		const auto left = _dialogsIsland.isEmpty()
+			? _dialogsWidth
+			: _history->x();
 		result = Ui::GrabWidget(this, QRect(
-			_dialogsWidth,
+			left,
 			sectionTop,
-			width() - _dialogsWidth,
+			width() - left,
 			height() - sectionTop));
 		if (_sideShadow) {
 			_sideShadow->show();
@@ -2302,6 +2313,15 @@ void MainWidget::paintEvent(QPaintEvent *e) {
 	if (_showAnimation) {
 		auto p = QPainter(this);
 		_showAnimation->paintContents(p);
+	} else if (!_dialogsIsland.isEmpty()) {
+		const auto backdrop = QRegion(0, 0, _history->x(), height())
+			- QRegion(_dialogsIsland);
+		const auto region = e->region() & backdrop;
+		if (!region.isEmpty()) {
+			auto p = QPainter(this);
+			p.setClipRegion(region);
+			paintIslandBackdrop(p, region.boundingRect());
+		}
 	}
 }
 
@@ -2316,6 +2336,9 @@ int MainWidget::getThirdSectionTop() const {
 void MainWidget::hideAll() {
 	if (_dialogs) {
 		_dialogs->hide();
+	}
+	if (_dialogsCorners) {
+		_dialogsCorners->setVisible(false);
 	}
 	_history->hide();
 	if (_mainSection) {
@@ -2375,6 +2398,9 @@ void MainWidget::showAll() {
 		}
 		if (_dialogs) {
 			_dialogs->showFast();
+		}
+		if (_dialogsCorners) {
+			_dialogsCorners->setVisible(true);
 		}
 		if (_mainSection) {
 			_mainSection->show();
@@ -2500,6 +2526,7 @@ void MainWidget::updateControlsGeometry() {
 			mainSectionGeometry,
 			_contentScrollAddToY);
 		if (_hider) _hider->setGeometry(0, 0, dialogsWidth, height());
+		updateIslands(0);
 	} else {
 		auto thirdSectionWidth = _thirdSection ? _thirdColumnWidth : 0;
 		if (_thirdSection) {
@@ -2512,17 +2539,29 @@ void MainWidget::updateControlsGeometry() {
 		}
 		const auto shadowTop = _controller->window().verticalShadowTop();
 		const auto shadowHeight = height() - shadowTop;
+		const auto islandMargin = (_dialogs && AyuDesign::WebLayout())
+			? AyuDesign::IslandMargin()
+			: 0;
 		if (_dialogs) {
 			accumulate_min(
 				dialogsWidth,
-				width() - st::columnMinimalWidthMain);
-			_dialogs->setGeometryToLeft(0, 0, dialogsWidth, height());
+				width() - st::columnMinimalWidthMain - islandMargin);
+		}
+		updateIslands(dialogsWidth);
+		const auto island = !_dialogsIsland.isEmpty();
+		const auto columnWidth = dialogsWidth + (island ? islandMargin : 0);
+		if (_dialogs) {
+			if (island) {
+				_dialogs->setGeometry(_dialogsIsland);
+			} else {
+				_dialogs->setGeometryToLeft(0, 0, dialogsWidth, height());
+			}
 		}
 		if (_sideShadow) {
 			_sideShadow->setGeometryToLeft(
-				dialogsWidth,
+				columnWidth,
 				shadowTop,
-				st::lineWidth,
+				island ? 0 : st::lineWidth,
 				shadowHeight);
 		}
 		if (_thirdShadow) {
@@ -2533,31 +2572,31 @@ void MainWidget::updateControlsGeometry() {
 				shadowHeight);
 		}
 		const auto mainSectionWidth = width()
-			- dialogsWidth
+			- columnWidth
 			- thirdSectionWidth;
 		if (_callTopBar) {
 			_callTopBar->resizeToWidth(mainSectionWidth);
-			_callTopBar->moveToLeft(dialogsWidth, 0);
+			_callTopBar->moveToLeft(columnWidth, 0);
 		}
 		if (_exportTopBar) {
 			_exportTopBar->resizeToWidth(mainSectionWidth);
-			_exportTopBar->moveToLeft(dialogsWidth, _callTopBarHeight);
+			_exportTopBar->moveToLeft(columnWidth, _callTopBarHeight);
 		}
 		if (_player) {
 			_player->resizeToWidth(mainSectionWidth);
 			_player->moveToLeft(
-				dialogsWidth,
+				columnWidth,
 				_callTopBarHeight + _exportTopBarHeight);
 		}
 		_history->setGeometryWithTopMoved(QRect(
-			dialogsWidth,
+			columnWidth,
 			mainSectionTop,
 			mainSectionWidth,
 			height() - mainSectionTop
 		), _contentScrollAddToY);
 		if (_hider) {
 			_hider->setGeometryToLeft(
-				dialogsWidth,
+				columnWidth,
 				0,
 				mainSectionWidth,
 				height());
@@ -2581,6 +2620,82 @@ void MainWidget::updateControlsGeometry() {
 	_contentScrollAddToY = 0;
 
 	floatPlayerUpdatePositions();
+}
+
+void MainWidget::setupIslands() {
+	if (!_dialogs || !AyuDesign::WebLayout()) {
+		return;
+	}
+	_controller->activeChatValue(
+	) | rpl::map([](Dialogs::Key key) {
+		const auto history = key.history();
+		return history ? history->peer.get() : nullptr;
+	}) | rpl::map([=](PeerData *peer) -> rpl::producer<> {
+		if (!peer) {
+			return rpl::single(rpl::empty) | rpl::then(
+				_controller->defaultChatTheme()->repaintBackgroundRequests()
+			);
+		}
+		return Window::ChatThemeValueFromPeer(
+			_controller,
+			peer
+		) | rpl::map([](const std::shared_ptr<Ui::ChatTheme> &theme) {
+			return rpl::single(rpl::empty) | rpl::then(
+				theme->repaintBackgroundRequests()
+			);
+		}) | rpl::flatten_latest();
+	}) | rpl::flatten_latest() | rpl::on_next([=] {
+		refreshIslandBackdrop();
+	}, lifetime());
+}
+
+void MainWidget::updateIslands(int dialogsWidth) {
+	const auto margin = AyuDesign::IslandMargin();
+	const auto use = _dialogs
+		&& AyuDesign::WebLayout()
+		&& !isOneColumn()
+		&& (dialogsWidth >= st::columnMinimalWidthLeft)
+		&& (height() > 4 * margin);
+	_dialogsIsland = use
+		? QRect(margin, margin, dialogsWidth, height() - 2 * margin)
+		: QRect();
+	if (!use) {
+		_dialogsCorners = nullptr;
+		return;
+	}
+	if (!_dialogsCorners) {
+		_dialogsCorners = std::make_unique<AyuDesign::IslandCorners>(
+			this,
+			[=](QPainter &p, QRect clip) { paintIslandBackdrop(p, clip); });
+		_dialogsCorners->setVisible(!_dialogs->isHidden());
+	}
+	_dialogsCorners->setIsland(_dialogsIsland);
+	_dialogsCorners->raise();
+}
+
+void MainWidget::paintIslandBackdrop(QPainter &p, QRect clip) {
+	Window::SectionWidget::PaintBackground(
+		p,
+		_controller->currentChatTheme(),
+		size(),
+		clip,
+		_controller->isGifPausedAtLeastFor(Window::GifPauseReason::Any));
+	AyuDesign::PaintIslandShadow(p, _dialogsIsland);
+}
+
+void MainWidget::refreshIslandBackdrop() {
+	if (_dialogsIsland.isEmpty()) {
+		return;
+	}
+	const auto island = _dialogsIsland;
+	const auto right = island.x() + island.width();
+	const auto bottom = island.y() + island.height();
+	update(0, 0, island.x(), height());
+	update(0, 0, right, island.y());
+	update(0, bottom, right, height() - bottom);
+	if (_dialogsCorners) {
+		_dialogsCorners->refresh();
+	}
 }
 
 void MainWidget::destroyThirdSection() {
@@ -2637,7 +2752,9 @@ void MainWidget::ensureFirstColumnResizeAreaCreated() {
 		return;
 	}
 	auto moveLeftCallback = [=](int globalLeft) {
-		const auto newWidth = globalLeft - mapToGlobal(QPoint(0, 0)).x();
+		const auto newWidth = globalLeft
+			- mapToGlobal(QPoint(0, 0)).x()
+			- (_dialogsIsland.isEmpty() ? 0 : AyuDesign::IslandMargin());
 		const auto newRatio = (newWidth < st::columnMinimalWidthLeft / 2)
 			? 0.
 			: float64(newWidth) / width();

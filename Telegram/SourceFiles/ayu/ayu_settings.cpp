@@ -522,6 +522,7 @@ void AyuSettings::validate() {
 	validateRange(_designCorners, 0, 3, defaults._designCorners);
 	validateRange(_designMotion, 0, 2, defaults._designMotion);
 	validateRange(_windowOpacity, 50, 100, defaults._windowOpacity);
+	validateRange(_designLayout, 0, 1, defaults._designLayout);
 	validateRange(_wideMultiplier, 0.5, 4.0, defaults._wideMultiplier);
 	validateRange(_avatarCorners, 0, AyuUiSettings::kMaxAvatarCorners, defaults._avatarCorners);
 
@@ -724,6 +725,12 @@ void AyuSettings::setWindowOpacity(int val) {
 void AyuSettings::setDesignTheme(const QString &val) {
 	if (_designTheme.current() == val) return;
 	_designTheme = val;
+	save();
+}
+
+void AyuSettings::setDesignLayout(int val) {
+	if (_designLayout.current() == val) return;
+	_designLayout = val;
 	save();
 }
 
@@ -1197,6 +1204,7 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"designMotion", s._designMotion.current()},
 		{"windowOpacity", s._windowOpacity.current()},
 		{"designTheme", s._designTheme.current()},
+		{"designLayout", s._designLayout.current()},
 		{"removeMessageTail", s._removeMessageTail.current()},
 		{"disableNotificationsDelay", s._disableNotificationsDelay.current()},
 		{"localPremium", s._localPremium.current()},
@@ -1314,6 +1322,7 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._designMotion = j.value("designMotion", defaults._designMotion.current());
 	s._windowOpacity = j.value("windowOpacity", defaults._windowOpacity.current());
 	s._designTheme = j.value("designTheme", defaults._designTheme.current());
+	s._designLayout = j.value("designLayout", defaults._designLayout.current());
 	s._removeMessageTail = j.value("removeMessageTail", defaults._removeMessageTail.current());
 	s._disableNotificationsDelay = j.value("disableNotificationsDelay", defaults._disableNotificationsDelay.current());
 	s._localPremium = j.value("localPremium", defaults._localPremium.current());

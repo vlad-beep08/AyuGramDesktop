@@ -103,6 +103,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ui/ayu_userpic.h"
+#include "ayu/ui/design/design_system.h"
 #include "ayu/utils/telegram_helpers.h"
 #include "styles/style_ayu_icons.h"
 
@@ -1894,13 +1895,23 @@ void InnerWidget::paintPeerSearchResult(
 		not_null<const PeerSearchResult*> result,
 		const Ui::PaintContext &context) {
 	QRect fullRect(0, 0, context.width, st::dialogsRowHeight);
-	p.fillRect(
-		fullRect,
-		(context.active
-			? st::dialogsBgActive
-			: context.selected
-			? st::dialogsBgOver
-			: currentBg()));
+	if (AyuDesign::WebLayout() && !context.narrow) {
+		p.fillRect(fullRect, currentBg());
+		if (context.active || context.selected) {
+			AyuDesign::PaintWebRowHighlight(
+				p,
+				fullRect,
+				(context.active ? st::dialogsBgActive : st::dialogsBgOver));
+		}
+	} else {
+		p.fillRect(
+			fullRect,
+			(context.active
+				? st::dialogsBgActive
+				: context.selected
+				? st::dialogsBgOver
+				: currentBg()));
+	}
 	if (!context.active) {
 		result->row.paintRipple(p, 0, 0, context.width);
 	}
