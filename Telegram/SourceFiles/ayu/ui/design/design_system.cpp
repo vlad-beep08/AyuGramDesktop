@@ -17,6 +17,7 @@
 #include "ui/style/style_core_scale.h"
 #include "window/window_controller.h"
 #include "styles/style_basic.h"
+#include "styles/style_chat_helpers.h"
 #include "styles/style_dialogs.h"
 #include "styles/style_layers.h"
 #include "styles/style_widgets.h"
@@ -45,6 +46,7 @@ constexpr auto kWebComposerGap = 8;
 constexpr auto kWebComposerRadius = 24;
 constexpr auto kWebFiltersWidth = 104;
 constexpr auto kWebBlurRadius = 25;
+constexpr auto kWebSendFillPadding = 8;
 
 auto AppliedLayout = Layout::Classic;
 auto BackdropGenerationValue = 0;
@@ -160,6 +162,12 @@ void ApplyWebLayout() {
 		mutableButton.textBg = transparent.color();
 		mutableButton.textBgActive = transparent.color();
 	}
+
+	auto &send = Mutable(st::historySend);
+	send.inner.icon = st::aiComposeSendButton.inner.icon;
+	send.inner.iconOver = st::aiComposeSendButton.inner.iconOver;
+	send.sendIconFillPadding = Scaled(kWebSendFillPadding);
+	send.sendIconFg = st::windowFgActive;
 }
 
 void ApplyCorners() {

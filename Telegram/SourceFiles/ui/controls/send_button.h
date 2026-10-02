@@ -99,6 +99,7 @@ private:
 	void paintVoiceRoundIcon(QPainter &p, bool over);
 	[[nodiscard]] static bool isVoiceRoundTransition(Type from, Type to);
 	void paintLottieIcon(QPainter &p, int index, bool over);
+	void paintMainFill(QPainter &p);
 
 	const style::SendButton &_st;
 

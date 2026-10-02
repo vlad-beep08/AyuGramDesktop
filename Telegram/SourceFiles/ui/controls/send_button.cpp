@@ -25,6 +25,11 @@ constexpr auto kWideScale = 5;
 constexpr auto kVoiceToRoundIndex = 0;
 constexpr auto kRoundToVoiceIndex = 1;
 constexpr auto kForbiddenOpacity = 0.5;
+constexpr auto kFillRippleAlpha = 25;
+
+[[nodiscard]] bool FilledMainButton(const style::SendButton &st) {
+	return (st.sendIconFillPadding > 0) && (&st == &st::historySend);
+}
 
 } // namespace
 
@@ -223,7 +228,9 @@ void SendButton::paintEvent(QPaintEvent *e) {
 }
 
 void SendButton::paintRecord(QPainter &p, bool over) {
-	if (!isDisabled() && !_state.forbidden) {
+	if (FilledMainButton(_st)) {
+		paintMainFill(p);
+	} else if (!isDisabled() && !_state.forbidden) {
 		paintRipple(
 			p,
 			(width() - _st.inner.rippleAreaSize) / 2,
@@ -239,7 +246,9 @@ void SendButton::paintRecord(QPainter &p, bool over) {
 }
 
 void SendButton::paintRound(QPainter &p, bool over) {
-	if (!isDisabled() && !_state.forbidden) {
+	if (FilledMainButton(_st)) {
+		paintMainFill(p);
+	} else if (!isDisabled() && !_state.forbidden) {
 		paintRipple(
 			p,
 			(width() - _st.inner.rippleAreaSize) / 2,
@@ -261,10 +270,27 @@ void SendButton::paintLottieIcon(QPainter &p, int index, bool over) {
 	} else if (!_voiceRoundAnimating && icon->frameIndex() != 0) {
 		icon->jumpTo(0, [=] { update(); });
 	}
-	const auto color = (isDisabled() || !over)
+	const auto color = FilledMainButton(_st)
+		? st::windowFgActive->c
+		: (isDisabled() || !over)
 		? st::historyRecordVoiceFg->c
 		: st::historyRecordVoiceFgOver->c;
 	icon->paintInCenter(p, rect(), color);
+}
+
+void SendButton::paintMainFill(QPainter &p) {
+	const auto ellipse = sendEllipseRect();
+	{
+		auto hq = PainterHighQualityEnabler(p);
+		p.setPen(Qt::NoPen);
+		p.setBrush(st::windowBgActive);
+		p.drawEllipse(ellipse);
+	}
+	if (!isDisabled() && !_state.forbidden) {
+		auto color = st::windowFgActive->c;
+		color.setAlpha(kFillRippleAlpha);
+		paintRipple(p, ellipse.topLeft(), &color);
+	}
 }
 
 void SendButton::paintSave(QPainter &p, bool over) {
