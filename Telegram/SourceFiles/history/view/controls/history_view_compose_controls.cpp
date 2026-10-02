@@ -128,6 +128,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "data/data_ai_compose_tones.h"
 #include "ayu/ayu_settings.h"
+#include "ayu/features/quick_phrase/quick_phrase.h"
 #include "styles/style_ayu_icons.h"
 #include "history/history_item_components.h"
 
@@ -1191,9 +1192,8 @@ ComposeControls::ComposeControls(
 		AyuSettings::getInstance().showQuickPhraseButtonValue(
 		) | rpl::on_next([=](bool shown) {
 			if (!_ayuQuickPhrase && shown) {
-				_ayuQuickPhrase = base::make_unique_q<Ui::IconButton>(
-					_wrap.get(),
-					st::ayuQuickPhraseToggle);
+				_ayuQuickPhrase = base::make_unique_q<
+					AyuFeatures::QuickPhrase::Button>(_wrap.get());
 				_ayuQuickPhrase->show();
 				_ayuQuickPhrase->clicks(
 				) | rpl::filter(

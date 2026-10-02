@@ -6,8 +6,24 @@
 // Copyright @Radolyn, 2026
 #pragma once
 
+#include "ui/widgets/buttons.h"
+
 namespace AyuFeatures::QuickPhrase {
 
 [[nodiscard]] QString Text();
+
+class Button final : public Ui::IconButton {
+public:
+	explicit Button(QWidget *parent);
+
+protected:
+	void paintEvent(QPaintEvent *e) override;
+	void onStateChanged(State was, StateChangeSource source) override;
+
+private:
+	const QString _label;
+	QFont _font;
+
+};
 
 } // namespace AyuFeatures::QuickPhrase

@@ -3877,7 +3877,7 @@ void HistoryWidget::refreshQuickPhraseToggle() {
 		&& _canSendMessages
 		&& AyuSettings::getInstance().showQuickPhraseButton();
 	if (!_quickPhrase && has) {
-		_quickPhrase.create(this, st::ayuQuickPhraseToggle);
+		_quickPhrase = object_ptr<AyuFeatures::QuickPhrase::Button>(this);
 		_quickPhrase->setAccessibleName(tr::ayu_QuickPhraseButton(tr::now));
 		_quickPhrase->show();
 		_quickPhrase->addClickHandler([=] {
