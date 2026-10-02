@@ -60,6 +60,7 @@ constexpr auto kWebCardRadius = 20;
 constexpr auto kWebCardGap = 16;
 
 auto AppliedLayout = Layout::Classic;
+auto ForcedFamily = QString();
 auto BackdropGenerationValue = 0;
 
 struct RadiusSet {
@@ -516,11 +517,6 @@ QColor Foreground(Role role, State state) {
 }
 
 QString PrepareFontFamily(const QString &custom) {
-	const auto bolder = (AyuSettings::getInstance().designFontWeight() == 0);
-	if (!custom.isEmpty()
-		|| (!bolder && CurrentLayout() != Layout::WebA)) {
-		return custom;
-	}
 	auto loaded = false;
 	const auto files = QDir(u":/gui/chickengram/fonts/"_q).entryInfoList(
 		{ u"*.ttf"_q });
@@ -529,11 +525,15 @@ QString PrepareFontFamily(const QString &custom) {
 			loaded = true;
 		}
 	}
-	return !loaded
-		? custom
-		: bolder
-		? u"Chickengram Sans"_q
-		: u"Roboto"_q;
+	if (!loaded) {
+		return custom;
+	}
+	ForcedFamily = u"Chickengram Sans"_q;
+	return ForcedFamily;
+}
+
+const QString &ForcedFontFamily() {
+	return ForcedFamily;
 }
 
 void ApplyStyleOverrides() {

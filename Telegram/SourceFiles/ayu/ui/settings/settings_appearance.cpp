@@ -109,20 +109,6 @@ void BuildDesign(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 		},
 	});
 	ayu.addChooseButton({
-		.id = u"ayu/designFontWeight"_q,
-		.title = tr::ayu_DesignFontWeight(),
-		.boxTitle = tr::ayu_DesignFontWeight(),
-		.initialSelection = settings->designFontWeight(),
-		.options = {
-			tr::ayu_DesignFontWeightBold(tr::now),
-			tr::ayu_DesignFontWeightRegular(tr::now),
-		},
-		.setter = [=](int index) {
-			AyuSettings::getInstance().setDesignFontWeight(index);
-			ShowRestartPrompt(controller);
-		},
-	});
-	ayu.addChooseButton({
 		.id = u"ayu/designDensity"_q,
 		.title = tr::ayu_DesignDensity(),
 		.boxTitle = tr::ayu_DesignDensity(),

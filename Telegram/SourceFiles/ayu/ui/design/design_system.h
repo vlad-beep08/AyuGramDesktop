@@ -117,6 +117,7 @@ void PaintWebRowHighlight(QPainter &p, QRect row, const QBrush &brush);
 [[nodiscard]] QColor Mix(QColor from, QColor to, float64 progress);
 
 [[nodiscard]] QString PrepareFontFamily(const QString &custom);
+[[nodiscard]] const QString &ForcedFontFamily();
 void ApplyStyleOverrides();
 void ApplyMotion();
 void ApplyWindowOpacity(not_null<QWidget*> window);

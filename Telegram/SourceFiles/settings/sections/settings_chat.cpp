@@ -92,6 +92,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/features/message_shot/message_shot.h"
+#include "ayu/ui/design/design_system.h"
 #include "window/themes/window_theme_preview.h"
 
 
@@ -2870,6 +2871,10 @@ void SetupThemeSettings(
 		}
 	}
 
+	if (!AyuDesign::ForcedFontFamily().isEmpty()) {
+		Ui::AddSkip(container, st::settingsCheckboxesSkip);
+		return;
+	}
 	const auto family = container->lifetime().make_state<
 		rpl::variable<QString>
 	>(settings->customFontFamily());

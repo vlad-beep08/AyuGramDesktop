@@ -302,7 +302,6 @@ public:
 	[[nodiscard]] int windowOpacity() const { return _windowOpacity.current(); }
 	[[nodiscard]] const QString &designTheme() const { return _designTheme.current(); }
 	[[nodiscard]] int designLayout() const { return _designLayout.current(); }
-	[[nodiscard]] int designFontWeight() const { return _designFontWeight.current(); }
 	[[nodiscard]] bool removeMessageTail() const { return _removeMessageTail.current(); }
 	[[nodiscard]] bool disableNotificationsDelay() const { return _disableNotificationsDelay.current(); }
 	[[nodiscard]] bool localPremium() const { return _localPremium.current(); }
@@ -398,7 +397,6 @@ public:
 	void setWindowOpacity(int val);
 	void setDesignTheme(const QString &val);
 	void setDesignLayout(int val);
-	void setDesignFontWeight(int val);
 	void setDisableOpenLinkWarning(bool val);
 	void setWideMultiplier(double val);
 	void setSpoofWebviewAsAndroid(bool val);
@@ -701,7 +699,6 @@ private:
 	rpl::variable<int> _windowOpacity = 100;
 	rpl::variable<QString> _designTheme;
 	rpl::variable<int> _designLayout = 0;
-	rpl::variable<int> _designFontWeight = 0;
 	rpl::variable<bool> _removeMessageTail = false;
 	rpl::variable<bool> _disableNotificationsDelay = false;
 	rpl::variable<bool> _localPremium = false;
