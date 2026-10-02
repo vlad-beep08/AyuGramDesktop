@@ -98,6 +98,8 @@ enum class State {
 [[nodiscard]] QRect WebFiltersIsland(QSize column);
 [[nodiscard]] int WebBlurRadius();
 [[nodiscard]] int WebSearchIconLeft();
+[[nodiscard]] int WebCardMargin();
+[[nodiscard]] int WebCardRadius();
 [[nodiscard]] int BackdropGeneration();
 void BumpBackdropGeneration();
 [[nodiscard]] QImage WebRowRippleMask(QSize size);

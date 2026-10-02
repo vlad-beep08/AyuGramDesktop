@@ -248,6 +248,7 @@ private:
 	int _addedHeight = 0;
 	int _maxVisibleHeight = 0;
 	bool _isStackBottom = false;
+	bool _webCards = false;
 
 	// To paint round edges from content.
 	style::margins _paintPadding;

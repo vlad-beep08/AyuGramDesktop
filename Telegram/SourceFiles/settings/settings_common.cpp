@@ -7,8 +7,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "settings/settings_common.h"
 
-#include "ayu/ui/design/design_system.h"
-
 #include "base/timer.h"
 #include "lottie/lottie_icon.h"
 #include "menu/menu_send_details.h"
@@ -370,9 +368,6 @@ void AbstractSection::setNavigationAnchor(not_null<QWidget*> widget) {
 }
 
 Icon::Icon(IconDescriptor descriptor) : _icon(descriptor.icon) {
-	if (AyuDesign::WebLayout() && descriptor.type == IconType::Rounded) {
-		descriptor.type = IconType::Round;
-	}
 	const auto background = [&]() -> const style::color* {
 		if (descriptor.type == IconType::Simple) {
 			return nullptr;

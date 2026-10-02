@@ -7,6 +7,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "info/info_content_widget.h"
 
+#include "ayu/ui/design/design_cards.h"
+#include "ayu/ui/design/design_system.h"
+
 #include "api/api_who_reacted.h"
 #include "boxes/peer_list_box.h"
 #include "data/data_chat.h"
@@ -82,12 +85,16 @@ ContentWidget::ContentWidget(
 	using namespace rpl::mappers;
 
 	setAttribute(Qt::WA_OpaquePaintEvent);
+	_webCards = AyuDesign::WebLayout()
+		&& (_controller->section().type() == Section::Type::Settings);
 	_controller->wrapValue(
 	) | rpl::on_next([this](Wrap value) {
 		if (value != Wrap::Layer) {
 			applyAdditionalScroll(0);
 		}
-		_bg = (value == Wrap::Layer)
+		_bg = _webCards
+			? st::boxDividerBg
+			: (value == Wrap::Layer)
 			? st::boxBg
 			: st::profileBg;
 		update();
@@ -173,6 +180,9 @@ Ui::RpWidget *ContentWidget::doSetInnerWidget(
 			std::move(inner),
 			_innerWrap ? _innerWrap->padding() : style::margins()));
 	_innerWrap->move(0, 0);
+	if (_webCards) {
+		AyuDesign::SetupWebCards(_innerWrap, _innerWrap->entity());
+	}
 
 	setupSwipeHandler(_innerWrap);
 
@@ -279,7 +289,8 @@ void ContentWidget::applyAdditionalScroll(int additionalScroll) {
 
 void ContentWidget::updateInnerPadding() {
 	const auto addedToBottom = std::max(_additionalScroll, _addedHeight);
-	_innerWrap->setPadding({ 0, _innerTopReserve, 0, addedToBottom });
+	const auto side = _webCards ? AyuDesign::WebCardMargin() : 0;
+	_innerWrap->setPadding({ side, _innerTopReserve, side, addedToBottom });
 }
 
 void ContentWidget::setInnerTopReserve(int reserve) {

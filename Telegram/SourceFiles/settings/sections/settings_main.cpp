@@ -94,6 +94,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/ui/settings/settings_main.h"
 #include "ayu/ui/utils/ayu_profile_values.h"
 #include "ayu/utils/telegram_helpers.h"
+#include "ayu/ui/design/design_cards.h"
 #include "ayu/ui/design/design_system.h"
 
 
@@ -187,6 +188,9 @@ Cover::Cover(
 , _id(this, st::defaultFlatLabel, st::popupMenuWithIcons)
 , _username(this, st::infoProfileMegagroupCover.status) {
 	_user->updateFull();
+	if (AyuDesign::WebLayout()) {
+		AyuDesign::MarkWebCardBleed(this);
+	}
 
 	_name->setSelectable(true);
 	_name->setContextCopyText(tr::lng_profile_copy_fullname(tr::now));

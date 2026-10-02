@@ -55,6 +55,9 @@ constexpr auto kWebBoxRadius = 16;
 constexpr auto kWebSearchIconLeft = 12;
 constexpr auto kWebSearchIconSize = 24;
 constexpr auto kWebSearchTextSkip = 8;
+constexpr auto kWebCardMargin = 16;
+constexpr auto kWebCardRadius = 20;
+constexpr auto kWebCardGap = 16;
 
 auto AppliedLayout = Layout::Classic;
 auto BackdropGenerationValue = 0;
@@ -190,6 +193,7 @@ void ApplyWebLayout() {
 	Mutable(st::defaultPopupMenu).radius = Scaled(kWebMenuRadius);
 	Mutable(st::popupMenuWithIcons).radius = Scaled(kWebMenuRadius);
 	Mutable(st::boxRadius) = Scaled(kWebBoxRadius);
+	Mutable(st::boxDividerHeight) = Scaled(kWebCardGap);
 
 	const auto column = Scaled(kWebColumnMaxWidth);
 	const auto around = 2 * st::msgPhotoSkip + 2 * st::msgMargin.left();
@@ -308,6 +312,14 @@ int WebBlurRadius() {
 
 int WebSearchIconLeft() {
 	return Scaled(kWebSearchIconLeft);
+}
+
+int WebCardMargin() {
+	return Scaled(kWebCardMargin);
+}
+
+int WebCardRadius() {
+	return Scaled(kWebCardRadius);
 }
 
 int BackdropGeneration() {
