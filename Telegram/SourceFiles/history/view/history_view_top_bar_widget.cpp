@@ -1052,6 +1052,7 @@ void TopBarWidget::setPillMode(bool pill) {
 		return;
 	}
 	_pill = pill;
+	setAttribute(Qt::WA_OpaquePaintEvent, !_pill && !_animatingMode);
 	updateInfoButtonVisibility();
 	updateControlsGeometry();
 	update();
@@ -1364,7 +1365,7 @@ void TopBarWidget::finishAnimating() {
 void TopBarWidget::setAnimatingMode(bool enabled) {
 	if (_animatingMode != enabled) {
 		_animatingMode = enabled;
-		setAttribute(Qt::WA_OpaquePaintEvent, !_animatingMode);
+		setAttribute(Qt::WA_OpaquePaintEvent, !_animatingMode && !_pill);
 		finishAnimating();
 	}
 }

@@ -17,6 +17,7 @@
 #include "ui/style/style_core_scale.h"
 #include "window/window_controller.h"
 #include "styles/style_basic.h"
+#include "styles/style_chat.h"
 #include "styles/style_chat_helpers.h"
 #include "styles/style_dialogs.h"
 #include "styles/style_layers.h"
@@ -168,6 +169,11 @@ void ApplyWebLayout() {
 	send.inner.iconOver = st::aiComposeSendButton.inner.iconOver;
 	send.sendIconFillPadding = Scaled(kWebSendFillPadding);
 	send.sendIconFg = st::windowFgActive;
+
+	const auto column = Scaled(kWebColumnMaxWidth);
+	const auto around = 2 * st::msgPhotoSkip + 2 * st::msgMargin.left();
+	Mutable(st::msgMaxWidth) = std::max(st::msgMaxWidth, column - around);
+	Mutable(st::adaptiveChatWideWidth) = column + 2 * IslandMargin();
 }
 
 void ApplyCorners() {

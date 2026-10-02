@@ -7632,6 +7632,20 @@ void HistoryWidget::paintComposeFrames(Painter &p) {
 			_topBar->height() / 2);
 	}
 	const auto radius = AyuDesign::WebComposerRadius();
+	const auto barsHeight = _topBars->height() - st::lineWidth;
+	if (!_topBars->isHidden() && barsHeight > 0) {
+		const auto frame = QRect(
+			_topBars->x(),
+			_topBars->y(),
+			_topBars->width(),
+			barsHeight);
+		const auto limited = std::min(radius, barsHeight / 2);
+		AyuDesign::PaintPillShadow(p, frame, limited);
+		auto hq = PainterHighQualityEnabler(p);
+		p.setPen(Qt::NoPen);
+		p.setBrush(st::historyPinnedBg);
+		p.drawRoundedRect(frame, limited, limited);
+	}
 	for (const auto button : composeButtons()) {
 		if (button->isHidden()) {
 			continue;
@@ -8244,13 +8258,16 @@ void HistoryWidget::updateControlsGeometry() {
 	const auto tabsLeftSkip = _subsectionTabs
 		? _subsectionTabs->leftSkip()
 		: 0;
-	const auto innerWidth = width - tabsLeftSkip;
+	const auto innerWidth = web
+		? _topBar->width()
+		: (width - tabsLeftSkip);
+	const auto barsLeft = web ? _topBar->x() : tabsLeftSkip;
 
 	_voiceRecordBar->resizeToWidth(composeWidth());
 
 	moveFieldControls();
 
-	_topBars->move(tabsLeftSkip, _topBar->bottomNoMargins()
+	_topBars->move(barsLeft, _topBar->bottomNoMargins()
 		+ (web ? AyuDesign::WebHeaderGap() : 0)
 		+ (_subsectionTabs ? _subsectionTabs->topSkip() : 0));
 	const auto groupCallTop = 0;
@@ -8303,6 +8320,16 @@ void HistoryWidget::updateControlsGeometry() {
 	_topBars->resize(
 		innerWidth,
 		scrollAreaTop - _topBars->y() + st::lineWidth);
+	if (web) {
+		const auto barsHeight = scrollAreaTop - _topBars->y();
+		if (barsHeight > 0) {
+			_topBars->setMask(AyuDesign::RoundedRegion(
+				QSize(innerWidth, barsHeight),
+				AyuDesign::WebComposerRadius()));
+		} else {
+			_topBars->clearMask();
+		}
+	}
 	if (_scroll->y() != scrollAreaTop || _scroll->x() != tabsLeftSkip) {
 		_scroll->moveToLeft(tabsLeftSkip, scrollAreaTop);
 		if (_autocomplete) {
