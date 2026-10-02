@@ -2938,6 +2938,10 @@ bool MainWidget::canShowLeftBox() const {
 }
 
 void MainWidget::showLeftBox(object_ptr<Ui::BoxContent> box) {
+	if (!canShowLeftBox()) {
+		_controller->show(std::move(box));
+		return;
+	}
 	_controller->window().hideSettingsAndLayer();
 	_leftCorners = nullptr;
 	_leftSection.destroy();

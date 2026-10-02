@@ -150,7 +150,6 @@ public:
 	void updateColumnLayout();
 	bool stackIsEmpty() const;
 	bool showBackFromStack(const SectionShow &params);
-	[[nodiscard]] bool canShowLeftBox() const;
 	void showLeftBox(object_ptr<Ui::BoxContent> box);
 	void orderWidgets();
 	QPixmap grabForShowAnimation(const Window::SectionSlideParams &params);
@@ -330,6 +329,7 @@ private:
 		const SectionShow &params);
 	void updateLeftSection();
 	void closeLeftSection();
+	[[nodiscard]] bool canShowLeftBox() const;
 	void setupLeftCorners(not_null<Ui::RpWidget*> widget);
 	[[nodiscard]] Ui::RpWidget *leftWidget() const;
 	[[nodiscard]] QRegion islandBackdropRegion() const;

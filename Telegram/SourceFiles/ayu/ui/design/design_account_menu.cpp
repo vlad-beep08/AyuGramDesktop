@@ -77,12 +77,7 @@ private:
 void ShowInLeftColumn(
 		not_null<Window::SessionController*> controller,
 		object_ptr<Ui::BoxContent> box) {
-	const auto main = controller->content();
-	if (main->canShowLeftBox()) {
-		main->showLeftBox(std::move(box));
-	} else {
-		controller->show(std::move(box));
-	}
+	controller->content()->showLeftBox(std::move(box));
 }
 
 void ToggleNight(not_null<Window::SessionController*> controller) {
