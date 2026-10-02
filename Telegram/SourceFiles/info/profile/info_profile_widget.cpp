@@ -141,7 +141,8 @@ Widget::Widget(
 	if (!classic && flexible) {
 		setupFlexibleRegularScroll(_inner, _pinnedToTop.get(), tabs);
 	} else if (_pinnedToTop) {
-		_inner->widthValue(
+		pinnedWidthValue(
+			_inner
 		) | rpl::on_next([=](int w) {
 			_pinnedToTop->resizeToWidth(w);
 			setScrollTopSkip(_pinnedToTop->height());
@@ -176,9 +177,10 @@ Widget::Widget(
 				height() - _pinnedToBottom->height());
 		};
 
-		_inner->sizeValue(
-		) | rpl::on_next([=](const QSize &s) {
-			_pinnedToBottom->resizeToWidth(s.width());
+		pinnedWidthValue(
+			_inner
+		) | rpl::on_next([=](int width) {
+			_pinnedToBottom->resizeToWidth(width);
 		}, _pinnedToBottom->lifetime());
 
 		rpl::combine(

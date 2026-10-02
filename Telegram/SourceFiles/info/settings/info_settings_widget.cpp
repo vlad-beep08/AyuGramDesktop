@@ -90,7 +90,8 @@ Widget::Widget(
 	}, _inner->lifetime());
 
 	if (_pinnedToTop) {
-		_inner->widthValue(
+		pinnedWidthValue(
+			_inner
 		) | rpl::on_next([=](int w) {
 			_pinnedToTop->resizeToWidth(w);
 			setScrollTopSkip(_pinnedToTop->height());
@@ -110,9 +111,10 @@ Widget::Widget(
 				height() - _pinnedToBottom->height());
 		};
 
-		_inner->sizeValue(
-		) | rpl::on_next([=](const QSize &s) {
-			_pinnedToBottom->resizeToWidth(s.width());
+		pinnedWidthValue(
+			_inner
+		) | rpl::on_next([=](int width) {
+			_pinnedToBottom->resizeToWidth(width);
 			//processHeight();
 		}, _pinnedToBottom->lifetime());
 

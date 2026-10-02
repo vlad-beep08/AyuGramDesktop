@@ -206,6 +206,8 @@ protected:
 		not_null<Ui::RpWidget*> inner,
 		not_null<Ui::RpWidget*> pinnedToTop,
 		bool abortSnapOnExternalScroll = false);
+	[[nodiscard]] rpl::producer<int> pinnedWidthValue(
+		not_null<Ui::RpWidget*> inner) const;
 	int scrollTopSave() const;
 	void scrollTopRestore(int scrollTop);
 	void scrollTo(const Ui::ScrollToRequest &request);

@@ -228,6 +228,13 @@ Ui::RpWidget *ContentWidget::doSetupFlexibleInnerWidget(
 		object_ptr<Ui::RpWidget> inner,
 		FlexibleScrollData &flexibleScroll,
 		Fn<void(Ui::RpWidget*)> customSetup) {
+	if (_webCards) {
+		_webCards = false;
+		_bg = (_controller->wrap() == Wrap::Layer)
+			? st::boxBg
+			: st::profileBg;
+		update();
+	}
 	const auto filler = setInnerWidget(object_ptr<FlexibleFiller>(this));
 	filler->resize(1, 1);
 
@@ -303,13 +310,23 @@ void ContentWidget::setInnerTopReserve(int reserve) {
 	}
 }
 
+rpl::producer<int> ContentWidget::pinnedWidthValue(
+		not_null<Ui::RpWidget*> inner) const {
+	return (_webCards && _innerWrap)
+		? _innerWrap->widthValue()
+		: inner->widthValue();
+}
+
 void ContentWidget::setupFlexibleRegularScroll(
 		not_null<Ui::RpWidget*> inner,
 		not_null<Ui::RpWidget*> pinnedToTop,
 		bool abortSnapOnExternalScroll) {
+	const auto widthSource = (_webCards && _innerWrap)
+		? not_null<Ui::RpWidget*>(_innerWrap)
+		: inner;
 	SetupFlexibleRegularScroll(
 		_scroll.data(),
-		inner,
+		widthSource,
 		pinnedToTop,
 		[=](int skip) { setScrollTopSkip(skip); },
 		[=](int reserve) { setInnerTopReserve(reserve); },
