@@ -81,6 +81,9 @@ void ClearCallsBox(
 	not_null<Ui::GenericBox*> box,
 	not_null<::Window::SessionController*> window);
 
+[[nodiscard]] object_ptr<Ui::BoxContent> PrepareCallsBox(
+	not_null<::Window::SessionController*> window,
+	bool highlightStartCall = false);
 void ShowCallsBox(
 	not_null<::Window::SessionController*> window,
 	bool highlightStartCall = false);

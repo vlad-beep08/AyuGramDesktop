@@ -151,6 +151,8 @@ set(ayugram_files
         ayu/ui/design/design_cards.h
         ayu/ui/design/design_islands.cpp
         ayu/ui/design/design_islands.h
+        ayu/ui/design/design_left_box.cpp
+        ayu/ui/design/design_left_box.h
         ayu/ui/design/design_motion.cpp
         ayu/ui/design/design_motion.h
         ayu/ui/design/design_system.cpp

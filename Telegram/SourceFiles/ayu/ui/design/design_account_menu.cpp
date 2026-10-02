@@ -25,6 +25,7 @@
 #include "ui/widgets/menu/menu_common.h"
 #include "ui/widgets/popup_menu.h"
 #include "ui/ui_utility.h"
+#include "mainwidget.h"
 #include "mainwindow.h"
 #include "window/themes/window_theme.h"
 #include "window/window_controller.h"
@@ -73,6 +74,17 @@ private:
 
 };
 
+void ShowInLeftColumn(
+		not_null<Window::SessionController*> controller,
+		object_ptr<Ui::BoxContent> box) {
+	const auto main = controller->content();
+	if (main->canShowLeftBox()) {
+		main->showLeftBox(std::move(box));
+	} else {
+		controller->show(std::move(box));
+	}
+}
+
 void ToggleNight(not_null<Window::SessionController*> controller) {
 	const auto current = CurrentThemeId();
 	if (current == u"web-light"_q) {
@@ -100,7 +112,7 @@ void FillMore(
 		controller->showNewChannel();
 	}, &st::menuIconChannel);
 	menu->addAction(tr::lng_menu_calls(tr::now), [=] {
-		::Calls::ShowCallsBox(controller);
+		ShowInLeftColumn(controller, ::Calls::PrepareCallsBox(controller));
 	}, &st::menuIconPhone);
 	menu->addAction(tr::lng_menu_night_mode(tr::now), [=] {
 		ToggleNight(controller);
@@ -164,7 +176,7 @@ void ShowAccountMenu(
 		controller->showPeerHistory(self);
 	}, &st::menuIconSavedMessages);
 	menu->addAction(tr::lng_menu_contacts(tr::now), [=] {
-		controller->show(PrepareContactsBox(controller));
+		ShowInLeftColumn(controller, PrepareContactsBox(controller));
 	}, &st::menuIconUserShow);
 	menu->addAction(tr::lng_menu_settings(tr::now), [=] {
 		controller->showSettings();

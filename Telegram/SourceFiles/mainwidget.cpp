@@ -54,6 +54,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/info_wrap_widget.h"
 #include "info/info_content_widget.h"
 #include "info/info_controller.h"
+#include "ayu/ui/design/design_left_box.h"
 #include "apiwrap.h"
 #include "dialogs/dialogs_widget.h"
 #include "history/history.h"
@@ -1397,6 +1398,9 @@ void MainWidget::showHistory(
 		PeerId peerId,
 		const SectionShow &params,
 		MsgId showAtMsgId) {
+	if (peerId && _leftBox) {
+		_leftBox->closeBox();
+	}
 	if (peerId && _controller->window().locked()) {
 		if (params.activation != anim::activation::background) {
 			_controller->window().activate();
@@ -2134,8 +2138,10 @@ void MainWidget::showNonPremiumLimitToast(bool download) {
 }
 
 bool MainWidget::showBackFromStack(const SectionShow &params) {
-	if (_leftSection) {
-		closeLeftSection();
+	if (leftWidget()) {
+		crl::on_main(this, [=] {
+			closeLeftSection();
+		});
 		return true;
 	}
 	if (preventsCloseSection([=] { showBackFromStack(params); }, params)) {
@@ -2373,8 +2379,8 @@ void MainWidget::hideAll() {
 	if (_thirdCorners) {
 		_thirdCorners->setVisible(false);
 	}
-	if (_leftSection) {
-		_leftSection->hide();
+	if (const auto left = leftWidget()) {
+		left->hide();
 	}
 	_history->hide();
 	if (_mainSection) {
@@ -2438,8 +2444,8 @@ void MainWidget::showAll() {
 		if (_dialogsCorners) {
 			_dialogsCorners->setVisible(true);
 		}
-		if (_leftSection) {
-			_leftSection->show();
+		if (const auto left = leftWidget()) {
+			left->show();
 		}
 		if (_mainSection) {
 			_mainSection->show();
@@ -2907,6 +2913,7 @@ bool MainWidget::showInLeftSection(
 	}
 	_leftCorners = nullptr;
 	_leftSection.destroy();
+	_leftBox.destroyDelayed();
 	_leftSection = memento->createWidget(
 		this,
 		_controller,
@@ -2918,24 +2925,62 @@ bool MainWidget::showInLeftSection(
 	_leftSection->setGeometry(_dialogsIsland);
 	_leftSection->show();
 	_dialogs->hide();
-	_leftCorners = std::make_unique<AyuDesign::IslandCorners>(
-		this,
-		[=](QPainter &p, QRect clip) { paintIslandBackdrop(p, clip); });
-	_leftCorners->bindVisibility(_leftSection.data());
-	_leftCorners->setIsland(_dialogsIsland);
-	_leftCorners->raise();
+	setupLeftCorners(_leftSection.data());
 	_leftSection->setInnerFocus();
 	return true;
 }
 
+bool MainWidget::canShowLeftBox() const {
+	return AyuDesign::WebLayout()
+		&& _dialogs
+		&& !isOneColumn()
+		&& !_dialogsIsland.isEmpty();
+}
+
+void MainWidget::showLeftBox(object_ptr<Ui::BoxContent> box) {
+	_controller->window().hideSettingsAndLayer();
+	_leftCorners = nullptr;
+	_leftSection.destroy();
+	_leftBox.destroyDelayed();
+	_leftBox.create(
+		this,
+		_controller,
+		std::move(box),
+		[=] { closeLeftSection(); });
+	_leftBox->setGeometry(_dialogsIsland);
+	_leftBox->show();
+	_dialogs->hide();
+	setupLeftCorners(_leftBox.data());
+	_leftBox->setInnerFocus();
+}
+
+void MainWidget::setupLeftCorners(not_null<Ui::RpWidget*> widget) {
+	_leftCorners = std::make_unique<AyuDesign::IslandCorners>(
+		this,
+		[=](QPainter &p, QRect clip) { paintIslandBackdrop(p, clip); });
+	_leftCorners->bindVisibility(widget);
+	_leftCorners->setIsland(_dialogsIsland);
+	_leftCorners->raise();
+}
+
+Ui::RpWidget *MainWidget::leftWidget() const {
+	if (_leftSection) {
+		return _leftSection.data();
+	} else if (_leftBox) {
+		return _leftBox.data();
+	}
+	return nullptr;
+}
+
 void MainWidget::updateLeftSection() {
-	if (!_leftSection) {
+	const auto left = leftWidget();
+	if (!left) {
 		return;
 	} else if (_dialogsIsland.isEmpty() || isOneColumn()) {
 		closeLeftSection();
 		return;
 	}
-	_leftSection->setGeometry(_dialogsIsland);
+	left->setGeometry(_dialogsIsland);
 	if (_dialogs && !_dialogs->isHidden()) {
 		_dialogs->hide();
 	}
@@ -2946,14 +2991,16 @@ void MainWidget::updateLeftSection() {
 }
 
 void MainWidget::closeLeftSection() {
-	if (!_leftSection) {
+	const auto left = leftWidget();
+	if (!left) {
 		return;
 	}
 	_leftCorners = nullptr;
-	if (Ui::InFocusChain(_leftSection.data())) {
+	if (Ui::InFocusChain(left)) {
 		setFocus();
 	}
 	_leftSection.destroy();
+	_leftBox.destroyDelayed();
 	if (_dialogs) {
 		_dialogs->showFast();
 	}

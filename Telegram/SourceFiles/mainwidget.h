@@ -65,6 +65,7 @@ struct Content;
 } // namespace Export
 
 namespace Ui {
+class BoxContent;
 class ChatTheme;
 class ResizeArea;
 class PlainShadow;
@@ -99,6 +100,7 @@ class Changelogs;
 
 namespace AyuDesign {
 class IslandCorners;
+class LeftBoxHost;
 } // namespace AyuDesign
 
 extern const char kForceComposeSearchOneColumn[];
@@ -148,6 +150,8 @@ public:
 	void updateColumnLayout();
 	bool stackIsEmpty() const;
 	bool showBackFromStack(const SectionShow &params);
+	[[nodiscard]] bool canShowLeftBox() const;
+	void showLeftBox(object_ptr<Ui::BoxContent> box);
 	void orderWidgets();
 	QPixmap grabForShowAnimation(const Window::SectionSlideParams &params);
 	void checkMainSectionToLayer();
@@ -326,6 +330,8 @@ private:
 		const SectionShow &params);
 	void updateLeftSection();
 	void closeLeftSection();
+	void setupLeftCorners(not_null<Ui::RpWidget*> widget);
+	[[nodiscard]] Ui::RpWidget *leftWidget() const;
 	[[nodiscard]] QRegion islandBackdropRegion() const;
 	template <typename MoveCallback, typename FinishCallback>
 	void createResizeArea(
@@ -409,6 +415,7 @@ private:
 	std::unique_ptr<AyuDesign::IslandCorners> _mainCorners;
 	QRect _mainIsland;
 	object_ptr<Window::SectionWidget> _leftSection = { nullptr };
+	object_ptr<AyuDesign::LeftBoxHost> _leftBox = { nullptr };
 	std::unique_ptr<AyuDesign::IslandCorners> _leftCorners;
 
 	// _changelogs depends on _data, subscribes on chats loading event.

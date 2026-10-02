@@ -825,7 +825,7 @@ void ClearCallsBox(
 	return result;
 }
 
-void ShowCallsBox(
+object_ptr<Ui::BoxContent> PrepareCallsBox(
 		not_null<::Window::SessionController*> window,
 		bool highlightStartCall) {
 	struct State {
@@ -842,7 +842,7 @@ void ShowCallsBox(
 		base::unique_qptr<Ui::PopupMenu> menu;
 	};
 
-	window->show(Box([=](not_null<Ui::GenericBox*> box) {
+	return Box([=](not_null<Ui::GenericBox*> box) {
 		const auto state = box->lifetime().make_state<State>(window);
 
 		const auto groupCalls = box->addRow(
@@ -924,7 +924,13 @@ void ShowCallsBox(
 				Settings::HighlightWidget(button);
 			}, box->lifetime());
 		}
-	}));
+	});
+}
+
+void ShowCallsBox(
+		not_null<::Window::SessionController*> window,
+		bool highlightStartCall) {
+	window->show(PrepareCallsBox(window, highlightStartCall));
 }
 
 } // namespace Calls
