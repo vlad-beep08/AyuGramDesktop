@@ -12,6 +12,7 @@
 #include "calls/calls_box_controller.h"
 #include "core/application.h"
 #include "data/data_user.h"
+#include "info/info_memento.h"
 #include "info/stories/info_stories_widget.h"
 #include "lang/lang_keys.h"
 #include "main/main_account.h"
