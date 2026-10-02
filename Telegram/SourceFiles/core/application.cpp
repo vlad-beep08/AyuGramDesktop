@@ -279,7 +279,8 @@ void Application::run() {
 
 	startLocalStorage();
 
-	style::SetCustomFont(settings().customFontFamily());
+	style::SetCustomFont(
+		AyuDesign::PrepareFontFamily(settings().customFontFamily()));
 	style::internal::StartFonts();
 
 	Test::ApplyStartupOverrides();

@@ -103,6 +103,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ui/ayu_userpic.h"
+#include "ayu/ui/design/design_motion.h"
 #include "ayu/ui/design/design_system.h"
 #include "ayu/utils/telegram_helpers.h"
 #include "styles/style_ayu_icons.h"
@@ -1897,11 +1898,15 @@ void InnerWidget::paintPeerSearchResult(
 	QRect fullRect(0, 0, context.width, st::dialogsRowHeight);
 	if (AyuDesign::WebLayout() && !context.narrow) {
 		p.fillRect(fullRect, currentBg());
-		if (context.active || context.selected) {
-			AyuDesign::PaintWebRowHighlight(
+		if (context.active) {
+			AyuDesign::PaintWebRowHighlight(p, fullRect, st::dialogsBgActive);
+		} else if (const auto hover = AyuDesign::HoverValue(
 				p,
-				fullRect,
-				(context.active ? st::dialogsBgActive : st::dialogsBgOver));
+				result.get(),
+				context.selected); hover > 0.) {
+			p.setOpacity(hover);
+			AyuDesign::PaintWebRowHighlight(p, fullRect, st::dialogsBgOver);
+			p.setOpacity(1.);
 		}
 	} else {
 		p.fillRect(

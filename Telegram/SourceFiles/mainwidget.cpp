@@ -105,6 +105,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "ayu/features/forward/ayu_forward.h"
 #include "ayu/ui/design/design_islands.h"
+#include "ayu/ui/design/design_motion.h"
 #include "ayu/ui/design/design_system.h"
 #include "ayu/ui/design/design_themes.h"
 
@@ -1524,9 +1525,19 @@ void MainWidget::showHistory(
 		return false;
 	};
 
-	auto animationParams = animatedShow()
+	const auto slide = animatedShow();
+	auto animationParams = slide
 		? prepareHistoryAnimation(peerId)
 		: Window::SectionSlideParams();
+	if (!slide
+		&& AyuDesign::WebLayout()
+		&& !isOneColumn()
+		&& peerId
+		&& !alreadyThatPeer
+		&& _history->peer()
+		&& !_history->isHidden()) {
+		AyuDesign::CrossFade(_history.get());
+	}
 
 	if (!back && (way != Way::ClearStack)) {
 		// This may modify the current section, for example remove its contents.

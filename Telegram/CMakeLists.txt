@@ -149,6 +149,8 @@ set(ayugram_files
         ayu/ui/design/design_account_menu.h
         ayu/ui/design/design_islands.cpp
         ayu/ui/design/design_islands.h
+        ayu/ui/design/design_motion.cpp
+        ayu/ui/design/design_motion.h
         ayu/ui/design/design_system.cpp
         ayu/ui/design/design_system.h
         ayu/ui/design/design_themes.cpp

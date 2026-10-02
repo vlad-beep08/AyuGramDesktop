@@ -53,6 +53,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/features/filters/filters_controller.h"
+#include "ayu/ui/design/design_motion.h"
 #include "ayu/ui/design/design_system.h"
 #include "styles/style_ayu_icons.h"
 
@@ -496,8 +497,15 @@ void PaintRow(
 	}
 	if (AyuDesign::WebLayout() && !context.narrow) {
 		p.fillRect(geometry, *context.currentBg);
-		if (context.active || context.selected) {
+		if (context.active) {
 			AyuDesign::PaintWebRowHighlight(p, geometry, bg);
+		} else if (const auto hover = AyuDesign::HoverValue(
+				p,
+				row.get(),
+				context.selected); hover > 0.) {
+			p.setOpacity(hover);
+			AyuDesign::PaintWebRowHighlight(p, geometry, st::dialogsBgOver);
+			p.setOpacity(1.);
 		}
 	} else {
 		p.fillRect(geometry, bg);

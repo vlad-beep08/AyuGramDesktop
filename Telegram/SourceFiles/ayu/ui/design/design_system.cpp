@@ -24,6 +24,8 @@
 #include "styles/style_widgets.h"
 #include "styles/style_window.h"
 
+#include <QtGui/QFontDatabase>
+
 namespace AyuDesign {
 namespace {
 
@@ -489,6 +491,21 @@ QColor Foreground(Role role, State state) {
 	case Role::Raised: break;
 	}
 	return Color(st::windowFg);
+}
+
+QString PrepareFontFamily(const QString &custom) {
+	if (!custom.isEmpty() || CurrentLayout() != Layout::WebA) {
+		return custom;
+	}
+	auto loaded = false;
+	const auto files = QDir(u":/gui/chickengram/fonts/"_q).entryInfoList(
+		{ u"*.ttf"_q });
+	for (const auto &file : files) {
+		if (QFontDatabase::addApplicationFont(file.absoluteFilePath()) >= 0) {
+			loaded = true;
+		}
+	}
+	return loaded ? u"Roboto"_q : custom;
 }
 
 void ApplyStyleOverrides() {
