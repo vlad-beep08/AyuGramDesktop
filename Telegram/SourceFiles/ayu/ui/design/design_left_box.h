@@ -30,6 +30,8 @@ public:
 		Fn<void()> close);
 	~LeftBoxHost();
 
+	using Ui::RpWidget::show;
+
 	void setInnerFocus();
 
 	void setLayerType(bool layerType) override;
