@@ -17,12 +17,16 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/vertical_list.h"
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/checkbox.h"
+#include "ui/widgets/labels.h"
+#include "ui/ui_utility.h"
 #include "ui/wrap/slide_wrap.h"
 #include "ui/wrap/vertical_layout.h"
 #include "window/window_session_controller.h"
+#include "styles/style_ayu_icons.h"
 #include "styles/style_settings.h"
 
 // AyuGram includes
+#include "ayu/ui/design/design_system.h"
 #include "ayu/ui/settings/settings_ayu_utils.h"
 
 
@@ -241,6 +245,55 @@ Ui::RpWidget *SectionBuilder::add(
 	return result;
 }
 
+namespace {
+
+[[nodiscard]] const style::SettingsButton &TwoLineStyle(
+		const style::SettingsButton &st) {
+	static auto cache = base::flat_map<
+		const style::SettingsButton*,
+		std::unique_ptr<style::SettingsButton>>();
+	auto &result = cache[&st];
+	if (!result) {
+		result = std::make_unique<style::SettingsButton>(st);
+		const auto padding = st::ayuWebSettingsRowPadding;
+		const auto subtitle = st::ayuWebSettingsSubtitle.style.font->height
+			+ st::ayuWebSettingsSubtitleSkip;
+		result->padding = style::margins(
+			std::max(st.padding.left(), st::ayuWebSettingsTextLeft),
+			padding,
+			st.padding.right(),
+			padding + subtitle);
+	}
+	return *result;
+}
+
+void AddSubtitle(
+		not_null<Ui::SettingsButton*> button,
+		rpl::producer<QString> text,
+		const style::SettingsButton &st) {
+	const auto label = Ui::CreateChild<Ui::FlatLabel>(
+		button.get(),
+		std::move(text),
+		st::ayuWebSettingsSubtitle);
+	label->setAttribute(Qt::WA_TransparentForMouseEvents);
+	label->show();
+	button->widthValue(
+	) | rpl::on_next([=, &st](int width) {
+		const auto available = width
+			- st.padding.left()
+			- st.padding.right();
+		label->resizeToWidth(std::max(available, 1));
+		label->moveToLeft(
+			st.padding.left(),
+			(st.padding.top()
+				+ st.style.font->height
+				+ st::ayuWebSettingsSubtitleSkip),
+			width);
+	}, label->lifetime());
+}
+
+} // namespace
+
 Ui::RpWidget *SectionBuilder::addControl(ControlArgs &&args) {
 	if (auto shown = base::take(args.shown)) {
 		auto result = (Ui::RpWidget*)nullptr;
@@ -269,7 +322,9 @@ Ui::RpWidget *SectionBuilder::addControl(ControlArgs &&args) {
 }
 
 Ui::SettingsButton *SectionBuilder::addButton(ButtonArgs &&args) {
-	const auto &st = args.st ? *args.st : st::settingsButton;
+	const auto twoLine = args.subtitle && AyuDesign::WebLayout();
+	const auto &base = args.st ? *args.st : st::settingsButton;
+	const auto &st = twoLine ? TwoLineStyle(base) : base;
 	auto iconForSearch = IconDescriptor{ args.icon.icon };
 	const auto factory = [&](not_null<Ui::VerticalLayout*> container) {
 		auto button = CreateButtonWithIcon(
@@ -277,6 +332,9 @@ Ui::SettingsButton *SectionBuilder::addButton(ButtonArgs &&args) {
 			rpl::duplicate(args.title),
 			st,
 			std::move(args.icon));
+		if (button && twoLine) {
+			AddSubtitle(button.data(), std::move(args.subtitle), st);
+		}
 		if (button && args.onClick) {
 			button->addClickHandler(std::move(args.onClick));
 		}
@@ -312,6 +370,7 @@ Ui::SettingsButton *SectionBuilder::addSectionButton(SectionArgs &&args) {
 	return addButton({
 		.altIds = std::move(args.altIds),
 		.title = std::move(args.title),
+		.subtitle = std::move(args.subtitle),
 		.icon = std::move(args.icon),
 		.onClick = [=] { showOther(target); },
 		.keywords = std::move(args.keywords),

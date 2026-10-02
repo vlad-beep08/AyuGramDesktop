@@ -35,6 +35,18 @@ ayuQuickPhraseToggle: IconButton(defaultIconButton) {
 	ripple: defaultRippleAnimationBgOver;
 }
 
+ayuWebSettingsSubtitle: FlatLabel(defaultFlatLabel) {
+	textFg: windowSubTextFg;
+	maxHeight: 18px;
+	style: TextStyle(defaultTextStyle) {
+		font: font(13px);
+	}
+}
+ayuWebSettingsSubtitleSkip: 1px;
+ayuWebSettingsRowPadding: 9px;
+ayuWebSettingsIconPadding: 4px;
+ayuWebSettingsTextLeft: 72px;
+
 ayuContactsMutualIcon: icon {{ "ayu/contacts_mutual", contactsStatusFg }};
 ayuContactsMutualIconOver: icon {{ "ayu/contacts_mutual", contactsStatusFgOver }};
 

@@ -80,6 +80,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/wrap/slide_wrap.h"
 #include "window/window_controller.h"
 #include "window/window_session_controller.h"
+#include "styles/style_ayu_icons.h"
 #include "styles/style_chat_helpers.h"
 #include "styles/style_info.h"
 #include "styles/style_layers.h"
@@ -453,6 +454,27 @@ void Cover::refreshQrButtonGeometry(int newWidth) {
 	_qrButton->moveToRight(buttonRight - inset, buttonTop, newWidth);
 }
 
+[[nodiscard]] IconDescriptor WebIcon(
+		const style::icon &icon,
+		const style::color &background) {
+	if (!AyuDesign::WebLayout()) {
+		return { &icon };
+	}
+	return {
+		.icon = &icon,
+		.type = IconType::Rounded,
+		.background = &background,
+		.tintedPadding = st::ayuWebSettingsIconPadding,
+	};
+}
+
+[[nodiscard]] rpl::producer<QString> WebSubtitle(
+		rpl::producer<QString> text) {
+	return AyuDesign::WebLayout()
+		? std::move(text)
+		: rpl::producer<QString>();
+}
+
 void BuildSectionButtons(SectionBuilder &builder) {
 	const auto session = builder.session();
 	const auto controller = builder.controller();
@@ -460,8 +482,9 @@ void BuildSectionButtons(SectionBuilder &builder) {
 
 	builder.addSectionButton({
 		.title = tr::ayu_AyuPreferences(),
+		.subtitle = WebSubtitle(tr::ayu_WebSettingsAyuAbout()),
 		.targetSection = AyuMain::Id(),
-		.icon = { &st::menuIconPremium },
+		.icon = WebIcon(st::menuIconPremium, st::settingsIconBg6),
 		.keywords = { u"ayu"_q },
 	});
 	builder.addSkip();
@@ -471,30 +494,34 @@ void BuildSectionButtons(SectionBuilder &builder) {
 	if (!session->supportMode()) {
 		builder.addSectionButton({
 			.title = tr::lng_settings_my_account(),
+			.subtitle = WebSubtitle(tr::ayu_WebSettingsAccountAbout()),
 			.targetSection = InformationId(),
-			.icon = { &st::menuIconProfile },
+			.icon = WebIcon(st::menuIconProfile, st::settingsIconBg4),
 			.keywords = { u"profile"_q, u"edit"_q, u"information"_q },
 		});
 	}
 
 	builder.addSectionButton({
 		.title = tr::lng_settings_section_notify(),
+		.subtitle = WebSubtitle(tr::ayu_WebSettingsNotifyAbout()),
 		.targetSection = NotificationsId(),
-		.icon = { &st::menuIconNotifications },
+		.icon = WebIcon(st::menuIconNotifications, st::settingsIconBg1),
 		.keywords = { u"alerts"_q, u"sounds"_q, u"badge"_q },
 	});
 
 	builder.addSectionButton({
 		.title = tr::lng_settings_section_privacy(),
+		.subtitle = WebSubtitle(tr::ayu_WebSettingsPrivacyAbout()),
 		.targetSection = PrivacySecurityId(),
-		.icon = { &st::menuIconLock },
+		.icon = WebIcon(st::menuIconLock, st::settingsIconBg5),
 		.keywords = { u"security"_q, u"passcode"_q, u"password"_q, u"2fa"_q },
 	});
 
 	builder.addSectionButton({
 		.title = tr::lng_settings_section_chat_settings(),
+		.subtitle = WebSubtitle(tr::ayu_WebSettingsChatAbout()),
 		.targetSection = ChatId(),
-		.icon = { &st::menuIconChatBubble },
+		.icon = WebIcon(st::menuIconChatBubble, st::settingsIconBg3),
 		.keywords = { u"themes"_q, u"appearance"_q, u"stickers"_q },
 	});
 
@@ -525,7 +552,8 @@ void BuildSectionButtons(SectionBuilder &builder) {
 
 		builder.addButton({
 			.title = tr::lng_settings_section_filters(),
-			.icon = { &st::menuIconShowInFolder },
+			.subtitle = WebSubtitle(tr::ayu_WebSettingsFoldersAbout()),
+			.icon = WebIcon(st::menuIconShowInFolder, st::settingsIconBg8),
 			.onClick = [=] { showOther(FoldersId()); },
 			.keywords = { u"filters"_q, u"tabs"_q },
 			.shown = std::move(shownProducer),
@@ -534,37 +562,46 @@ void BuildSectionButtons(SectionBuilder &builder) {
 
 	builder.addSectionButton({
 		.title = tr::lng_settings_advanced(),
+		.subtitle = WebSubtitle(tr::ayu_WebSettingsAdvancedAbout()),
 		.targetSection = AdvancedId(),
-		.icon = { &st::menuIconManage },
+		.icon = WebIcon(st::menuIconManage, st::settingsIconBg2),
 		.keywords = { u"performance"_q, u"proxy"_q, u"experimental"_q },
 	});
 
 	builder.addSectionButton({
 		.title = tr::lng_settings_section_devices(),
+		.subtitle = WebSubtitle(tr::ayu_WebSettingsDevicesAbout()),
 		.targetSection = CallsId(),
-		.icon = { &st::menuIconUnmute },
+		.icon = WebIcon(st::menuIconUnmute, st::settingsIconBg5),
 		.keywords = { u"sessions"_q, u"calls"_q },
 	});
 
 	builder.addButton({
 		.id = u"main/power"_q,
 		.title = tr::lng_settings_power_menu(),
-		.icon = { &st::menuIconPowerUsage },
+		.subtitle = WebSubtitle(tr::ayu_WebSettingsPowerAbout()),
+		.icon = WebIcon(st::menuIconPowerUsage, st::settingsIconBg2),
 		.onClick = [=] {
 			controller->show(Box(PowerSavingBox, PowerSaving::Flags()));
 		},
 		.keywords = { u"battery"_q, u"animations"_q, u"power"_q, u"saving"_q },
 	});
 
-	builder.addButton({
-		.id = u"main/language"_q,
-		.title = tr::lng_settings_language(),
-		.icon = { &st::menuIconTranslate },
-		.label = rpl::single(
+	const auto languageName = []() -> rpl::producer<QString> {
+		return rpl::single(
 			Lang::GetInstance().id()
 		) | rpl::then(
 			Lang::GetInstance().idChanges()
-		) | rpl::map([] { return Lang::GetInstance().nativeName(); }),
+		) | rpl::map([] { return Lang::GetInstance().nativeName(); });
+	};
+	builder.addButton({
+		.id = u"main/language"_q,
+		.title = tr::lng_settings_language(),
+		.subtitle = WebSubtitle(languageName()),
+		.icon = WebIcon(st::menuIconTranslate, st::settingsIconBg4),
+		.label = (AyuDesign::WebLayout()
+			? rpl::producer<QString>()
+			: languageName()),
 		.onClick = [=] {
 			static auto Guard = base::binary_guard();
 			Guard = LanguageBox::Show(controller);

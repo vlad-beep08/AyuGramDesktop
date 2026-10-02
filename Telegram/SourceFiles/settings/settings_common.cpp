@@ -367,22 +367,27 @@ void AbstractSection::setNavigationAnchor(not_null<QWidget*> widget) {
 	_keyNavigation->anchorTo(widget);
 }
 
-Icon::Icon(IconDescriptor descriptor) : _icon(descriptor.icon) {
+Icon::Icon(IconDescriptor descriptor)
+: _icon(descriptor.icon)
+, _padding(descriptor.tintedPadding) {
 	const auto background = [&]() -> const style::color* {
 		if (descriptor.type == IconType::Simple) {
 			return nullptr;
 		}
 		return descriptor.background;
 	}();
+	const auto rounded = _padding
+		? (std::min(width(), height()) / 4)
+		: st::settingsIconRadius;
 	if (background) {
 		const auto radius = (descriptor.type == IconType::Rounded)
-			? st::settingsIconRadius
-			: (std::min(_icon->width(), _icon->height()) / 2);
+			? rounded
+			: (std::min(width(), height()) / 2);
 		_background.emplace(radius, *background);
 	} else if (const auto brush = descriptor.backgroundBrush) {
 		const auto radius = (descriptor.type == IconType::Rounded)
-			? st::settingsIconRadius
-			: (std::min(_icon->width(), _icon->height()) / 2);
+			? rounded
+			: (std::min(width(), height()) / 2);
 		_backgroundBrush.emplace(radius, std::move(*brush));
 	}
 }
@@ -392,30 +397,40 @@ void Icon::paint(QPainter &p, QPoint position) const {
 }
 
 void Icon::paint(QPainter &p, int x, int y) const {
+	const auto full = QRect(QPoint(x, y), size());
 	if (_background) {
-		_background->paint(p, { { x, y }, _icon->size() });
+		_background->paint(p, full);
 	} else if (_backgroundBrush) {
 		PainterHighQualityEnabler hq(p);
 		p.setPen(Qt::NoPen);
 		p.setBrush(_backgroundBrush->second);
 		p.drawRoundedRect(
-			QRect(QPoint(x, y), _icon->size()),
+			full,
 			_backgroundBrush->first,
 			_backgroundBrush->first);
 	}
-	_icon->paint(p, { x, y }, 2 * x + _icon->width());
+	if (_padding) {
+		_icon->paint(
+			p,
+			x + _padding,
+			y + _padding,
+			2 * x + full.width(),
+			st::settingsIconFg->c);
+	} else {
+		_icon->paint(p, { x, y }, 2 * x + _icon->width());
+	}
 }
 
 int Icon::width() const {
-	return _icon->width();
+	return _icon->width() + 2 * _padding;
 }
 
 int Icon::height() const {
-	return _icon->height();
+	return _icon->height() + 2 * _padding;
 }
 
 QSize Icon::size() const {
-	return _icon->size();
+	return QSize(width(), height());
 }
 
 void AddButtonIcon(

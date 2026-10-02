@@ -193,6 +193,7 @@ public:
 		QString id;
 		QStringList altIds;
 		rpl::producer<QString> title;
+		rpl::producer<QString> subtitle;
 		const style::SettingsButton *st = nullptr;
 		IconDescriptor icon;
 		Ui::VerticalLayout *container = nullptr;
@@ -209,6 +210,7 @@ public:
 		//QString id; // Sections should register themselves in search.
 		QStringList altIds;
 		rpl::producer<QString> title;
+		rpl::producer<QString> subtitle;
 		Type targetSection;
 		IconDescriptor icon;
 		QStringList keywords;

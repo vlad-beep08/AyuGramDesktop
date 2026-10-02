@@ -9145,6 +9145,15 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_DesignLayoutClassic" = "Classic";
 "ayu_WebMenuMore" = "More";
 "ayu_WebMenuClassic" = "Classic menu";
+"ayu_WebSettingsAyuAbout" = "Ghost mode, message history, appearance";
+"ayu_WebSettingsAccountAbout" = "Name, username, bio";
+"ayu_WebSettingsNotifyAbout" = "Sounds, calls, badges";
+"ayu_WebSettingsPrivacyAbout" = "Last seen, passcode, blocked users";
+"ayu_WebSettingsChatAbout" = "Wallpapers, themes, stickers";
+"ayu_WebSettingsFoldersAbout" = "Sort chats into folders";
+"ayu_WebSettingsAdvancedAbout" = "Data, storage, connection";
+"ayu_WebSettingsDevicesAbout" = "Microphone, camera, calls";
+"ayu_WebSettingsPowerAbout" = "Animations and battery saving";
 "ayu_DesignDensity" = "Interface Density";
 "ayu_DesignDensityCompact" = "Compact";
 "ayu_DesignDensityNormal" = "Normal";
