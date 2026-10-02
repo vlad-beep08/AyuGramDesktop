@@ -47,7 +47,7 @@ protected:
 
 };
 
-struct State {
+struct CardsState {
 	not_null<Ui::RpWidget*> wrap;
 	not_null<Ui::RpWidget*> content;
 	not_null<Ui::RpWidget*> under;
@@ -69,7 +69,7 @@ struct State {
 	return result;
 }
 
-void Compute(not_null<State*> state) {
+void Compute(not_null<CardsState*> state) {
 	state->dirty = false;
 	state->bands.clear();
 	const auto content = state->content;
@@ -124,7 +124,9 @@ void Compute(not_null<State*> state) {
 	addCard(cursor, area.y() + area.height());
 }
 
-[[nodiscard]] QRect BandRect(not_null<State*> state, const Band &band) {
+[[nodiscard]] QRect BandRect(
+		not_null<CardsState*> state,
+		const Band &band) {
 	const auto left = band.bleed ? 0 : state->content->x();
 	const auto width = band.bleed
 		? state->wrap->width()
@@ -132,7 +134,7 @@ void Compute(not_null<State*> state) {
 	return QRect(left, band.top, width, band.bottom - band.top);
 }
 
-void PaintUnder(not_null<State*> state, QRect clip) {
+void PaintUnder(not_null<CardsState*> state, QRect clip) {
 	if (state->dirty) {
 		Compute(state);
 	}
@@ -154,7 +156,7 @@ void PaintUnder(not_null<State*> state, QRect clip) {
 	}
 }
 
-void PaintOver(not_null<State*> state, QRect clip) {
+void PaintOver(not_null<CardsState*> state, QRect clip) {
 	if (state->dirty) {
 		Compute(state);
 	}
@@ -188,7 +190,7 @@ void SetupWebCards(
 		not_null<Ui::RpWidget*> content) {
 	const auto under = Ui::CreateChild<Ui::RpWidget>(wrap.get());
 	const auto over = Ui::CreateChild<Ui::RpWidget>(wrap.get());
-	const auto state = under->lifetime().make_state<State>(State{
+	const auto state = under->lifetime().make_state<CardsState>(CardsState{
 		.wrap = wrap,
 		.content = content,
 		.under = under,
