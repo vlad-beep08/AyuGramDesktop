@@ -8,6 +8,7 @@
 
 #include "ayu/ayu_settings.h"
 #include "ayu/ui/design/design_themes.h"
+#include "boxes/add_contact_box.h"
 #include "boxes/peer_list_controllers.h"
 #include "calls/calls_box_controller.h"
 #include "core/application.h"
@@ -101,10 +102,14 @@ void FillMore(
 		not_null<Ui::PopupMenu*> menu,
 		not_null<Window::SessionController*> controller) {
 	menu->addAction(tr::lng_create_group_title(tr::now), [=] {
-		controller->showNewGroup();
+		ShowInLeftColumn(
+			controller,
+			Box<GroupInfoBox>(controller, GroupInfoBox::Type::Group));
 	}, &st::menuIconGroups);
 	menu->addAction(tr::lng_create_channel_title(tr::now), [=] {
-		controller->showNewChannel();
+		ShowInLeftColumn(
+			controller,
+			Box<GroupInfoBox>(controller, GroupInfoBox::Type::Channel));
 	}, &st::menuIconChannel);
 	menu->addAction(tr::lng_menu_calls(tr::now), [=] {
 		ShowInLeftColumn(controller, ::Calls::PrepareCallsBox(controller));

@@ -86,7 +86,8 @@ ContentWidget::ContentWidget(
 
 	setAttribute(Qt::WA_OpaquePaintEvent);
 	_webCards = AyuDesign::WebLayout()
-		&& (_controller->section().type() == Section::Type::Settings);
+		&& ((_controller->section().type() == Section::Type::Settings)
+			|| (_controller->section().type() == Section::Type::Profile));
 	_controller->wrapValue(
 	) | rpl::on_next([this](Wrap value) {
 		if (value != Wrap::Layer) {
