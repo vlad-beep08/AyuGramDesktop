@@ -516,7 +516,9 @@ QColor Foreground(Role role, State state) {
 }
 
 QString PrepareFontFamily(const QString &custom) {
-	if (!custom.isEmpty() || CurrentLayout() != Layout::WebA) {
+	const auto bolder = (AyuSettings::getInstance().designFontWeight() == 0);
+	if (!custom.isEmpty()
+		|| (!bolder && CurrentLayout() != Layout::WebA)) {
 		return custom;
 	}
 	auto loaded = false;
@@ -527,7 +529,11 @@ QString PrepareFontFamily(const QString &custom) {
 			loaded = true;
 		}
 	}
-	return loaded ? u"Roboto"_q : custom;
+	return !loaded
+		? custom
+		: bolder
+		? u"Chickengram Sans"_q
+		: u"Roboto"_q;
 }
 
 void ApplyStyleOverrides() {

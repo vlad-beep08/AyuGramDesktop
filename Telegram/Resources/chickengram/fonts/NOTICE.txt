@@ -1,0 +1,4 @@
+ChickengramSans-Regular.ttf and ChickengramSans-Bold.ttf are modified
+copies of Roboto-Medium.ttf and Roboto-Bold.ttf: the family is renamed
+to "Chickengram Sans" and the Medium face is marked as the Regular
+weight. Roboto is licensed under the Apache License 2.0 (LICENSE.txt).

@@ -9143,6 +9143,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_DesignLayout" = "Interface style";
 "ayu_DesignLayoutWeb" = "Telegram Web";
 "ayu_DesignLayoutClassic" = "Classic";
+"ayu_DesignFontWeight" = "Font weight";
+"ayu_DesignFontWeightBold" = "Bolder, like on iPhone";
+"ayu_DesignFontWeightRegular" = "Regular";
 "ayu_WebMenuMore" = "More";
 "ayu_WebMenuClassic" = "Classic menu";
 "ayu_WebSettingsAyuAbout" = "Ghost mode, message history, appearance";
