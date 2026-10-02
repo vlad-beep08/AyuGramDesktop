@@ -207,7 +207,15 @@ void Attach(not_null<Ui::PopupMenu*> menu) {
 	st.menu.itemBgOver = colors.over.color();
 	st.menu.ripple.color = colors.ripple.color();
 	const auto raw = menu.get();
-	menus[raw] = Ui::CreateChild<Backdrop>(raw);
+	const auto backdrop = Ui::CreateChild<Backdrop>(raw);
+	menus[raw] = backdrop;
+	QObject::connect(backdrop, &QObject::destroyed, [=] {
+		auto &menus = Menus();
+		const auto i = menus.find(raw);
+		if (i != end(menus)) {
+			i->second = nullptr;
+		}
+	});
 	QObject::connect(raw, &QObject::destroyed, [=] {
 		Menus().remove(raw);
 	});
