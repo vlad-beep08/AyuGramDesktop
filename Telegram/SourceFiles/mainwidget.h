@@ -321,6 +321,11 @@ private:
 	void refreshIslandBackdrop();
 	void updateThirdIsland();
 	void updateMainIsland();
+	bool showInLeftSection(
+		const std::shared_ptr<Window::SectionMemento> &memento,
+		const SectionShow &params);
+	void updateLeftSection();
+	void closeLeftSection();
 	[[nodiscard]] QRegion islandBackdropRegion() const;
 	template <typename MoveCallback, typename FinishCallback>
 	void createResizeArea(
@@ -403,6 +408,8 @@ private:
 	QRect _thirdClosingRect;
 	std::unique_ptr<AyuDesign::IslandCorners> _mainCorners;
 	QRect _mainIsland;
+	object_ptr<Window::SectionWidget> _leftSection = { nullptr };
+	std::unique_ptr<AyuDesign::IslandCorners> _leftCorners;
 
 	// _changelogs depends on _data, subscribes on chats loading event.
 	const std::unique_ptr<Core::Changelogs> _changelogs;

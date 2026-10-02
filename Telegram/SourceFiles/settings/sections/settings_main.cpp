@@ -94,6 +94,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/ui/settings/settings_main.h"
 #include "ayu/ui/utils/ayu_profile_values.h"
 #include "ayu/utils/telegram_helpers.h"
+#include "ayu/ui/design/design_system.h"
 
 
 namespace Settings {
@@ -123,6 +124,7 @@ private:
 	void refreshIdGeometry(int newWidth);
 	void refreshUsernameGeometry(int newWidth);
 	void refreshQrButtonGeometry(int newWidth);
+	void layoutWeb(int newWidth);
 
 	const not_null<Window::SessionController*> _controller;
 	const not_null<UserData*> _user;
@@ -266,6 +268,10 @@ void Cover::setupChildGeometry() {
 	using namespace rpl::mappers;
 	widthValue(
 	) | rpl::on_next([=](int newWidth) {
+		if (AyuDesign::WebLayout()) {
+			layoutWeb(newWidth);
+			return;
+		}
 		_userpic->moveToLeft(
 			st::settingsPhotoLeft,
 			st::settingsPhotoTop,
@@ -320,7 +326,56 @@ void Cover::initViewers() {
 	});
 }
 
+void Cover::layoutWeb(int newWidth) {
+	const auto skip = st::settingsPhotoBottom;
+	const auto rightSkip = st::infoProfileCover.rightSkip;
+	const auto available = std::max(newWidth - 2 * rightSkip, 1);
+	auto top = st::settingsPhotoTop + skip;
+	_userpic->moveToLeft(
+		(newWidth - _userpic->width()) / 2,
+		top,
+		newWidth);
+	top += _userpic->height() + skip / 2;
+
+	_name->resizeToNaturalWidth(available);
+	const auto nameLeft = (newWidth - _name->width()) / 2;
+	_name->moveToLeft(nameLeft, top, newWidth);
+	const auto badgeLeft = nameLeft + _name->width();
+	const auto badgeBottom = top + _name->height();
+	_badge.move(badgeLeft, top, badgeBottom);
+	_exteraBadge.move(
+		badgeLeft + (_badge.widget()
+			? (_badge.widget()->width() + st::infoVerifiedCheckPosition.x())
+			: 0),
+		top,
+		badgeBottom);
+	top += _name->height();
+
+	_id->resizeToNaturalWidth(available);
+	_id->moveToLeft((newWidth - _id->width()) / 2, top, newWidth);
+	top += _id->height();
+
+	_username->resizeToNaturalWidth(available);
+	_username->moveToLeft((newWidth - _username->width()) / 2, top, newWidth);
+	top += _username->height() + skip;
+
+	if (_qrButton) {
+		const auto inset = st::infoProfileLabeledButtonQrInset;
+		_qrButton->moveToRight(
+			rightSkip - inset,
+			st::settingsPhotoTop + skip,
+			newWidth);
+	}
+	if (height() != top) {
+		resize(width(), top);
+	}
+}
+
 void Cover::refreshNameGeometry(int newWidth) {
+	if (AyuDesign::WebLayout()) {
+		layoutWeb(newWidth);
+		return;
+	}
 	const auto nameLeft = st::settingsNameLeft;
 	const auto nameTop = st::settingsNameTop;
 	const auto qrButtonWidth = (_qrButton && !_qrButton->isHidden())
@@ -355,6 +410,10 @@ void Cover::updateIdText() {
 }
 
 void Cover::refreshIdGeometry(int newWidth) {
+	if (AyuDesign::WebLayout()) {
+		layoutWeb(newWidth);
+		return;
+	}
 	const auto idLeft = st::settingsPhoneLeft;
 	const auto idTop = st::settingsPhoneTop;
 	const auto idWidth = newWidth
@@ -365,6 +424,10 @@ void Cover::refreshIdGeometry(int newWidth) {
 }
 
 void Cover::refreshUsernameGeometry(int newWidth) {
+	if (AyuDesign::WebLayout()) {
+		layoutWeb(newWidth);
+		return;
+	}
 	const auto usernameLeft = st::settingsUsernameLeft;
 	const auto usernameTop = st::settingsUsernameTop;
 	const auto usernameRight = st::infoProfileCover.rightSkip;
@@ -375,6 +438,9 @@ void Cover::refreshUsernameGeometry(int newWidth) {
 
 void Cover::refreshQrButtonGeometry(int newWidth) {
 	if (!_qrButton) {
+		return;
+	} else if (AyuDesign::WebLayout()) {
+		layoutWeb(newWidth);
 		return;
 	}
 	const auto buttonTop = (height() - _qrButton->height()) / 2;

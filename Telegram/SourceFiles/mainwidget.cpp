@@ -52,6 +52,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "chat_helpers/message_field.h"
 #include "info/info_memento.h"
 #include "info/info_wrap_widget.h"
+#include "info/info_content_widget.h"
+#include "info/info_controller.h"
 #include "apiwrap.h"
 #include "dialogs/dialogs_widget.h"
 #include "history/history.h"
@@ -1738,7 +1740,9 @@ bool MainWidget::saveSectionInStack(
 void MainWidget::showSection(
 		std::shared_ptr<Window::SectionMemento> memento,
 		const SectionShow &params) {
-	if (_mainSection && _mainSection->showInternal(
+	if (showInLeftSection(memento, params)) {
+		return;
+	} else if (_mainSection && _mainSection->showInternal(
 			memento.get(),
 			params)) {
 		if (params.activation != anim::activation::background) {
@@ -2130,6 +2134,10 @@ void MainWidget::showNonPremiumLimitToast(bool download) {
 }
 
 bool MainWidget::showBackFromStack(const SectionShow &params) {
+	if (_leftSection) {
+		closeLeftSection();
+		return true;
+	}
 	if (preventsCloseSection([=] { showBackFromStack(params); }, params)) {
 		return false;
 	}
@@ -2190,6 +2198,9 @@ void MainWidget::orderWidgets() {
 	}
 	if (_mainCorners) {
 		_mainCorners->raise();
+	}
+	if (_leftCorners) {
+		_leftCorners->raise();
 	}
 	if (_player) {
 		_player->raise();
@@ -2362,6 +2373,9 @@ void MainWidget::hideAll() {
 	if (_thirdCorners) {
 		_thirdCorners->setVisible(false);
 	}
+	if (_leftSection) {
+		_leftSection->hide();
+	}
 	_history->hide();
 	if (_mainSection) {
 		_mainSection->hide();
@@ -2423,6 +2437,9 @@ void MainWidget::showAll() {
 		}
 		if (_dialogsCorners) {
 			_dialogsCorners->setVisible(true);
+		}
+		if (_leftSection) {
+			_leftSection->show();
 		}
 		if (_mainSection) {
 			_mainSection->show();
@@ -2675,6 +2692,7 @@ void MainWidget::updateControlsGeometry() {
 			_contentScrollAddToY);
 	}
 	updateMainIsland();
+	updateLeftSection();
 	if (!_thirdClosingSnapshot.isNull()) {
 		if (!_thirdSection && _thirdWasShown && !isOneColumn()) {
 			AyuDesign::SlideOut(
@@ -2865,6 +2883,84 @@ void MainWidget::destroyThirdSection() {
 		}
 	}
 	_thirdSection.destroy();
+}
+
+bool MainWidget::showInLeftSection(
+		const std::shared_ptr<Window::SectionMemento> &memento,
+		const SectionShow &params) {
+	if (!AyuDesign::WebLayout()
+		|| !_dialogs
+		|| isOneColumn()
+		|| _dialogsIsland.isEmpty()
+		|| params.thirdColumn) {
+		return false;
+	}
+	const auto info = dynamic_cast<Info::Memento*>(memento.get());
+	if (!info
+		|| info->stackSize() != 1
+		|| info->content()->section().type() != Info::Section::Type::Settings) {
+		return false;
+	}
+	_controller->window().hideSettingsAndLayer();
+	if (_leftSection && _leftSection->showInternal(memento.get(), params)) {
+		return true;
+	}
+	_leftCorners = nullptr;
+	_leftSection.destroy();
+	_leftSection = memento->createWidget(
+		this,
+		_controller,
+		Window::Column::First,
+		_dialogsIsland);
+	if (!_leftSection) {
+		return false;
+	}
+	_leftSection->setGeometry(_dialogsIsland);
+	_leftSection->show();
+	_dialogs->hide();
+	_leftCorners = std::make_unique<AyuDesign::IslandCorners>(
+		this,
+		[=](QPainter &p, QRect clip) { paintIslandBackdrop(p, clip); });
+	_leftCorners->bindVisibility(_leftSection.data());
+	_leftCorners->setIsland(_dialogsIsland);
+	_leftCorners->raise();
+	_leftSection->setInnerFocus();
+	return true;
+}
+
+void MainWidget::updateLeftSection() {
+	if (!_leftSection) {
+		return;
+	} else if (_dialogsIsland.isEmpty() || isOneColumn()) {
+		closeLeftSection();
+		return;
+	}
+	_leftSection->setGeometry(_dialogsIsland);
+	if (_dialogs && !_dialogs->isHidden()) {
+		_dialogs->hide();
+	}
+	if (_leftCorners) {
+		_leftCorners->setIsland(_dialogsIsland);
+		_leftCorners->raise();
+	}
+}
+
+void MainWidget::closeLeftSection() {
+	if (!_leftSection) {
+		return;
+	}
+	_leftCorners = nullptr;
+	if (Ui::InFocusChain(_leftSection.data())) {
+		setFocus();
+	}
+	_leftSection.destroy();
+	if (_dialogs) {
+		_dialogs->showFast();
+	}
+	orderWidgets();
+	crl::on_main(this, [=] {
+		_controller->widget()->setInnerFocus();
+	});
 }
 
 void MainWidget::updateMainIsland() {
