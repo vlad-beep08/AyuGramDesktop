@@ -34,6 +34,8 @@ constexpr auto kDarkBorderAlpha = 0.1;
 constexpr auto kLightBorderAlpha = 0.08;
 constexpr auto kDarkLightness = 128;
 
+auto Refreshing = false;
+
 [[nodiscard]] QColor WithAlpha(QColor color, float64 alpha) {
 	color.setAlphaF(alpha);
 	return color;
@@ -95,7 +97,7 @@ Backdrop::Backdrop(not_null<Ui::PopupMenu*> menu)
 
 void Backdrop::refresh() {
 	const auto inner = _menu->inner();
-	if (inner.isEmpty()) {
+	if (Refreshing || inner.isEmpty()) {
 		return;
 	}
 	const auto global = QRect(
@@ -128,7 +130,9 @@ void Backdrop::refresh() {
 			area.size());
 		const auto visible = local.intersected(source->rect());
 		if (!visible.isEmpty()) {
+			Refreshing = true;
 			const auto grabbed = source->grab(visible);
+			Refreshing = false;
 			auto p = QPainter(&image);
 			p.drawPixmap(visible.topLeft() - local.topLeft(), grabbed);
 		}
