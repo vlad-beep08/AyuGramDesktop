@@ -104,6 +104,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_settings.h"
+#include "ayu/ui/design/design_islands.h"
+#include "ayu/ui/design/design_system.h"
 #include "ayu/features/message_shot/message_shot.h"
 #include "ayu/features/undo_send/undo_send.h"
 #include "ayu/features/quick_phrase/quick_phrase.h"
@@ -337,6 +339,7 @@ ChatWidget::ChatWidget(
 
 	_topBar->move(0, 0);
 	_topBar->resizeToWidth(width());
+	_topBar->setPillMode(AyuDesign::WebLayout());
 	_topBar->show();
 
 	if (_repliesRootView) {
@@ -3091,7 +3094,9 @@ void ChatWidget::resizeEvent(QResizeEvent *e) {
 	if (!width() || !height()) {
 		return;
 	}
-	_composeControls->resizeToWidth(width());
+	_composeControls->resizeToWidth(AyuDesign::WebLayout()
+		? AyuDesign::WebColumnWidth(width())
+		: width());
 	recountChatWidth();
 	updateControlsGeometry();
 }
@@ -3105,6 +3110,11 @@ void ChatWidget::recountChatWidth() {
 
 void ChatWidget::updateControlsGeometry() {
 	const auto contentWidth = width();
+	const auto web = AyuDesign::WebLayout();
+	const auto columnWidth = web
+		? AyuDesign::WebColumnWidth(contentWidth)
+		: contentWidth;
+	const auto columnLeft = (contentWidth - columnWidth) / 2;
 
 	const auto wasAtBottom = !_scroll->isHidden()
 		&& (_scroll->scrollTop() >= _scroll->scrollTopMax());
@@ -3113,17 +3123,19 @@ void ChatWidget::updateControlsGeometry() {
 		: _scroll->scrollTop()
 		? base::make_optional(takeTopDelta() + _scrollTopDelta)
 		: 0;
-	_topBar->resizeToWidth(contentWidth);
-	_topBarShadow->resize(contentWidth, st::lineWidth);
+	_topBar->resizeToWidth(columnWidth);
+	_topBar->moveToLeft(columnLeft, web ? AyuDesign::IslandMargin() : 0);
+	_topBarShadow->resize(web ? 0 : contentWidth, st::lineWidth);
 	const auto tabsLeftSkip = _subsectionTabs
 		? _subsectionTabs->leftSkip()
 		: 0;
 	const auto tabsBottomSkip = _subsectionTabs
 		? _subsectionTabs->bottomSkip()
 		: 0;
-	const auto innerWidth = contentWidth - tabsLeftSkip;
+	const auto innerWidth = web ? columnWidth : (contentWidth - tabsLeftSkip);
 	const auto subsectionTabsTop = _topBar->bottomNoMargins();
-	_topBars->move(tabsLeftSkip, subsectionTabsTop
+	_topBars->move(web ? columnLeft : tabsLeftSkip, subsectionTabsTop
+		+ (web ? AyuDesign::WebHeaderGap() : 0)
 		+ (_subsectionTabs ? _subsectionTabs->topSkip() : 0));
 	if (_repliesRootView) {
 		_repliesRootView->resizeToWidth(innerWidth);
@@ -3142,26 +3154,45 @@ void ChatWidget::updateControlsGeometry() {
 	_translateBar->resizeToWidth(innerWidth);
 	top += _translateBarHeight;
 
-	auto bottom = height();
+	auto bottom = height() - (web ? AyuDesign::WebComposerBottom() : 0);
 	if (_openChatButton) {
-		_openChatButton->resizeToWidth(width());
+		_openChatButton->resizeToWidth(columnWidth);
 		bottom -= _openChatButton->height();
-		_openChatButton->move(0, bottom);
+		_openChatButton->move(columnLeft, bottom);
 	} else if (_aboutHiddenAuthor) {
-		_aboutHiddenAuthor->resize(width(), st::historyUnblock.height);
+		_aboutHiddenAuthor->resize(columnWidth, st::historyUnblock.height);
 		bottom -= _aboutHiddenAuthor->height();
-		_aboutHiddenAuthor->move(0, bottom);
+		_aboutHiddenAuthor->move(columnLeft, bottom);
 	} else if (_joinGroup) {
-		_joinGroup->resizeToWidth(width());
+		_joinGroup->resizeToWidth(columnWidth);
 		bottom -= _joinGroup->height();
-		_joinGroup->move(0, bottom);
+		_joinGroup->move(columnLeft, bottom);
 	} else {
 		bottom -= _composeControls->heightCurrent();
 	}
 	const auto composeTop = bottom;
-	bottom -= tabsBottomSkip;
+	bottom -= tabsBottomSkip + (web ? AyuDesign::WebComposerGap() : 0);
 
 	_topBars->resize(innerWidth, top + st::lineWidth);
+	if (web) {
+		const auto radius = AyuDesign::WebComposerRadius();
+		if (top > 0) {
+			_topBars->setMask(AyuDesign::RoundedRegion(
+				QSize(innerWidth, top),
+				radius));
+		} else {
+			_topBars->clearMask();
+		}
+		for (const auto button : {
+				static_cast<QWidget*>(_openChatButton.get()),
+				static_cast<QWidget*>(_aboutHiddenAuthor.get()),
+				static_cast<QWidget*>(_joinGroup.get()) }) {
+			if (button) {
+				button->setMask(
+					AyuDesign::RoundedRegion(button->size(), radius));
+			}
+		}
+	}
 	top += _topBars->y();
 
 	const auto scrollHeight = bottom - top;
@@ -3181,7 +3212,7 @@ void ChatWidget::updateControlsGeometry() {
 		}
 		updateInnerVisibleArea();
 	}
-	_composeControls->move(0, composeTop);
+	_composeControls->move(columnLeft, composeTop);
 	_composeControls->setAutocompleteBoundingRect(_scroll->geometry());
 
 	if (!animatingShow()) {
@@ -3213,6 +3244,52 @@ void ChatWidget::paintEvent(QPaintEvent *e) {
 		return;
 	}
 
+	if (AyuDesign::WebLayout()) {
+		SectionWidget::PaintBackground(
+			controller(),
+			_theme.get(),
+			this,
+			e->rect());
+		auto p = QPainter(this);
+		AyuDesign::PaintPillShadow(
+			p,
+			_topBar->geometry(),
+			_topBar->height() / 2);
+		const auto radius = AyuDesign::WebComposerRadius();
+		const auto barsHeight = _topBars->height() - st::lineWidth;
+		if (barsHeight > 0) {
+			AyuDesign::PaintPillSurface(
+				p,
+				QRect(_topBars->pos(), QSize(_topBars->width(), barsHeight)),
+				radius,
+				st::historyPinnedBg);
+		}
+		for (const auto button : {
+				static_cast<QWidget*>(_openChatButton.get()),
+				static_cast<QWidget*>(_aboutHiddenAuthor.get()),
+				static_cast<QWidget*>(_joinGroup.get()) }) {
+			if (button && !button->isHidden()) {
+				AyuDesign::PaintPillSurface(
+					p,
+					button->geometry(),
+					radius,
+					st::historyComposeAreaBg);
+			}
+		}
+		if (!_openChatButton && !_aboutHiddenAuthor && !_joinGroup) {
+			const auto composeHeight = _composeControls->heightCurrent();
+			const auto columnWidth = AyuDesign::WebColumnWidth(width());
+			AyuDesign::PaintPillShadow(
+				p,
+				QRect(
+					(width() - columnWidth) / 2,
+					height() - AyuDesign::WebComposerBottom() - composeHeight,
+					columnWidth,
+					composeHeight),
+				std::min(radius, composeHeight / 2));
+		}
+		return;
+	}
 	const auto aboveHeight = _topBar->height();
 	const auto bg = e->rect().intersected(
 		QRect(0, aboveHeight, width(), height() - aboveHeight));

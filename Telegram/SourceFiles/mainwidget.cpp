@@ -51,6 +51,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "chat_helpers/tabbed_selector.h" // TabbedSelector::refreshStickers
 #include "chat_helpers/message_field.h"
 #include "info/info_memento.h"
+#include "info/info_wrap_widget.h"
 #include "apiwrap.h"
 #include "dialogs/dialogs_widget.h"
 #include "history/history.h"
@@ -2187,6 +2188,9 @@ void MainWidget::orderWidgets() {
 	if (_thirdCorners) {
 		_thirdCorners->raise();
 	}
+	if (_mainCorners) {
+		_mainCorners->raise();
+	}
 	if (_player) {
 		_player->raise();
 	}
@@ -2328,7 +2332,9 @@ void MainWidget::paintEvent(QPaintEvent *e) {
 	if (_showAnimation) {
 		auto p = QPainter(this);
 		_showAnimation->paintContents(p);
-	} else if (!_dialogsIsland.isEmpty() || !_thirdIsland.isEmpty()) {
+	} else if (!_dialogsIsland.isEmpty()
+		|| !_thirdIsland.isEmpty()
+		|| !_mainIsland.isEmpty()) {
 		const auto region = e->region() & islandBackdropRegion();
 		if (!region.isEmpty()) {
 			auto p = QPainter(this);
@@ -2668,6 +2674,17 @@ void MainWidget::updateControlsGeometry() {
 			mainSectionGeometry,
 			_contentScrollAddToY);
 	}
+	updateMainIsland();
+	if (!_thirdClosingSnapshot.isNull()) {
+		if (!_thirdSection && _thirdWasShown && !isOneColumn()) {
+			AyuDesign::SlideOut(
+				this,
+				base::take(_thirdClosingSnapshot),
+				_thirdClosingRect,
+				AyuDesign::IslandRadius());
+		}
+		_thirdClosingSnapshot = QPixmap();
+	}
 	_thirdWasShown = (_thirdSection != nullptr);
 	refreshResizeAreas();
 	if (_player) {
@@ -2747,6 +2764,7 @@ void MainWidget::paintIslandBackdrop(QPainter &p, QRect clip) {
 	p.translate(shift);
 	AyuDesign::PaintIslandShadow(p, _dialogsIsland);
 	AyuDesign::PaintIslandShadow(p, _thirdIslandShown);
+	AyuDesign::PaintIslandShadow(p, _mainIsland);
 }
 
 QRegion MainWidget::islandBackdropRegion() const {
@@ -2759,6 +2777,9 @@ QRegion MainWidget::islandBackdropRegion() const {
 		const auto left = _history->x() + _history->width();
 		result += QRegion(left, 0, width() - left, height())
 			- QRegion(_thirdIslandShown);
+	}
+	if (!_mainIsland.isEmpty()) {
+		result += QRegion(_history->geometry()) - QRegion(_mainIsland);
 	}
 	return result;
 }
@@ -2790,11 +2811,17 @@ void MainWidget::refreshIslandBackdrop() {
 			width() - _thirdIsland.x() - _thirdIsland.width(),
 			height());
 	}
+	if (!_mainIsland.isEmpty()) {
+		update(_history->geometry());
+	}
 	if (_dialogsCorners) {
 		_dialogsCorners->refresh();
 	}
 	if (_thirdCorners) {
 		_thirdCorners->refresh();
+	}
+	if (_mainCorners) {
+		_mainCorners->refresh();
 	}
 }
 
@@ -2830,8 +2857,46 @@ void MainWidget::destroyThirdSection() {
 		if (Ui::InFocusChain(strong)) {
 			setFocus();
 		}
+		if (AyuDesign::WebLayout()
+			&& !_thirdIslandShown.isEmpty()
+			&& !strong->isHidden()) {
+			_thirdClosingSnapshot = Ui::GrabWidget(strong);
+			_thirdClosingRect = _thirdIslandShown;
+		}
 	}
 	_thirdSection.destroy();
+}
+
+void MainWidget::updateMainIsland() {
+	const auto margin = AyuDesign::IslandMargin();
+	const auto info = _mainSection
+		? dynamic_cast<Info::WrapWidget*>(_mainSection.data())
+		: nullptr;
+	const auto use = info
+		&& AyuDesign::WebLayout()
+		&& !isOneColumn()
+		&& (height() > 4 * margin)
+		&& (_history->width() > 4 * margin);
+	if (!use) {
+		_mainIsland = QRect();
+		_mainCorners = nullptr;
+		return;
+	}
+	const auto left = _history->x()
+		+ (_dialogsIsland.isEmpty() ? 0 : margin / 2);
+	const auto right = _history->x()
+		+ _history->width()
+		- (_thirdIsland.isEmpty() ? margin : margin / 2);
+	_mainIsland = QRect(left, margin, right - left, height() - 2 * margin);
+	_mainSection->setGeometryWithTopMoved(_mainIsland, 0);
+	if (!_mainCorners) {
+		_mainCorners = std::make_unique<AyuDesign::IslandCorners>(
+			this,
+			[=](QPainter &p, QRect clip) { paintIslandBackdrop(p, clip); });
+		_mainCorners->bindVisibility(_mainSection.data());
+	}
+	_mainCorners->setIsland(_mainIsland);
+	_mainCorners->raise();
 }
 
 void MainWidget::refreshResizeAreas() {

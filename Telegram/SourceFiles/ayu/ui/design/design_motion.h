@@ -14,5 +14,10 @@ namespace AyuDesign {
 	bool hovered);
 
 void CrossFade(not_null<QWidget*> target);
+void SlideOut(
+	not_null<QWidget*> parent,
+	QPixmap snapshot,
+	QRect geometry,
+	int radius);
 
 } // namespace AyuDesign

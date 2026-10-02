@@ -28,7 +28,9 @@ constexpr auto kForbiddenOpacity = 0.5;
 constexpr auto kFillRippleAlpha = 25;
 
 [[nodiscard]] bool FilledMainButton(const style::SendButton &st) {
-	return (st.sendIconFillPadding > 0) && (&st == &st::historySend);
+	return (st.sendIconFillPadding > 0)
+		&& ((&st == &st::historySend)
+			|| (&st == &st::defaultComposeControls.send));
 }
 
 } // namespace

@@ -320,6 +320,7 @@ private:
 	void paintIslandBackdrop(QPainter &p, QRect clip);
 	void refreshIslandBackdrop();
 	void updateThirdIsland();
+	void updateMainIsland();
 	[[nodiscard]] QRegion islandBackdropRegion() const;
 	template <typename MoveCallback, typename FinishCallback>
 	void createResizeArea(
@@ -398,6 +399,10 @@ private:
 	QRect _thirdIslandShown;
 	Ui::Animations::Simple _thirdSlide;
 	bool _thirdWasShown = false;
+	QPixmap _thirdClosingSnapshot;
+	QRect _thirdClosingRect;
+	std::unique_ptr<AyuDesign::IslandCorners> _mainCorners;
+	QRect _mainIsland;
 
 	// _changelogs depends on _data, subscribes on chats loading event.
 	const std::unique_ptr<Core::Changelogs> _changelogs;

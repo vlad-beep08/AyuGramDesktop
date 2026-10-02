@@ -50,6 +50,22 @@ void PaintPillShadow(QPainter &p, QRect pill, int radius) {
 	PaintSoftShadow(p, pill, radius, kPillShadowOpacity);
 }
 
+void PaintPillSurface(
+		QPainter &p,
+		QRect pill,
+		int radius,
+		const QBrush &brush) {
+	if (pill.isEmpty()) {
+		return;
+	}
+	const auto limited = std::min(radius, pill.height() / 2);
+	PaintPillShadow(p, pill, limited);
+	auto hq = PainterHighQualityEnabler(p);
+	p.setPen(Qt::NoPen);
+	p.setBrush(brush);
+	p.drawRoundedRect(pill, limited, limited);
+}
+
 IslandCorners::IslandCorners(
 	not_null<QWidget*> parent,
 	Fn<void(QPainter&, QRect)> paintBackdrop)

@@ -21,6 +21,11 @@ void PaintSoftShadow(
 	float64 opacity);
 void PaintIslandShadow(QPainter &p, QRect island);
 void PaintPillShadow(QPainter &p, QRect pill, int radius);
+void PaintPillSurface(
+	QPainter &p,
+	QRect pill,
+	int radius,
+	const QBrush &brush);
 
 class IslandCorners final {
 public:

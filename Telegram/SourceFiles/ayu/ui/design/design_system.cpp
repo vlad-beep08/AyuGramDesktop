@@ -50,6 +50,8 @@ constexpr auto kWebComposerRadius = 24;
 constexpr auto kWebFiltersWidth = 104;
 constexpr auto kWebBlurRadius = 25;
 constexpr auto kWebSendFillPadding = 8;
+constexpr auto kWebMenuRadius = 12;
+constexpr auto kWebBoxRadius = 16;
 constexpr auto kWebSearchIconLeft = 12;
 constexpr auto kWebSearchIconSize = 24;
 constexpr auto kWebSearchTextSkip = 8;
@@ -180,6 +182,14 @@ void ApplyWebLayout() {
 	send.inner.iconOver = st::aiComposeSendButton.inner.iconOver;
 	send.sendIconFillPadding = Scaled(kWebSendFillPadding);
 	send.sendIconFg = st::windowFgActive;
+
+	auto &compose = Mutable(st::defaultComposeControls);
+	compose.radius = Scaled(kWebComposerRadius);
+	compose.send = st::historySend;
+
+	Mutable(st::defaultPopupMenu).radius = Scaled(kWebMenuRadius);
+	Mutable(st::popupMenuWithIcons).radius = Scaled(kWebMenuRadius);
+	Mutable(st::boxRadius) = Scaled(kWebBoxRadius);
 
 	const auto column = Scaled(kWebColumnMaxWidth);
 	const auto around = 2 * st::msgPhotoSkip + 2 * st::msgMargin.left();

@@ -8,6 +8,7 @@
 
 #include "ayu/ui/design/design_system.h"
 #include "ui/effects/animations.h"
+#include "ui/painter.h"
 #include "ui/rp_widget.h"
 #include "ui/ui_utility.h"
 
@@ -108,6 +109,62 @@ private:
 
 };
 
+class SlideOverlay final : public Ui::RpWidget {
+public:
+	SlideOverlay(
+		not_null<QWidget*> parent,
+		QImage snapshot,
+		QRect geometry,
+		crl::time duration)
+	: RpWidget(parent)
+	, _snapshot(std::move(snapshot))
+	, _from(geometry.x())
+	, _to(parent->width()) {
+		setAttribute(Qt::WA_TransparentForMouseEvents);
+		setGeometry(geometry);
+		show();
+		raise();
+		_animation.start([=] {
+			move(anim::interpolate(_from, _to, _animation.value(1.)), y());
+			if (!_animation.animating()) {
+				deleteLater();
+			}
+		}, 0., 1., duration, anim::easeOutCubic);
+	}
+
+protected:
+	void paintEvent(QPaintEvent *e) override {
+		auto p = QPainter(this);
+		p.drawImage(0, 0, _snapshot);
+	}
+
+private:
+	QImage _snapshot;
+	int _from = 0;
+	int _to = 0;
+	Ui::Animations::Simple _animation;
+
+};
+
+[[nodiscard]] QImage RoundSnapshot(QPixmap snapshot, int radius) {
+	auto result = snapshot.toImage().convertToFormat(
+		QImage::Format_ARGB32_Premultiplied);
+	result.setDevicePixelRatio(snapshot.devicePixelRatio());
+	auto p = QPainter(&result);
+	auto hq = PainterHighQualityEnabler(p);
+	const auto area = QRectF(
+		QPointF(),
+		QSizeF(snapshot.size()) / snapshot.devicePixelRatio());
+	auto outside = QPainterPath();
+	outside.addRect(area);
+	auto inside = QPainterPath();
+	inside.addRoundedRect(area, radius, radius);
+	p.setCompositionMode(QPainter::CompositionMode_Clear);
+	p.fillPath(outside.subtracted(inside), Qt::black);
+	p.end();
+	return result;
+}
+
 } // namespace
 
 float64 HoverValue(QPainter &p, const void *key, bool hovered) {
@@ -156,6 +213,22 @@ void CrossFade(not_null<QWidget*> target) {
 		parent,
 		Ui::GrabWidget(target),
 		target->geometry(),
+		duration);
+}
+
+void SlideOut(
+		not_null<QWidget*> parent,
+		QPixmap snapshot,
+		QRect geometry,
+		int radius) {
+	const auto duration = DurationMs(Duration::Slow);
+	if (duration <= 0 || snapshot.isNull() || geometry.isEmpty()) {
+		return;
+	}
+	Ui::CreateChild<SlideOverlay>(
+		parent.get(),
+		RoundSnapshot(std::move(snapshot), radius),
+		geometry,
 		duration);
 }
 
