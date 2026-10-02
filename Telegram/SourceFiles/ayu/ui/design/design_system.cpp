@@ -48,6 +48,9 @@ constexpr auto kWebComposerRadius = 24;
 constexpr auto kWebFiltersWidth = 104;
 constexpr auto kWebBlurRadius = 25;
 constexpr auto kWebSendFillPadding = 8;
+constexpr auto kWebSearchIconLeft = 12;
+constexpr auto kWebSearchIconSize = 24;
+constexpr auto kWebSearchTextSkip = 8;
 
 auto AppliedLayout = Layout::Classic;
 auto BackdropGenerationValue = 0;
@@ -146,6 +149,12 @@ void ApplyWebLayout() {
 	Mutable(st::dialogsRowHeight) = row.height;
 
 	auto &search = Mutable(st::dialogsFilter);
+	const auto heightAdded = Scaled(kWebSearchHeight) - search.heightMin;
+	search.textMargins = QMargins(
+		Scaled(kWebSearchIconLeft + kWebSearchIconSize + kWebSearchTextSkip),
+		search.textMargins.top() + heightAdded / 2,
+		search.textMargins.right(),
+		search.textMargins.bottom() + heightAdded - heightAdded / 2);
 	search.heightMin = Scaled(kWebSearchHeight);
 	search.borderRadius = search.heightMin / 2;
 	search.border = Scaled(2);
@@ -283,6 +292,10 @@ QRect WebFiltersIsland(QSize column) {
 
 int WebBlurRadius() {
 	return Scaled(kWebBlurRadius);
+}
+
+int WebSearchIconLeft() {
+	return Scaled(kWebSearchIconLeft);
 }
 
 int BackdropGeneration() {

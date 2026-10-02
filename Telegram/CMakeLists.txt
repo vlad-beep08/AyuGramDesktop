@@ -145,6 +145,8 @@ set(ayugram_files
         ayu/ui/settings/settings_appearance.h
         ayu/ui/settings/settings_ayu_utils.cpp
         ayu/ui/settings/settings_ayu_utils.h
+        ayu/ui/design/design_account_menu.cpp
+        ayu/ui/design/design_account_menu.h
         ayu/ui/design/design_islands.cpp
         ayu/ui/design/design_islands.h
         ayu/ui/design/design_system.cpp

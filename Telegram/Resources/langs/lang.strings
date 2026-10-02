@@ -9143,6 +9143,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_DesignLayout" = "Interface style";
 "ayu_DesignLayoutWeb" = "Telegram Web";
 "ayu_DesignLayoutClassic" = "Classic";
+"ayu_WebMenuMore" = "More";
+"ayu_WebMenuClassic" = "Classic menu";
 "ayu_DesignDensity" = "Interface Density";
 "ayu_DesignDensityCompact" = "Compact";
 "ayu_DesignDensityNormal" = "Normal";

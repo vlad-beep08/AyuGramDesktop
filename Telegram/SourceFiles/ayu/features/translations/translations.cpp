@@ -151,6 +151,8 @@ struct Entry {
 		{ "ayu_DesignLayout", "Стиль интерфейса" },
 		{ "ayu_DesignLayoutWeb", "Telegram Web" },
 		{ "ayu_DesignLayoutClassic", "Классический" },
+		{ "ayu_WebMenuMore", "Ещё" },
+		{ "ayu_WebMenuClassic", "Классическое меню" },
 		{ "ayu_DesignDensity", "Плотность интерфейса" },
 		{ "ayu_DesignDensityCompact", "Компактная" },
 		{ "ayu_DesignDensityNormal", "Обычная" },

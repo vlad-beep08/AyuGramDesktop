@@ -20,5 +20,6 @@ struct ThemeInfo {
 [[nodiscard]] std::vector<ThemeInfo> Themes();
 [[nodiscard]] QString CurrentThemeId();
 bool ApplyTheme(const QString &id);
+void EnsureWebTheme();
 
 } // namespace AyuDesign

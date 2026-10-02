@@ -51,6 +51,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_settings.h"
+#include "ayu/ui/design/design_account_menu.h"
 #include "ayu/ui/design/design_system.h"
 #include "ui/image/image_prepare.h"
 #include "ui/painter.h"
@@ -199,6 +200,10 @@ void FiltersMenu::setup() {
 	}, _outer.lifetime());
 
 	_menu.setClickedCallback([=] {
+		if (AyuDesign::WebLayout()) {
+			AyuDesign::ShowAccountMenu(_session, &_menu);
+			return;
+		}
 		_session->widget()->showMainMenu();
 	});
 

@@ -110,6 +110,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "ayu/ayu_settings.h"
 #include "ayu/utils/telegram_helpers.h"
+#include "ayu/ui/design/design_account_menu.h"
+#include "ayu/ui/design/design_system.h"
+#include "styles/style_ayu_icons.h"
 #include "base/platform/base_platform_haptic.h"
 
 
@@ -791,6 +794,21 @@ Widget::Widget(
 	}, lifetime());
 
 	_search->customUpDown(true);
+	if (AyuDesign::WebLayout()) {
+		const auto icon = Ui::CreateChild<Ui::RpWidget>(_search.data());
+		icon->setAttribute(Qt::WA_TransparentForMouseEvents);
+		icon->resize(st::ayuWebSearchIcon.size());
+		_search->heightValue() | rpl::on_next([=](int height) {
+			icon->move(
+				AyuDesign::WebSearchIconLeft(),
+				(height - icon->height()) / 2);
+		}, icon->lifetime());
+		icon->paintRequest() | rpl::on_next([=] {
+			auto p = QPainter(icon);
+			st::ayuWebSearchIcon.paint(p, 0, 0, icon->width());
+		}, icon->lifetime());
+		icon->show();
+	}
 
 	updateJumpToDateVisibility(true);
 	updateSearchFromVisibility(true);
@@ -3328,6 +3346,10 @@ void Widget::searchRequested(SearchRequestDelay delay) {
 }
 
 void Widget::showMainMenu() {
+	if (AyuDesign::WebLayout()) {
+		AyuDesign::ShowAccountMenu(controller(), _mainMenu.toggle.data());
+		return;
+	}
 	controller()->widget()->showMainMenu();
 }
 

@@ -8,6 +8,7 @@
 
 #include "lang_auto.h"
 #include "ayu/ayu_settings.h"
+#include "ayu/ui/design/design_system.h"
 #include "data/data_wall_paper.h"
 #include "window/themes/window_theme.h"
 
@@ -95,6 +96,15 @@ bool ApplyTheme(const QString &id) {
 		return true;
 	}
 	return false;
+}
+
+void EnsureWebTheme() {
+	if (!WebLayout() || !CurrentThemeId().isEmpty()) {
+		return;
+	}
+	ApplyTheme(Window::Theme::IsNightMode()
+		? u"web-dark"_q
+		: u"web-light"_q);
 }
 
 } // namespace AyuDesign

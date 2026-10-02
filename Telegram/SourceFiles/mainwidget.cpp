@@ -106,6 +106,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/features/forward/ayu_forward.h"
 #include "ayu/ui/design/design_islands.h"
 #include "ayu/ui/design/design_system.h"
+#include "ayu/ui/design/design_themes.h"
 
 
 namespace {
@@ -2671,6 +2672,9 @@ void MainWidget::setupIslands() {
 	if (!_dialogs || !AyuDesign::WebLayout()) {
 		return;
 	}
+	crl::on_main(this, [] {
+		AyuDesign::EnsureWebTheme();
+	});
 	_controller->activeChatValue(
 	) | rpl::map([](Dialogs::Key key) {
 		const auto history = key.history();

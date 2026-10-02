@@ -97,6 +97,7 @@ enum class State {
 [[nodiscard]] QRegion RoundedRegion(QSize size, int radius);
 [[nodiscard]] QRect WebFiltersIsland(QSize column);
 [[nodiscard]] int WebBlurRadius();
+[[nodiscard]] int WebSearchIconLeft();
 [[nodiscard]] int BackdropGeneration();
 void BumpBackdropGeneration();
 [[nodiscard]] QImage WebRowRippleMask(QSize size);
