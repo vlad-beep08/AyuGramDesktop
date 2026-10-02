@@ -12,6 +12,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "api/api_cloud_password.h"
 #include "api/api_credits.h"
 #include "api/api_global_privacy.h"
+#include "api/api_peer_colors.h"
 #include "api/api_peer_photo.h"
 #include "api/api_premium.h"
 #include "api/api_sensitive_content.h"
@@ -25,6 +26,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/click_handler_types.h"
 #include "data/components/credits.h"
 #include "data/components/promo_suggestions.h"
+#include "data/data_changes.h"
 #include "data/data_chat_filters.h"
 #include "data/data_cloud_themes.h"
 #include "data/data_session.h"
@@ -37,6 +39,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "lang/lang_instance.h"
 #include "lang/lang_keys.h"
 #include "lottie/lottie_icon.h"
+#include "ui/top_background_gradient.h"
 #include "menu/menu_checked_action.h"
 #include "main/main_account.h"
 #include "main/main_app_config.h"
@@ -127,6 +130,8 @@ private:
 	void refreshUsernameGeometry(int newWidth);
 	void refreshQrButtonGeometry(int newWidth);
 	void layoutWeb(int newWidth);
+	void paintWebBackground(QPainter &p, QRect rect);
+	void refreshWebColors();
 
 	const not_null<Window::SessionController*> _controller;
 	const not_null<UserData*> _user;
@@ -140,6 +145,9 @@ private:
 	QString _idText;
 	object_ptr<Ui::FlatLabel> _username = { nullptr };
 	object_ptr<Ui::IconButton> _qrButton = { nullptr };
+	QImage _webBackground;
+	QSize _webBackgroundSize;
+	int _webBackgroundCenter = 0;
 
 };
 
@@ -190,7 +198,18 @@ Cover::Cover(
 , _username(this, st::infoProfileMegagroupCover.status) {
 	_user->updateFull();
 	if (AyuDesign::WebLayout()) {
-		AyuDesign::MarkWebCardBleed(this);
+		AyuDesign::MarkWebCardBleed(this, [=](QPainter &p, QRect rect) {
+			paintWebBackground(p, rect);
+		});
+		using Flag = Data::PeerUpdate::Flag;
+		_user->session().changes().peerFlagsValue(
+			_user,
+			Flag::ColorProfile | Flag::EmojiStatus
+		) | rpl::on_next([=] {
+			_webBackground = QImage();
+			refreshWebColors();
+			AyuDesign::RefreshWebCardBleed(this);
+		}, lifetime());
 	}
 
 	_name->setSelectable(true);
@@ -374,6 +393,47 @@ void Cover::layoutWeb(int newWidth) {
 	if (height() != top) {
 		resize(width(), top);
 	}
+}
+
+void Cover::paintWebBackground(QPainter &p, QRect rect) {
+	const auto center = _userpic->y() + _userpic->height() / 2;
+	if (_webBackground.isNull()
+		|| _webBackgroundSize != rect.size()
+		|| _webBackgroundCenter != center) {
+		_webBackground = Ui::CreateTopBgGradient(
+			rect.size(),
+			_user,
+			QPoint(0, center - rect.height() / 2));
+		_webBackgroundSize = rect.size();
+		_webBackgroundCenter = center;
+	}
+	if (!_webBackground.isNull()) {
+		p.drawImage(rect.topLeft(), _webBackground);
+		return;
+	}
+	const auto profile = _user->session().api().peerColors().colorProfileFor(
+		_user);
+	if (profile && !profile->bg.empty()) {
+		p.fillRect(rect, profile->bg.front());
+	} else {
+		p.fillRect(rect, st::windowBg);
+	}
+}
+
+void Cover::refreshWebColors() {
+	const auto profile = _user->session().api().peerColors().colorProfileFor(
+		_user);
+	const auto colored = _user->emojiStatusId().collectible
+		|| (profile && !profile->bg.empty());
+	const auto main = colored
+		? std::make_optional(QColor(255, 255, 255))
+		: std::nullopt;
+	const auto sub = colored
+		? std::make_optional(QColor(255, 255, 255, 190))
+		: std::nullopt;
+	_name->setTextColorOverride(main);
+	_id->setTextColorOverride(sub);
+	_username->setTextColorOverride(sub);
 }
 
 void Cover::refreshNameGeometry(int newWidth) {

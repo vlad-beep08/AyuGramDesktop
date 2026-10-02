@@ -21,12 +21,22 @@ namespace AyuDesign {
 namespace {
 
 constexpr auto kBleedProperty = "ayuWebCardBleed";
+constexpr auto kWrapProperty = "ayuWebCardsWrap";
 
 struct Band {
 	int top = 0;
 	int bottom = 0;
 	bool bleed = false;
+	QWidget *source = nullptr;
 };
+
+[[nodiscard]] auto BleedPainters()
+-> base::flat_map<QWidget*, Fn<void(QPainter&, QRect)>> & {
+	static auto result = base::flat_map<
+		QWidget*,
+		Fn<void(QPainter&, QRect)>>();
+	return result;
+}
 
 class DividerFilter final : public QObject {
 public:
@@ -97,6 +107,7 @@ void Compute(not_null<CardsState*> state) {
 				.top = rect.y(),
 				.bottom = rect.y() + rect.height(),
 				.bleed = bleed,
+				.source = child,
 			});
 		}
 	}
@@ -117,6 +128,7 @@ void Compute(not_null<CardsState*> state) {
 				.top = std::max(cursor, item.top),
 				.bottom = item.bottom,
 				.bleed = true,
+				.source = item.source,
 			});
 		}
 		cursor = std::max(cursor, item.bottom);
@@ -148,7 +160,15 @@ void PaintUnder(not_null<CardsState*> state, QRect clip) {
 		if (!rect.intersects(clip)) {
 			continue;
 		} else if (band.bleed) {
-			p.fillRect(rect, st::windowBg);
+			const auto &painters = BleedPainters();
+			const auto i = painters.find(band.source);
+			if (i != painters.end() && i->second) {
+				p.save();
+				i->second(p, rect);
+				p.restore();
+			} else {
+				p.fillRect(rect, st::windowBg);
+			}
 		} else {
 			const auto r = std::min(radius, rect.height() / 2);
 			p.drawRoundedRect(rect, r, r);
@@ -197,6 +217,7 @@ void SetupWebCards(
 		.over = over,
 	});
 	state->filter = new DividerFilter(under);
+	wrap->setProperty(kWrapProperty, true);
 	for (const auto widget : { under, over }) {
 		widget->setAttribute(Qt::WA_TransparentForMouseEvents);
 	}
@@ -227,8 +248,30 @@ void SetupWebCards(
 	over->show();
 }
 
-void MarkWebCardBleed(not_null<QWidget*> widget) {
+void MarkWebCardBleed(
+		not_null<QWidget*> widget,
+		Fn<void(QPainter&, QRect)> paint) {
 	widget->setProperty(kBleedProperty, true);
+	if (paint) {
+		const auto raw = widget.get();
+		BleedPainters()[raw] = std::move(paint);
+		QObject::connect(raw, &QObject::destroyed, [=] {
+			BleedPainters().remove(raw);
+		});
+	}
+}
+
+void RefreshWebCardBleed(not_null<QWidget*> widget) {
+	for (auto parent = widget->parentWidget()
+		; parent
+		; parent = parent->parentWidget()) {
+		if (parent->property(kWrapProperty).toBool()) {
+			const auto top = widget->mapTo(parent, QPoint()).y();
+			parent->update(0, top, parent->width(), widget->height());
+			return;
+		}
+	}
+	widget->update();
 }
 
 } // namespace AyuDesign

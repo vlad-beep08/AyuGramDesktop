@@ -15,6 +15,9 @@ namespace AyuDesign {
 void SetupWebCards(
 	not_null<Ui::RpWidget*> wrap,
 	not_null<Ui::RpWidget*> content);
-void MarkWebCardBleed(not_null<QWidget*> widget);
+void MarkWebCardBleed(
+	not_null<QWidget*> widget,
+	Fn<void(QPainter&, QRect)> paint = nullptr);
+void RefreshWebCardBleed(not_null<QWidget*> widget);
 
 } // namespace AyuDesign
