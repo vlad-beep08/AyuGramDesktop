@@ -11,11 +11,14 @@
 #include "ayu/ui/design/design_system.h"
 #include "data/data_wall_paper.h"
 #include "window/themes/window_theme.h"
+#include "styles/palette.h"
 
 namespace AyuDesign {
 namespace {
 
 constexpr auto kWebWallPaperIntensity = 38;
+constexpr auto kDarkLightness = 128;
+constexpr auto kWallPaperRetryDelay = crl::time(2000);
 
 [[nodiscard]] QString ThemePath(const QString &id) {
 	return u":/gui/chickengram/themes/%1.tdesktop-theme"_q.arg(id);
@@ -98,13 +101,54 @@ bool ApplyTheme(const QString &id) {
 	return false;
 }
 
-void EnsureWebTheme() {
-	if (!WebLayout() || !CurrentThemeId().isEmpty()) {
+void EnsureWebWallPaper() {
+	const auto &paper = Window::Theme::Background()->paper();
+	if (paper.isPattern()
+		|| paper.document()
+		|| Data::IsCustomWallPaper(paper)) {
 		return;
 	}
-	ApplyTheme(Window::Theme::IsNightMode()
-		? u"web-dark"_q
-		: u"web-light"_q);
+	static auto lastApplied = crl::time();
+	const auto now = crl::now();
+	if (lastApplied && (now - lastApplied) < kWallPaperRetryDelay) {
+		return;
+	}
+	lastApplied = now;
+	const auto dark = (st::windowBg->c.lightness() < kDarkLightness);
+	const auto id = dark ? u"web-dark"_q : u"web-light"_q;
+	for (const auto &theme : Themes()) {
+		if (theme.id == id) {
+			ApplyWallPaper(theme);
+			return;
+		}
+	}
+}
+
+void EnsureWebTheme() {
+	if (!WebLayout()) {
+		return;
+	}
+	static auto watching = false;
+	if (!watching) {
+		watching = true;
+		const auto lifetime = new rpl::lifetime();
+		using Update = Window::Theme::BackgroundUpdate;
+		Window::Theme::Background()->updates(
+		) | rpl::filter([](const Update &update) {
+			return (update.type == Update::Type::New);
+		}) | rpl::on_next([] {
+			crl::on_main([] {
+				EnsureWebWallPaper();
+			});
+		}, *lifetime);
+	}
+	if (CurrentThemeId().isEmpty()) {
+		ApplyTheme(Window::Theme::IsNightMode()
+			? u"web-dark"_q
+			: u"web-light"_q);
+		return;
+	}
+	EnsureWebWallPaper();
 }
 
 } // namespace AyuDesign
