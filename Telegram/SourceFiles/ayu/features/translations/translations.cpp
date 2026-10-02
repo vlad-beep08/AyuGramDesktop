@@ -143,6 +143,7 @@ struct Entry {
 		{ "ayu_DesignHeader", "Дизайн" },
 		{ "ayu_DesignThemeWebLight", "Web — светлая" },
 		{ "ayu_DesignThemeWebDark", "Web — тёмная" },
+		{ "ayu_DesignThemeWebDarkOrange", "Web — тёмная оранжевая" },
 		{ "ayu_DesignThemeDawn", "Рассвет" },
 		{ "ayu_DesignThemeSunset", "Закат" },
 		{ "ayu_DesignThemeMidnight", "Полночь" },

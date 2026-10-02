@@ -47,7 +47,15 @@ std::vector<ThemeInfo> Themes() {
 			.wallpaperIntensity = kWebWallPaperIntensity,
 		},
 		{
-			.id = u"web-dark"_q,
+			.id = u"web-dark-orange"_q,
+			.title = tr::ayu_DesignThemeWebDarkOrange(tr::now),
+			.path = ThemePath(u"web-dark-orange"_q),
+			.swatches = { QColor(0x21, 0x21, 0x21), QColor(0xdc, 0xa0, 0x6c), QColor(0x9f, 0x5e, 0x1d) },
+			.wallpaper = { QColor(0x4f, 0x5b, 0xd5), QColor(0x96, 0x2f, 0xbf), QColor(0xdd, 0x6c, 0xb9), QColor(0xfe, 0xc4, 0x96) },
+			.wallpaperIntensity = -kWebWallPaperIntensity,
+		},
+		{
+			.id = u"web-dark-purple"_q,
 			.title = tr::ayu_DesignThemeWebDark(tr::now),
 			.path = ThemePath(u"web-dark"_q),
 			.swatches = { QColor(0x21, 0x21, 0x21), QColor(0x87, 0x74, 0xe1), QColor(0x76, 0x6a, 0xc8) },
@@ -115,7 +123,7 @@ void EnsureWebWallPaper() {
 	}
 	lastApplied = now;
 	const auto dark = (st::windowBg->c.lightness() < kDarkLightness);
-	const auto id = dark ? u"web-dark"_q : u"web-light"_q;
+	const auto id = dark ? u"web-dark-orange"_q : u"web-light"_q;
 	for (const auto &theme : Themes()) {
 		if (theme.id == id) {
 			ApplyWallPaper(theme);
@@ -142,9 +150,10 @@ void EnsureWebTheme() {
 			});
 		}, *lifetime);
 	}
-	if (CurrentThemeId().isEmpty()) {
-		ApplyTheme(Window::Theme::IsNightMode()
-			? u"web-dark"_q
+	const auto current = CurrentThemeId();
+	if (current.isEmpty() || current == u"web-dark"_q) {
+		ApplyTheme((Window::Theme::IsNightMode() || !current.isEmpty())
+			? u"web-dark-orange"_q
 			: u"web-light"_q);
 		return;
 	}

@@ -9135,6 +9135,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_DesignHeader" = "Design";
 "ayu_DesignThemeWebLight" = "Web Light";
 "ayu_DesignThemeWebDark" = "Web Dark";
+"ayu_DesignThemeWebDarkOrange" = "Web Dark Orange";
 "ayu_DesignThemeDawn" = "Dawn";
 "ayu_DesignThemeSunset" = "Sunset";
 "ayu_DesignThemeMidnight" = "Midnight";

@@ -84,9 +84,10 @@ void ShowInLeftColumn(
 void ToggleNight(not_null<Window::SessionController*> controller) {
 	const auto current = CurrentThemeId();
 	if (current == u"web-light"_q) {
-		ApplyTheme(u"web-dark"_q);
+		ApplyTheme(u"web-dark-orange"_q);
 		return;
-	} else if (current == u"web-dark"_q) {
+	} else if (current == u"web-dark-orange"_q
+		|| current == u"web-dark-purple"_q) {
 		ApplyTheme(u"web-light"_q);
 		return;
 	}
