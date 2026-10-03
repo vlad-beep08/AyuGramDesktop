@@ -58,6 +58,9 @@ constexpr auto kWebSearchTextSkip = 8;
 constexpr auto kWebCardMargin = 16;
 constexpr auto kWebCardRadius = 20;
 constexpr auto kWebCardGap = 16;
+constexpr auto kWebBubbleRadiusLarge = 15;
+constexpr auto kWebBubbleRadiusSmall = 6;
+constexpr auto kWebDateFontSize = 12;
 
 auto AppliedLayout = Layout::Classic;
 auto ForcedFamily = QString();
@@ -200,6 +203,13 @@ void ApplyWebLayout() {
 	const auto around = 2 * st::msgPhotoSkip + 2 * st::msgMargin.left();
 	Mutable(st::msgMaxWidth) = std::max(st::msgMaxWidth, column - around);
 	Mutable(st::adaptiveChatWideWidth) = column + 2 * IslandMargin();
+
+	Mutable(st::bubbleRadiusLarge) = Scaled(kWebBubbleRadiusLarge);
+	Mutable(st::bubbleRadiusSmall) = Scaled(kWebBubbleRadiusSmall);
+	Mutable(st::msgDateFont) = style::font(
+		Scaled(kWebDateFontSize),
+		st::msgDateFont->flags(),
+		st::msgDateFont->family());
 }
 
 void ApplyCorners() {
