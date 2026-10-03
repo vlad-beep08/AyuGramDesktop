@@ -273,6 +273,7 @@ public:
 		PeerId peerId,
 		MsgId showAtMsgId,
 		const Window::SectionShow &params = {});
+	void startWebSwitchAnimation();
 	void setChooseReportMessagesDetails(
 		Data::ReportInput reportInput,
 		Fn<void(std::vector<MsgId>)> callback);
@@ -890,6 +891,8 @@ private:
 	crl::time _lastUserScrolled = 0;
 	bool _synteticScrollEvent = false;
 	Ui::Animations::Simple _scrollToAnimation;
+	Ui::Animations::Simple _webSwitchAnimation;
+	int _webSwitchLeft = 0;
 
 	HistoryView::CornerButtons _cornerButtons;
 	std::unique_ptr<HistoryView::PullToNextChannel> _pullToNext;

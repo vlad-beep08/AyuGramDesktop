@@ -232,6 +232,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 namespace {
 
 constexpr auto kMessagesPerPageFirst = 30;
+constexpr auto kWebSwitchShift = 24;
 constexpr auto kMessagesPerPage = 50;
 constexpr auto kPreloadHeightsCount = 3; // when 3 screens to scroll left make a preload request
 constexpr auto kScrollToVoiceAfterScrolledMs = 1000;
@@ -8240,6 +8241,27 @@ void HistoryWidget::resizeEvent(QResizeEvent *e) {
 	updateControlsGeometry();
 }
 
+void HistoryWidget::startWebSwitchAnimation() {
+	const auto duration = AyuDesign::DurationMs(AyuDesign::Duration::Normal);
+	if (duration <= 0 || !_scroll) {
+		return;
+	}
+	const auto shift = style::ConvertScale(kWebSwitchShift);
+	const auto apply = [=] {
+		const auto left = _webSwitchLeft
+			+ anim::interpolate(0, shift, _webSwitchAnimation.value(0.));
+		_scroll->moveToLeft(left, _scroll->y());
+	};
+	_webSwitchAnimation.stop();
+	_webSwitchAnimation.start([=] {
+		apply();
+		if (!_webSwitchAnimation.animating()) {
+			updateControlsGeometry();
+		}
+	}, 1., 0., duration, anim::easeOutCubic);
+	apply();
+}
+
 void HistoryWidget::updateControlsGeometry() {
 	const auto width = this->width();
 	const auto web = AyuDesign::WebLayout();
@@ -8330,8 +8352,13 @@ void HistoryWidget::updateControlsGeometry() {
 			_topBars->clearMask();
 		}
 	}
-	if (_scroll->y() != scrollAreaTop || _scroll->x() != tabsLeftSkip) {
-		_scroll->moveToLeft(tabsLeftSkip, scrollAreaTop);
+	_webSwitchLeft = tabsLeftSkip;
+	const auto scrollLeft = tabsLeftSkip + anim::interpolate(
+		0,
+		style::ConvertScale(kWebSwitchShift),
+		_webSwitchAnimation.value(0.));
+	if (_scroll->y() != scrollAreaTop || _scroll->x() != scrollLeft) {
+		_scroll->moveToLeft(scrollLeft, scrollAreaTop);
 		if (_autocomplete) {
 			_autocomplete->setBoundings(_scroll->geometry());
 		}

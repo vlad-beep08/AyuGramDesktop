@@ -1536,13 +1536,14 @@ void MainWidget::showHistory(
 	auto animationParams = slide
 		? prepareHistoryAnimation(peerId)
 		: Window::SectionSlideParams();
-	if (!slide
+	const auto webSwitch = !slide
 		&& AyuDesign::WebLayout()
 		&& !isOneColumn()
 		&& peerId
 		&& !alreadyThatPeer
 		&& _history->peer()
-		&& !_history->isHidden()) {
+		&& !_history->isHidden();
+	if (webSwitch) {
 		AyuDesign::CrossFade(_history.get());
 	}
 
@@ -1567,6 +1568,9 @@ void MainWidget::showHistory(
 
 	updateMainSectionShown();
 	updateControlsGeometry();
+	if (webSwitch && _history->peer()) {
+		_history->startWebSwitchAnimation();
+	}
 
 	if (noPeer) {
 		_controller->setActiveChatEntry(Dialogs::Key());
