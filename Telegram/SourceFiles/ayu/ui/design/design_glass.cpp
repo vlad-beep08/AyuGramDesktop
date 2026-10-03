@@ -12,6 +12,7 @@
 #include "chat_helpers/tabbed_panel.h"
 #include "chat_helpers/tabbed_selector.h"
 #include "ui/image/image_prepare.h"
+#include "ui/layers/layer_widget.h"
 #include "ui/painter.h"
 #include "ui/rp_widget.h"
 #include "ui/ui_utility.h"
@@ -39,6 +40,7 @@ constexpr auto kDarkBorderAlpha = 0.1;
 constexpr auto kLightBorderAlpha = 0.08;
 constexpr auto kDarkLightness = 128;
 constexpr auto kSurfaceRefreshDelay = 120;
+constexpr auto kLayerScale = 4;
 
 auto Refreshing = false;
 
@@ -77,6 +79,21 @@ struct GlassColors {
 		crop.size() * ratio));
 	result.setDevicePixelRatio(ratio);
 	return result;
+}
+
+[[nodiscard]] QImage BlurredSmall(QImage image) {
+	const auto ratio = style::DevicePixelRatio();
+	const auto size = QSize(
+		std::max(image.width() / kLayerScale, 1),
+		std::max(image.height() / kLayerScale, 1));
+	auto small = image.scaled(
+		size,
+		Qt::IgnoreAspectRatio,
+		Qt::SmoothTransformation);
+	const auto radius = std::max(
+		style::ConvertScale(kBlurRadius) * ratio / kLayerScale,
+		1);
+	return Images::BlurLargeImage(std::move(small), radius);
 }
 
 void PaintGlass(
@@ -246,6 +263,7 @@ void Attach(not_null<Ui::PopupMenu*> menu) {
 enum class SurfaceKind {
 	Selector,
 	Field,
+	Layer,
 };
 
 struct Surface {
@@ -263,7 +281,7 @@ struct Surface {
 [[nodiscard]] QWidget *AnchorFor(
 		not_null<QWidget*> widget,
 		SurfaceKind kind) {
-	if (kind == SurfaceKind::Field) {
+	if (kind != SurfaceKind::Selector) {
 		return widget;
 	}
 	const auto parent = widget->parentWidget();
@@ -342,15 +360,19 @@ void RefreshSurface(not_null<QWidget*> widget) {
 		return;
 	}
 	const auto blur = style::ConvertScale(kBlurRadius);
+	const auto layer = (i->second.kind == SurfaceKind::Layer);
+	const auto margin = layer ? 0 : blur;
 	Refreshing = true;
 	auto image = RenderBehind(
 		anchor,
 		parent,
-		area.marginsAdded({ blur, blur, blur, blur }));
+		area.marginsAdded({ margin, margin, margin, margin }));
 	Refreshing = false;
-	auto blurred = Blurred(
-		std::move(image),
-		QRect(QPoint(blur, blur), area.size()));
+	auto blurred = layer
+		? BlurredSmall(std::move(image))
+		: Blurred(
+			std::move(image),
+			QRect(QPoint(blur, blur), area.size()));
 	const auto j = Surfaces().find(widget.get());
 	if (j == end(Surfaces())) {
 		return;
@@ -402,6 +424,10 @@ void RefreshSurfacesFor(not_null<QWidget*> changed, bool now) {
 	}
 	for (const auto widget : list) {
 		if (now) {
+			const auto i = Surfaces().find(widget);
+			if (i != end(Surfaces())) {
+				i->second.captured = QRect();
+			}
 			RefreshSurface(widget);
 		} else {
 			ScheduleRefresh(widget);
@@ -416,6 +442,9 @@ void TrackShown(not_null<QObject*> object) {
 	} else if (const auto field = dynamic_cast<ChatHelpers::FieldAutocomplete*>(
 			object.get())) {
 		RegisterSurface(field, SurfaceKind::Field);
+	} else if (const auto stack = dynamic_cast<Ui::LayerStackWidget*>(
+			object.get())) {
+		RegisterSurface(stack, SurfaceKind::Layer);
 	}
 }
 
@@ -425,6 +454,13 @@ void PaintSurface(
 		QRect clip) {
 	auto p = QPainter(widget);
 	p.setClipRect(clip);
+	if (surface.kind == SurfaceKind::Layer) {
+		if (!surface.blurred.isNull()) {
+			p.setRenderHint(QPainter::SmoothPixmapTransform);
+			p.drawImage(widget->rect(), surface.blurred);
+		}
+		return;
+	}
 	if (!AnchorFor(widget, surface.kind)) {
 		p.fillRect(clip, st::emojiPanBg);
 		return;
