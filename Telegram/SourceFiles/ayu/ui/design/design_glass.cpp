@@ -6,6 +6,7 @@
 // Copyright @Radolyn, 2026
 #include "ayu/ui/design/design_glass.h"
 
+#include "ayu/ayu_settings.h"
 #include "ayu/ui/design/design_islands.h"
 #include "ayu/ui/design/design_system.h"
 #include "chat_helpers/field_autocomplete.h"
@@ -33,8 +34,8 @@
 namespace AyuDesign {
 namespace {
 
-constexpr auto kBlurRadius = 24;
-constexpr auto kTintAlpha = 0.78;
+constexpr auto kBlurRadii = std::array{ 12, 24, 40 };
+constexpr auto kTintAlphas = std::array{ 0.9, 0.78, 0.62 };
 constexpr auto kHoverAlpha = 0.08;
 constexpr auto kRippleAlpha = 0.12;
 constexpr auto kSheenAlpha = 0.07;
@@ -46,6 +47,16 @@ constexpr auto kSurfaceRefreshDelay = 120;
 constexpr auto kLayerScale = 4;
 
 auto Refreshing = false;
+
+[[nodiscard]] int GlassBlurRadius() {
+	const auto index = AyuSettings::getInstance().designGlassBlur();
+	return kBlurRadii[std::clamp(index, 0, int(kBlurRadii.size()) - 1)];
+}
+
+[[nodiscard]] float64 GlassTintAlpha() {
+	const auto index = AyuSettings::getInstance().designGlassTint();
+	return kTintAlphas[std::clamp(index, 0, int(kTintAlphas.size()) - 1)];
+}
 
 [[nodiscard]] QColor WithAlpha(QColor color, float64 alpha) {
 	color.setAlphaF(alpha);
@@ -75,7 +86,7 @@ struct GlassColors {
 
 [[nodiscard]] QImage Blurred(QImage image, QRect crop) {
 	const auto ratio = style::DevicePixelRatio();
-	const auto blur = style::ConvertScale(kBlurRadius);
+	const auto blur = style::ConvertScale(GlassBlurRadius());
 	image = Images::BlurLargeImage(std::move(image), blur * ratio);
 	auto result = image.copy(QRect(
 		crop.topLeft() * ratio,
@@ -94,7 +105,7 @@ struct GlassColors {
 		Qt::IgnoreAspectRatio,
 		Qt::SmoothTransformation);
 	const auto radius = std::max(
-		style::ConvertScale(kBlurRadius) * ratio / kLayerScale,
+		style::ConvertScale(GlassBlurRadius()) * ratio / kLayerScale,
 		1);
 	return Images::BlurLargeImage(std::move(small), radius);
 }
@@ -113,7 +124,7 @@ void PaintGlass(
 	if (!blurred.isNull()) {
 		p.drawImage(rect.topLeft(), blurred);
 	}
-	const auto alpha = blurred.isNull() ? 1. : kTintAlpha;
+	const auto alpha = blurred.isNull() ? 1. : GlassTintAlpha();
 	p.fillRect(rect, WithAlpha(tint->c, alpha));
 	auto sheen = QLinearGradient(
 		rect.topLeft(),
@@ -192,7 +203,7 @@ void Backdrop::refresh() {
 		return;
 	}
 	const auto ratio = style::DevicePixelRatio();
-	const auto blur = style::ConvertScale(kBlurRadius);
+	const auto blur = style::ConvertScale(GlassBlurRadius());
 	const auto area = global.marginsAdded({ blur, blur, blur, blur });
 	auto image = QImage(
 		area.size() * ratio,
@@ -378,7 +389,7 @@ void RefreshSurface(not_null<QWidget*> widget) {
 	if (area == i->second.captured && !i->second.blurred.isNull()) {
 		return;
 	}
-	const auto blur = style::ConvertScale(kBlurRadius);
+	const auto blur = style::ConvertScale(GlassBlurRadius());
 	const auto layer = (i->second.kind == SurfaceKind::Layer);
 	const auto margin = layer ? 0 : blur;
 	Refreshing = true;
@@ -598,7 +609,7 @@ protected:
 } // namespace
 
 void SetupGlassMenus() {
-	if (!WebLayout()) {
+	if (!WebLayout() || !AyuSettings::getInstance().designGlass()) {
 		return;
 	}
 	const auto &colors = Colors();

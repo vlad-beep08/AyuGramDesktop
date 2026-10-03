@@ -133,6 +133,13 @@ struct Command {
 	add(tr::ayu_PaletteAyuSettings(tr::now), [=] {
 		controller->showSettings(Settings::AyuMainId());
 	});
+	add(tr::ayu_PrivacyMode(tr::now), [=] {
+		auto &settings = AyuSettings::getInstance();
+		settings.setPrivacyMode(!settings.privacyMode());
+		controller->showToast(settings.privacyMode()
+			? tr::ayu_PalettePrivacyOn(tr::now)
+			: tr::ayu_PalettePrivacyOff(tr::now));
+	});
 	add(tr::ayu_PaletteGhostMode(tr::now), [=] {
 		auto &ghost = AyuSettings::ghost(session);
 		ghost.setGhostModeEnabled(!ghost.isGhostModeActive());

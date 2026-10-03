@@ -108,6 +108,43 @@ void BuildDesign(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 			ShowRestartPrompt(controller);
 		},
 	});
+	ayu.addToggle({
+		.id = u"ayu/designGlass"_q,
+		.title = tr::ayu_DesignGlass(),
+		.getter = [=] { return settings->designGlass(); },
+		.setter = [=](bool enabled) {
+			AyuSettings::getInstance().setDesignGlass(enabled);
+			ShowRestartPrompt(controller);
+		},
+	});
+	ayu.addChooseButton({
+		.id = u"ayu/designGlassTint"_q,
+		.title = tr::ayu_DesignGlassTint(),
+		.boxTitle = tr::ayu_DesignGlassTint(),
+		.initialSelection = settings->designGlassTint(),
+		.options = {
+			tr::ayu_DesignGlassTintDense(tr::now),
+			tr::ayu_DesignGlassTintNormal(tr::now),
+			tr::ayu_DesignGlassTintClear(tr::now),
+		},
+		.setter = [=](int index) {
+			AyuSettings::getInstance().setDesignGlassTint(index);
+		},
+	});
+	ayu.addChooseButton({
+		.id = u"ayu/designGlassBlur"_q,
+		.title = tr::ayu_DesignGlassBlur(),
+		.boxTitle = tr::ayu_DesignGlassBlur(),
+		.initialSelection = settings->designGlassBlur(),
+		.options = {
+			tr::ayu_DesignGlassBlurLight(tr::now),
+			tr::ayu_DesignGlassBlurNormal(tr::now),
+			tr::ayu_DesignGlassBlurStrong(tr::now),
+		},
+		.setter = [=](int index) {
+			AyuSettings::getInstance().setDesignGlassBlur(index);
+		},
+	});
 	ayu.addChooseButton({
 		.id = u"ayu/designDensity"_q,
 		.title = tr::ayu_DesignDensity(),

@@ -523,6 +523,8 @@ void AyuSettings::validate() {
 	validateRange(_designMotion, 0, 2, defaults._designMotion);
 	validateRange(_windowOpacity, 50, 100, defaults._windowOpacity);
 	validateRange(_designLayout, 0, 1, defaults._designLayout);
+	validateRange(_designGlassTint, 0, 2, defaults._designGlassTint);
+	validateRange(_designGlassBlur, 0, 2, defaults._designGlassBlur);
 	validateRange(_wideMultiplier, 0.5, 4.0, defaults._wideMultiplier);
 	validateRange(_avatarCorners, 0, AyuUiSettings::kMaxAvatarCorners, defaults._avatarCorners);
 
@@ -731,6 +733,30 @@ void AyuSettings::setDesignTheme(const QString &val) {
 void AyuSettings::setDesignLayout(int val) {
 	if (_designLayout.current() == val) return;
 	_designLayout = val;
+	save();
+}
+
+void AyuSettings::setDesignGlass(bool val) {
+	if (_designGlass.current() == val) return;
+	_designGlass = val;
+	save();
+}
+
+void AyuSettings::setDesignGlassTint(int val) {
+	if (_designGlassTint.current() == val) return;
+	_designGlassTint = val;
+	save();
+}
+
+void AyuSettings::setDesignGlassBlur(int val) {
+	if (_designGlassBlur.current() == val) return;
+	_designGlassBlur = val;
+	save();
+}
+
+void AyuSettings::setPrivacyMode(bool val) {
+	if (_privacyMode.current() == val) return;
+	_privacyMode = val;
 	save();
 }
 
@@ -1205,6 +1231,10 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"windowOpacity", s._windowOpacity.current()},
 		{"designTheme", s._designTheme.current()},
 		{"designLayout", s._designLayout.current()},
+		{"designGlass", s._designGlass.current()},
+		{"designGlassTint", s._designGlassTint.current()},
+		{"designGlassBlur", s._designGlassBlur.current()},
+		{"privacyMode", s._privacyMode.current()},
 		{"removeMessageTail", s._removeMessageTail.current()},
 		{"disableNotificationsDelay", s._disableNotificationsDelay.current()},
 		{"localPremium", s._localPremium.current()},
@@ -1323,6 +1353,10 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._windowOpacity = j.value("windowOpacity", defaults._windowOpacity.current());
 	s._designTheme = j.value("designTheme", defaults._designTheme.current());
 	s._designLayout = j.value("designLayout", defaults._designLayout.current());
+	s._designGlass = j.value("designGlass", defaults._designGlass.current());
+	s._designGlassTint = j.value("designGlassTint", defaults._designGlassTint.current());
+	s._designGlassBlur = j.value("designGlassBlur", defaults._designGlassBlur.current());
+	s._privacyMode = j.value("privacyMode", defaults._privacyMode.current());
 	s._removeMessageTail = j.value("removeMessageTail", defaults._removeMessageTail.current());
 	s._disableNotificationsDelay = j.value("disableNotificationsDelay", defaults._disableNotificationsDelay.current());
 	s._localPremium = j.value("localPremium", defaults._localPremium.current());

@@ -302,6 +302,10 @@ public:
 	[[nodiscard]] int windowOpacity() const { return _windowOpacity.current(); }
 	[[nodiscard]] const QString &designTheme() const { return _designTheme.current(); }
 	[[nodiscard]] int designLayout() const { return _designLayout.current(); }
+	[[nodiscard]] bool designGlass() const { return _designGlass.current(); }
+	[[nodiscard]] int designGlassTint() const { return _designGlassTint.current(); }
+	[[nodiscard]] int designGlassBlur() const { return _designGlassBlur.current(); }
+	[[nodiscard]] bool privacyMode() const { return _privacyMode.current(); }
 	[[nodiscard]] bool removeMessageTail() const { return _removeMessageTail.current(); }
 	[[nodiscard]] bool disableNotificationsDelay() const { return _disableNotificationsDelay.current(); }
 	[[nodiscard]] bool localPremium() const { return _localPremium.current(); }
@@ -397,6 +401,10 @@ public:
 	void setWindowOpacity(int val);
 	void setDesignTheme(const QString &val);
 	void setDesignLayout(int val);
+	void setDesignGlass(bool val);
+	void setDesignGlassTint(int val);
+	void setDesignGlassBlur(int val);
+	void setPrivacyMode(bool val);
 	void setDisableOpenLinkWarning(bool val);
 	void setWideMultiplier(double val);
 	void setSpoofWebviewAsAndroid(bool val);
@@ -524,6 +532,7 @@ public:
 	[[nodiscard]] rpl::producer<int> designMotionValue() const { return _designMotion.value(); }
 	[[nodiscard]] rpl::producer<int> windowOpacityValue() const { return _windowOpacity.value(); }
 	[[nodiscard]] rpl::producer<int> designLayoutValue() const { return _designLayout.value(); }
+	[[nodiscard]] rpl::producer<bool> privacyModeValue() const { return _privacyMode.value(); }
 	[[nodiscard]] rpl::producer<bool> materialSwitchesChanges() const { return _materialSwitches.changes(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailValue() const { return _removeMessageTail.value(); }
 	[[nodiscard]] rpl::producer<bool> removeMessageTailChanges() const { return _removeMessageTail.changes(); }
@@ -699,6 +708,10 @@ private:
 	rpl::variable<int> _windowOpacity = 100;
 	rpl::variable<QString> _designTheme;
 	rpl::variable<int> _designLayout = 0;
+	rpl::variable<bool> _designGlass = true;
+	rpl::variable<int> _designGlassTint = 1;
+	rpl::variable<int> _designGlassBlur = 1;
+	rpl::variable<bool> _privacyMode = false;
 	rpl::variable<bool> _removeMessageTail = false;
 	rpl::variable<bool> _disableNotificationsDelay = false;
 	rpl::variable<bool> _localPremium = false;

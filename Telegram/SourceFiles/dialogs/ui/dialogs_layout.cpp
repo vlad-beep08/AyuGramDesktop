@@ -64,6 +64,25 @@ const char kOptionDialogsMuteIcon[] = "dialogs-mute-icon";
 
 namespace {
 
+void PaintPrivacyPlaceholder(
+		Painter &p,
+		const PaintContext &context,
+		QRect rect) {
+	p.setFont(st::dialogsTextFont);
+	p.setPen(context.active
+		? st::dialogsTextFgActive
+		: context.selected
+		? st::dialogsTextFgOver
+		: st::dialogsTextFg);
+	p.drawTextLeft(
+		rect.x(),
+		rect.y(),
+		context.width,
+		st::dialogsTextFont->elided(
+			tr::ayu_PrivacyHiddenText(tr::now),
+			rect.width()));
+}
+
 base::options::toggle DialogsMuteIcon({
 	.id = kOptionDialogsMuteIcon,
 	.name = "Mute icon in dialogs",
@@ -728,70 +747,81 @@ void PaintRow(
 				context.width,
 				color,
 				context.paused)) {
-			auto &cache = thread->cloudDraftTextCache();
-			if (cache.isEmpty()) {
-				using namespace TextUtilities;
-				auto draftWrapped = Text::Colorized(
-					tr::lng_dialogs_text_from_wrapped(
-						tr::now,
-						lt_from,
-						tr::lng_from_draft(tr::now)));
-				auto draftText = supportMode
-					? Text::Colorized(
-						Support::ChatOccupiedString(history))
-					: tr::lng_dialogs_text_with_from(
-						tr::now,
-						lt_from_part,
-						std::move(draftWrapped),
-						lt_message,
-						(draft->hasRichMessage()
-							? DialogsPreviewText(draft->richMessageSummary)
-							: DialogsPreviewText({
-								.text = draft->textWithTags.text,
-								.entities = ConvertTextTagsToEntities(
-									draft->textWithTags.tags),
-							})),
-						tr::marked);
-				if (draft && draft->reply) {
-					draftText = Ui::Text::Colorized(
-						Ui::Text::IconEmoji(&st::dialogsMiniReplyIcon)
-					).append(std::move(draftText));
+			if (AyuDesign::PrivacyMode()) {
+				PaintPrivacyPlaceholder(
+					p,
+					context,
+					QRect(
+						nameleft,
+						texttop,
+						availableWidth,
+						st::dialogsTextFont->height));
+			} else {
+				auto &cache = thread->cloudDraftTextCache();
+				if (cache.isEmpty()) {
+					using namespace TextUtilities;
+					auto draftWrapped = Text::Colorized(
+						tr::lng_dialogs_text_from_wrapped(
+							tr::now,
+							lt_from,
+							tr::lng_from_draft(tr::now)));
+					auto draftText = supportMode
+						? Text::Colorized(
+							Support::ChatOccupiedString(history))
+						: tr::lng_dialogs_text_with_from(
+							tr::now,
+							lt_from_part,
+							std::move(draftWrapped),
+							lt_message,
+							(draft->hasRichMessage()
+								? DialogsPreviewText(draft->richMessageSummary)
+								: DialogsPreviewText({
+									.text = draft->textWithTags.text,
+									.entities = ConvertTextTagsToEntities(
+										draft->textWithTags.tags),
+								})),
+							tr::marked);
+					if (draft && draft->reply) {
+						draftText = Ui::Text::Colorized(
+							Ui::Text::IconEmoji(&st::dialogsMiniReplyIcon)
+						).append(std::move(draftText));
+					}
+					const auto context = Core::TextContext({
+						.session = &thread->session(),
+						.repaint = customEmojiRepaint,
+					});
+					cache.setMarkedText(
+						st::dialogsTextStyle,
+						std::move(draftText),
+						DialogTextOptions(),
+						context);
 				}
-				const auto context = Core::TextContext({
-					.session = &thread->session(),
-					.repaint = customEmojiRepaint,
+				p.setPen(context.active
+					? st::dialogsTextFgActive
+					: context.selected
+					? st::dialogsTextFgOver
+					: st::dialogsTextFg);
+				cache.draw(p, {
+					.position = { nameleft, texttop },
+					.availableWidth = availableWidth,
+					.palette = &(supportMode
+						? (context.active
+							? st::dialogsTextPaletteTakenActive
+							: context.selected
+							? st::dialogsTextPaletteTakenOver
+							: st::dialogsTextPaletteTaken)
+						: (context.active
+							? st::dialogsTextPaletteDraftActive
+							: context.selected
+							? st::dialogsTextPaletteDraftOver
+							: st::dialogsTextPaletteDraft)),
+					.spoiler = Text::DefaultSpoilerCache(),
+					.now = context.now,
+					.pausedEmoji = context.paused || On(PowerSaving::kEmojiChat),
+					.pausedSpoiler = context.paused || On(PowerSaving::kChatSpoiler),
+					.elisionLines = 1,
 				});
-				cache.setMarkedText(
-					st::dialogsTextStyle,
-					std::move(draftText),
-					DialogTextOptions(),
-					context);
 			}
-			p.setPen(context.active
-				? st::dialogsTextFgActive
-				: context.selected
-				? st::dialogsTextFgOver
-				: st::dialogsTextFg);
-			cache.draw(p, {
-				.position = { nameleft, texttop },
-				.availableWidth = availableWidth,
-				.palette = &(supportMode
-					? (context.active
-						? st::dialogsTextPaletteTakenActive
-						: context.selected
-						? st::dialogsTextPaletteTakenOver
-						: st::dialogsTextPaletteTaken)
-					: (context.active
-						? st::dialogsTextPaletteDraftActive
-						: context.selected
-						? st::dialogsTextPaletteDraftOver
-						: st::dialogsTextPaletteDraft)),
-				.spoiler = Text::DefaultSpoilerCache(),
-				.now = context.now,
-				.pausedEmoji = context.paused || On(PowerSaving::kEmojiChat),
-				.pausedSpoiler = context.paused || On(PowerSaving::kChatSpoiler),
-				.elisionLines = 1,
-			});
 		}
 	} else if (!item) {
 		auto availableWidth = namewidth;
@@ -1249,6 +1279,10 @@ void RowPainter::Paint(
 			: thread
 			? &thread->lastItemDialogsView()
 			: nullptr;
+		if (view && AyuDesign::PrivacyMode()) {
+			PaintPrivacyPlaceholder(p, context, rect);
+			return;
+		}
 		if (view) {
 			const auto forum = (peer && context.st->topicsHeight)
 				? peer->forum()
@@ -1374,6 +1408,10 @@ void RowPainter::Paint(
 				nullptr,
 				row->repaint(),
 				previewOptions);
+		}
+		if (AyuDesign::PrivacyMode()) {
+			PaintPrivacyPlaceholder(p, context, itemRect);
+			return;
 		}
 		view.paint(p, itemRect, context);
 	};

@@ -175,6 +175,14 @@ void BuildQoLToggles(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 	});
 
 	ayu.addSettingToggle({
+		.id = u"ayu/privacyMode"_q,
+		.title = tr::ayu_PrivacyMode(),
+		.getter = &AyuSettings::privacyMode,
+		.setter = &AyuSettings::setPrivacyMode,
+		.keywords = { u"privacy"_q, u"hide"_q, u"preview"_q },
+	});
+
+	ayu.addSettingToggle({
 		.id = u"ayu/disableOpenLinkWarning"_q,
 		.title = tr::ayu_DisableOpenLinkWarning(),
 		.getter = &AyuSettings::disableOpenLinkWarning,

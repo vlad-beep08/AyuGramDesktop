@@ -322,6 +322,11 @@ InnerWidget::InnerWidget(
 
 	_communityViewable.setRepaint([=] { update(); });
 
+	AyuSettings::getInstance().privacyModeValue(
+	) | rpl::skip(1) | rpl::on_next([=] {
+		update();
+	}, lifetime());
+
 	style::PaletteChanged(
 	) | rpl::on_next([=] {
 		_topicJumpCache = nullptr;

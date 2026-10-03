@@ -118,6 +118,7 @@ void PaintWebRowHighlight(QPainter &p, QRect row, const QBrush &brush);
 
 [[nodiscard]] QString PrepareFontFamily(const QString &custom);
 [[nodiscard]] const QString &ForcedFontFamily();
+[[nodiscard]] bool PrivacyMode();
 void ApplyStyleOverrides();
 void ApplyMotion();
 void ApplyWindowOpacity(not_null<QWidget*> window);

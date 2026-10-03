@@ -546,6 +546,10 @@ const QString &ForcedFontFamily() {
 	return ForcedFamily;
 }
 
+bool PrivacyMode() {
+	return AyuSettings::getInstance().privacyMode();
+}
+
 void ApplyStyleOverrides() {
 	AppliedLayout = CurrentLayout();
 	ApplyDensity();
