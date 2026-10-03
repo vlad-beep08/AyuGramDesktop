@@ -11,12 +11,15 @@
 #include "chat_helpers/field_autocomplete.h"
 #include "chat_helpers/tabbed_panel.h"
 #include "chat_helpers/tabbed_selector.h"
+#include "inline_bots/inline_results_inner.h"
+#include "inline_bots/inline_results_widget.h"
 #include "ui/image/image_prepare.h"
 #include "ui/layers/layer_widget.h"
 #include "ui/painter.h"
 #include "ui/rp_widget.h"
 #include "ui/ui_utility.h"
 #include "ui/widgets/popup_menu.h"
+#include "ui/widgets/scroll_area.h"
 #include "styles/palette.h"
 #include "styles/style_chat_helpers.h"
 #include "styles/style_widgets.h"
@@ -264,6 +267,8 @@ enum class SurfaceKind {
 	Selector,
 	Field,
 	Layer,
+	Inline,
+	InlineInner,
 };
 
 struct Surface {
@@ -281,7 +286,9 @@ struct Surface {
 [[nodiscard]] QWidget *AnchorFor(
 		not_null<QWidget*> widget,
 		SurfaceKind kind) {
-	if (kind != SurfaceKind::Selector) {
+	if (kind == SurfaceKind::InlineInner) {
+		return nullptr;
+	} else if (kind != SurfaceKind::Selector) {
 		return widget;
 	}
 	const auto parent = widget->parentWidget();
@@ -291,7 +298,17 @@ struct Surface {
 }
 
 [[nodiscard]] int RadiusFor(SurfaceKind kind) {
-	return (kind == SurfaceKind::Selector) ? st::emojiPanRadius : 0;
+	return (kind == SurfaceKind::Selector || kind == SurfaceKind::Inline)
+		? st::emojiPanRadius
+		: 0;
+}
+
+[[nodiscard]] QRect SurfaceRect(
+		not_null<QWidget*> widget,
+		SurfaceKind kind) {
+	return (kind == SurfaceKind::Inline)
+		? widget->rect().marginsRemoved(st::emojiPanMargins)
+		: widget->rect();
 }
 
 [[nodiscard]] QImage RenderBehind(
@@ -353,9 +370,11 @@ void RefreshSurface(not_null<QWidget*> widget) {
 	if (!parent || widget->size().isEmpty()) {
 		return;
 	}
-	const auto area = QRect(
-		widget->mapTo(parent, QPoint()),
-		widget->size());
+	const auto local = SurfaceRect(widget, i->second.kind);
+	if (local.isEmpty()) {
+		return;
+	}
+	const auto area = local.translated(widget->mapTo(parent, QPoint()));
 	if (area == i->second.captured && !i->second.blurred.isNull()) {
 		return;
 	}
@@ -445,7 +464,39 @@ void TrackShown(not_null<QObject*> object) {
 	} else if (const auto stack = dynamic_cast<Ui::LayerStackWidget*>(
 			object.get())) {
 		RegisterSurface(stack, SurfaceKind::Layer);
+	} else if (const auto results = dynamic_cast<InlineBots::Layout::Widget*>(
+			object.get())) {
+		RegisterSurface(results, SurfaceKind::Inline);
+	} else if (const auto inner = dynamic_cast<InlineBots::Layout::Inner*>(
+			object.get())) {
+		inner->setAttribute(Qt::WA_OpaquePaintEvent, false);
+		RegisterSurface(inner, SurfaceKind::InlineInner);
 	}
+}
+
+[[nodiscard]] bool InlineSteady(not_null<QWidget*> widget) {
+	const auto scroll = widget->findChild<Ui::ScrollArea*>(
+		QString(),
+		Qt::FindDirectChildrenOnly);
+	return scroll && !scroll->isHidden();
+}
+
+void PaintWithClearColor(
+		not_null<QObject*> object,
+		QEvent *e,
+		const style::color &color) {
+	const auto data = color.get();
+	const auto c = data->c;
+	const auto pen = data->p;
+	const auto brush = data->b;
+	const auto clear = QColor(0, 0, 0, 0);
+	data->c = clear;
+	data->p = QPen(clear);
+	data->b = QBrush(clear);
+	object->event(e);
+	data->c = c;
+	data->p = pen;
+	data->b = brush;
 }
 
 void PaintSurface(
@@ -465,12 +516,34 @@ void PaintSurface(
 		p.fillRect(clip, st::emojiPanBg);
 		return;
 	}
-	PaintGlass(
-		p,
-		widget->rect(),
-		RadiusFor(surface.kind),
-		surface.blurred,
-		st::emojiPanBg);
+	const auto rect = SurfaceRect(widget, surface.kind);
+	const auto radius = RadiusFor(surface.kind);
+	if (surface.kind == SurfaceKind::Inline) {
+		PaintSoftShadow(p, rect, radius, kShadowOpacity);
+	}
+	PaintGlass(p, rect, radius, surface.blurred, st::emojiPanBg);
+}
+
+[[nodiscard]] bool HandleSurfacePaint(
+		not_null<QWidget*> widget,
+		const Surface &surface,
+		QEvent *e) {
+	const auto clip = static_cast<QPaintEvent*>(e)->rect();
+	switch (surface.kind) {
+	case SurfaceKind::InlineInner:
+		PaintWithClearColor(widget, e, st::emojiPanBg);
+		return true;
+	case SurfaceKind::Inline:
+		if (!InlineSteady(widget)) {
+			return false;
+		}
+		PaintSurface(widget, surface, clip);
+		return true;
+	default:
+		PaintSurface(widget, surface, clip);
+		static_cast<QObject*>(widget.get())->event(e);
+		return true;
+	}
 }
 
 class GlassFilter final : public QObject {
@@ -496,12 +569,7 @@ protected:
 				const auto &surfaces = Surfaces();
 				const auto i = surfaces.find(widget);
 				if (i != end(surfaces)) {
-					PaintSurface(
-						widget,
-						i->second,
-						static_cast<QPaintEvent*>(e)->rect());
-					object->event(e);
-					return true;
+					return HandleSurfacePaint(widget, i->second, e);
 				}
 			}
 			break;
