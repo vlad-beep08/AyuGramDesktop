@@ -1959,6 +1959,28 @@ void Application::startShortcuts() {
 			AyuFeatures::CommandPalette::Show(controller);
 			return true;
 		});
+		request->check(Command::AyuGlobalSearch) && request->handle([=] {
+			const auto window = activeWindow();
+			const auto controller = window
+				? window->sessionController()
+				: nullptr;
+			if (!controller) {
+				return false;
+			}
+			AyuFeatures::CommandPalette::GlobalSearch(controller);
+			return true;
+		});
+		request->check(Command::AyuNewChat) && request->handle([=] {
+			const auto window = activeWindow();
+			const auto controller = window
+				? window->sessionController()
+				: nullptr;
+			if (!controller) {
+				return false;
+			}
+			AyuFeatures::CommandPalette::NewChat(controller);
+			return true;
+		});
 	}, _lifetime);
 }
 

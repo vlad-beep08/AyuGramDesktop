@@ -9127,6 +9127,17 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_PaletteGhostModeOn" = "Ghost mode is on.";
 "ayu_PaletteGhostModeOff" = "Ghost mode is off.";
 "ayu_PalettePanic" = "Panic: Hide Hidden Chats";
+"ayu_PaletteSearch" = "Search Chats and Messages";
+"ayu_PaletteNewChat" = "New Chat";
+"ayu_PaletteThemePrefix" = "Theme";
+"ayu_PaletteSwitchAccount" = "Switch to";
+"ayu_PaletteLock" = "Lock Чикенграм";
+"ayu_PaletteKindChat" = "Chat";
+"ayu_PaletteKindGroup" = "Group";
+"ayu_PaletteKindChannel" = "Channel";
+"ayu_PaletteKindBot" = "Bot";
+"ayu_ShortcutGlobalSearch" = "Search chats and messages";
+"ayu_ShortcutNewChat" = "New chat";
 "ayu_SelfDestructTimer" = "Self-Destruct Timer";
 "ayu_SelfDestructAbout" = "Right-click the send button and choose Send and Delete to delete the message for everyone after this time. Works only while the app is running.";
 "ayu_SendSelfDestruct" = "Send and Delete in {duration}";

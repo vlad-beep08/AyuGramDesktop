@@ -120,6 +120,8 @@ struct Labeled {
 		separator,
 		{ C::AyuPanic, tr::ayu_ShortcutPanic() },
 		{ C::AyuCommandPalette, tr::ayu_ShortcutPalette() },
+		{ C::AyuGlobalSearch, tr::ayu_ShortcutGlobalSearch() },
+		{ C::AyuNewChat, tr::ayu_ShortcutNewChat() },
 		separator,
 		{ C::MediaViewerFullscreen, tr::lng_shortcuts_media_fullscreen() },
 		separator,

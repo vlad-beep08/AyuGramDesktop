@@ -131,6 +131,8 @@ const auto CommandByName = base::flat_map<QString, Command>{
 
 	{ u"ayu_panic"_q         , Command::AyuPanic },
 	{ u"ayu_command_palette"_q , Command::AyuCommandPalette },
+	{ u"ayu_global_search"_q , Command::AyuGlobalSearch },
+	{ u"ayu_new_chat"_q      , Command::AyuNewChat },
 
 	// Shortcuts that have no default values.
 	{ u"message"_q                       , Command::JustSendMessage },
@@ -549,6 +551,8 @@ void Manager::fillDefaults() {
 
 	set(u"ctrl+shift+h"_q, Command::AyuPanic);
 	set(u"ctrl+shift+p"_q, Command::AyuCommandPalette);
+	set(u"ctrl+shift+f"_q, Command::AyuGlobalSearch);
+	set(u"ctrl+n"_q, Command::AyuNewChat);
 
 	_defaults = keysCurrents();
 }

@@ -14,5 +14,7 @@ namespace AyuFeatures::CommandPalette {
 
 void Show(not_null<Window::SessionController*> controller);
 void InstallGlobalHotkey();
+void GlobalSearch(not_null<Window::SessionController*> controller);
+void NewChat(not_null<Window::SessionController*> controller);
 
 } // namespace AyuFeatures::CommandPalette

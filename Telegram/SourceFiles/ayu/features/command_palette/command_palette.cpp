@@ -14,13 +14,28 @@
 #include "ayu/features/drafts_history/drafts_history.h"
 #include "ayu/features/hidden_chats/hidden_chats.h"
 #include "ayu/features/keyword_alerts/keyword_alerts.h"
+#include "ayu/ui/design/design_themes.h"
 #include "ayu/ui/design/design_widgets.h"
 #include "base/event_filter.h"
+#include "boxes/add_contact_box.h"
+#include "boxes/peer_list_controllers.h"
+#include "calls/calls_box_controller.h"
 #include "core/application.h"
 #include "ayu/ui/settings/settings_main.h"
+#include "data/data_channel.h"
+#include "data/data_session.h"
+#include "data/data_user.h"
+#include "dialogs/dialogs_indexed_list.h"
 #include "dialogs/dialogs_key.h"
+#include "dialogs/dialogs_main_list.h"
+#include "dialogs/dialogs_row.h"
 #include "history/history.h"
+#include "main/main_account.h"
+#include "main/main_domain.h"
 #include "main/main_session.h"
+#include "mainwidget.h"
+#include "storage/storage_domain.h"
+#include "ui/text/text_entity.h"
 #include "settings/settings_common.h"
 #include "ui/layers/generic_box.h"
 #include "ui/widgets/buttons.h"
@@ -43,6 +58,8 @@
 namespace AyuFeatures::CommandPalette {
 namespace {
 
+constexpr auto kChatResultsLimit = 6;
+
 struct Command {
 	QString title;
 	Fn<void()> run;
@@ -61,6 +78,58 @@ struct Command {
 	const auto session = &controller->session();
 	const auto history = controller->activeChatCurrent().history();
 
+	add(tr::ayu_PaletteSearch(tr::now), [=] {
+		GlobalSearch(controller);
+	}, u"Ctrl+Shift+F"_q);
+	add(tr::ayu_PaletteNewChat(tr::now), [=] {
+		NewChat(controller);
+	}, u"Ctrl+N"_q);
+	add(tr::lng_saved_messages(tr::now), [=] {
+		controller->showPeerHistory(session->user());
+	});
+	add(tr::lng_menu_my_profile(tr::now), [=] {
+		controller->showPeerInfo(session->user());
+	});
+	add(tr::lng_menu_settings(tr::now), [=] {
+		controller->showSettings();
+	});
+	add(tr::lng_menu_contacts(tr::now), [=] {
+		controller->content()->showLeftBox(PrepareContactsBox(controller));
+	});
+	add(tr::lng_menu_calls(tr::now), [=] {
+		controller->content()->showLeftBox(
+			::Calls::PrepareCallsBox(controller));
+	});
+	add(tr::lng_create_group_title(tr::now), [=] {
+		controller->content()->showLeftBox(
+			Box<GroupInfoBox>(controller, GroupInfoBox::Type::Group));
+	});
+	add(tr::lng_create_channel_title(tr::now), [=] {
+		controller->content()->showLeftBox(
+			Box<GroupInfoBox>(controller, GroupInfoBox::Type::Channel));
+	});
+	for (const auto &theme : AyuDesign::Themes()) {
+		const auto id = theme.id;
+		add(tr::ayu_PaletteThemePrefix(tr::now) + u": "_q + theme.title, [=] {
+			AyuDesign::ApplyTheme(id);
+		});
+	}
+	const auto current = &session->account();
+	for (const auto &[index, account] : Core::App().domain().accounts()) {
+		const auto raw = account.get();
+		if (raw == current || !raw->sessionExists()) {
+			continue;
+		}
+		const auto name = raw->session().user()->name();
+		add(tr::ayu_PaletteSwitchAccount(tr::now) + u": "_q + name, [=] {
+			Core::App().domain().maybeActivate(raw);
+		});
+	}
+	if (Core::App().domain().local().hasLocalPasscode()) {
+		add(tr::ayu_PaletteLock(tr::now), [] {
+			Core::App().lockByPasscode();
+		});
+	}
 	add(tr::ayu_PaletteAyuSettings(tr::now), [=] {
 		controller->showSettings(Settings::AyuMainId());
 	});
@@ -120,6 +189,8 @@ void FillBox(
 		box,
 		st::defaultInputField,
 		tr::ayu_PalettePlaceholder()));
+	const auto chats = box->verticalLayout()->add(
+		object_ptr<Ui::VerticalLayout>(box->verticalLayout()));
 
 	struct Row {
 		QString search;
@@ -128,6 +199,7 @@ void FillBox(
 	};
 	struct State {
 		std::vector<Row> rows;
+		int chatRows = 0;
 		int selected = -1;
 	};
 	const auto state = std::make_shared<State>();
@@ -201,10 +273,71 @@ void FillBox(
 		run();
 	};
 
+	const auto refreshChats = [=](const QString &query) {
+		select(-1);
+		state->rows.erase(
+			begin(state->rows),
+			begin(state->rows) + state->chatRows);
+		state->chatRows = 0;
+		chats->clear();
+		if (query.isEmpty()) {
+			chats->resizeToWidth(chats->width());
+			return;
+		}
+		const auto words = TextUtilities::PrepareSearchWords(query);
+		const auto list = controller->session().data().chatsList()->indexed();
+		auto added = std::vector<Row>();
+		for (const auto &row : list->filtered(words)) {
+			const auto history = row->history();
+			const auto hidden = history
+				&& HiddenChats::IsLocked()
+				&& HiddenChats::IsHidden(history);
+			if (!history || hidden) {
+				continue;
+			}
+			const auto peer = history->peer;
+			const auto user = peer->asUser();
+			const auto kind = (user && user->isBot())
+				? tr::ayu_PaletteKindBot(tr::now)
+				: user
+				? tr::ayu_PaletteKindChat(tr::now)
+				: peer->isBroadcast()
+				? tr::ayu_PaletteKindChannel(tr::now)
+				: tr::ayu_PaletteKindGroup(tr::now);
+			const auto wrap = chats->add(
+				object_ptr<Ui::SlideWrap<AyuDesign::ListRow>>(
+					chats,
+					object_ptr<AyuDesign::ListRow>(
+						chats,
+						peer->name(),
+						kind)));
+			wrap->toggle(true, anim::type::instant);
+			const auto run = [=] {
+				controller->showPeerHistory(history);
+			};
+			wrap->entity()->setClickedCallback([=] {
+				box->closeBox();
+				run();
+			});
+			added.push_back({ .search = QString(), .run = run, .wrap = wrap });
+			if (int(added.size()) >= kChatResultsLimit) {
+				break;
+			}
+		}
+		state->chatRows = int(added.size());
+		state->rows.insert(
+			begin(state->rows),
+			std::make_move_iterator(begin(added)),
+			std::make_move_iterator(end(added)));
+		chats->resizeToWidth(chats->width());
+	};
+
 	field->changes(
 	) | rpl::on_next([=] {
 		const auto query = field->getLastText().trimmed().toLower();
-		for (const auto &row : state->rows) {
+		refreshChats(query);
+		for (auto i = state->chatRows; i != int(state->rows.size()); ++i) {
+			const auto &row = state->rows[i];
 			row.wrap->toggle(
 				query.isEmpty() || row.search.contains(query),
 				anim::type::instant);
@@ -248,6 +381,15 @@ void FillBox(
 
 void Show(not_null<Window::SessionController*> controller) {
 	controller->show(Box(FillBox, controller));
+}
+
+void GlobalSearch(not_null<Window::SessionController*> controller) {
+	controller->content()->hideLeftColumn();
+	controller->searchMessages(QString(), Dialogs::Key());
+}
+
+void NewChat(not_null<Window::SessionController*> controller) {
+	controller->content()->showLeftBox(PrepareContactsBox(controller));
 }
 
 void InstallGlobalHotkey() {

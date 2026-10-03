@@ -2934,6 +2934,10 @@ bool MainWidget::showInLeftSection(
 	return true;
 }
 
+void MainWidget::hideLeftColumn() {
+	closeLeftSection();
+}
+
 bool MainWidget::canShowLeftBox() const {
 	return AyuDesign::WebLayout()
 		&& _dialogs

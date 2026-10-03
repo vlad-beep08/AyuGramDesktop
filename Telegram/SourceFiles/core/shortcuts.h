@@ -92,6 +92,8 @@ enum class Command {
 
 	AyuPanic,
 	AyuCommandPalette,
+	AyuGlobalSearch,
+	AyuNewChat,
 };
 
 [[maybe_unused]] constexpr auto kShowFolder = {
