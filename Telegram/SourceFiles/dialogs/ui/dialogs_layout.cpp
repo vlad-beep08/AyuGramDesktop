@@ -521,7 +521,8 @@ void PaintRow(
 		} else if (const auto hover = AyuDesign::HoverValue(
 				p,
 				row.get(),
-				context.selected); hover > 0.) {
+				context.selected,
+				geometry); hover > 0.) {
 			p.setOpacity(hover);
 			AyuDesign::PaintWebRowHighlight(p, geometry, st::dialogsBgOver);
 			p.setOpacity(1.);

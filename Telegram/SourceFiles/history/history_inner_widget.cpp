@@ -2542,6 +2542,10 @@ void HistoryInner::performDrag() {
 }
 
 void HistoryInner::startWebAppear(not_null<const HistoryItem*> item) {
+	if (AyuDesign::DurationMs(AyuDesign::Duration::Normal) <= 0
+		|| !isVisible()) {
+		return;
+	}
 	_webAppear[item] = crl::now();
 	if (!_webAppearAnimation.animating()) {
 		_webAppearAnimation.init([=](crl::time now) {

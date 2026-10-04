@@ -11,6 +11,7 @@
 #include "core/application.h"
 #include "mainwindow.h"
 #include "ui/chat/chat_style_radius.h"
+#include "ui/effects/animations.h"
 #include "ui/effects/ripple_animation.h"
 #include "ui/painter.h"
 #include "ui/power_saving.h"
@@ -61,6 +62,8 @@ constexpr auto kWebCardGap = 16;
 constexpr auto kWebBubbleRadiusLarge = 15;
 constexpr auto kWebBubbleRadiusSmall = 6;
 constexpr auto kWebDateFontSize = 12;
+constexpr auto kWebTabInset = 3;
+constexpr auto kWebTabActiveAlpha = 0.14;
 
 auto AppliedLayout = Layout::Classic;
 auto ForcedFamily = QString();
@@ -193,6 +196,22 @@ void ApplyWebLayout() {
 	auto &compose = Mutable(st::defaultComposeControls);
 	compose.radius = Scaled(kWebComposerRadius);
 	compose.send = st::historySend;
+
+	static const auto tabActive = style::complex_color([] {
+		auto color = st::windowBgActive->c;
+		color.setAlphaF(kWebTabActiveAlpha);
+		return color;
+	});
+	for (const auto tabs : { &st::dialogsSearchTabs, &st::chatsFiltersTabs }) {
+		auto &slider = Mutable(*tabs);
+		const auto inset = Scaled(kWebTabInset);
+		slider.barSnapToLabel = true;
+		slider.barTop = inset;
+		slider.barStroke = slider.height - 2 * inset;
+		slider.barRadius = slider.barStroke / 2;
+		slider.barFg = transparent.color();
+		slider.barFgActive = tabActive.color();
+	}
 
 	Mutable(st::defaultPopupMenu).radius = Scaled(kWebMenuRadius);
 	Mutable(st::popupMenuWithIcons).radius = Scaled(kWebMenuRadius);
@@ -411,6 +430,9 @@ int SpacePx(Space space) {
 }
 
 crl::time DurationMs(Duration duration) {
+	if (anim::Disabled()) {
+		return 0;
+	}
 	const auto base = [&] {
 		switch (duration) {
 		case Duration::Fast: return crl::time(120);

@@ -1909,7 +1909,8 @@ void InnerWidget::paintPeerSearchResult(
 		} else if (const auto hover = AyuDesign::HoverValue(
 				p,
 				result.get(),
-				context.selected); hover > 0.) {
+				context.selected,
+				fullRect); hover > 0.) {
 			p.setOpacity(hover);
 			AyuDesign::PaintWebRowHighlight(p, fullRect, st::dialogsBgOver);
 			p.setOpacity(1.);

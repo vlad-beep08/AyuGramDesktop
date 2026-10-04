@@ -19,6 +19,8 @@ struct HoverEntry {
 	bool hovered = false;
 	float64 from = 0.;
 	crl::time started = 0;
+	QRect area;
+	bool settled = false;
 };
 
 struct HoverState {
@@ -55,18 +57,34 @@ base::flat_map<QWidget*, std::unique_ptr<HoverState>> HoverStates;
 		HoverStates.remove(raw);
 	});
 	state->animation = std::make_unique<Ui::Animations::Basic>([=] {
-		raw->update();
 		const auto now = crl::now();
+		auto region = QRegion();
+		auto full = false;
 		auto animating = false;
 		for (auto j = state->entries.begin(); j != state->entries.end();) {
-			if (now - j->second.started < duration) {
+			auto &entry = j->second;
+			const auto done = (now - entry.started >= duration);
+			if (!entry.settled) {
+				if (entry.area.isEmpty()) {
+					full = true;
+				} else {
+					region += entry.area;
+				}
+				entry.settled = done;
+			}
+			if (!done) {
 				animating = true;
-				++j;
-			} else if (!j->second.hovered) {
+			}
+			if (done && !entry.hovered) {
 				j = state->entries.erase(j);
 			} else {
 				++j;
 			}
+		}
+		if (full) {
+			raw->update();
+		} else if (!region.isEmpty()) {
+			raw->update(region);
 		}
 		if (!animating) {
 			state->animation->stop();
@@ -167,7 +185,11 @@ private:
 
 } // namespace
 
-float64 HoverValue(QPainter &p, const void *key, bool hovered) {
+float64 HoverValue(
+		QPainter &p,
+		const void *key,
+		bool hovered,
+		QRect rect) {
 	const auto duration = DurationMs(Duration::Fast);
 	const auto widget = dynamic_cast<QWidget*>(p.device());
 	if (!widget || duration <= 0) {
@@ -175,6 +197,9 @@ float64 HoverValue(QPainter &p, const void *key, bool hovered) {
 	}
 	const auto state = ResolveHoverState(widget, duration);
 	const auto now = crl::now();
+	const auto area = rect.isEmpty()
+		? QRect()
+		: p.transform().mapRect(rect);
 	auto i = state->entries.find(key);
 	if (i == end(state->entries)) {
 		if (!hovered) {
@@ -196,6 +221,7 @@ float64 HoverValue(QPainter &p, const void *key, bool hovered) {
 			state->animation->start();
 		}
 	}
+	i->second.area = area;
 	return HoverProgress(i->second, now, duration);
 }
 

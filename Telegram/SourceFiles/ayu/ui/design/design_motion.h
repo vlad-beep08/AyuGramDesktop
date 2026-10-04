@@ -11,7 +11,8 @@ namespace AyuDesign {
 [[nodiscard]] float64 HoverValue(
 	QPainter &p,
 	const void *key,
-	bool hovered);
+	bool hovered,
+	QRect rect = QRect());
 
 void CrossFade(not_null<QWidget*> target);
 void SlideOut(
