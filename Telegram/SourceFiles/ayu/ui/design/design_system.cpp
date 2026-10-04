@@ -63,6 +63,8 @@ constexpr auto kWebBubbleRadiusLarge = 15;
 constexpr auto kWebBubbleRadiusSmall = 6;
 constexpr auto kWebDateFontSize = 12;
 constexpr auto kWebTabInset = 3;
+constexpr auto kWebUnreadHeight = 22;
+constexpr auto kWebUnreadFontSize = 14;
 constexpr auto kWebTabActiveAlpha = 0.14;
 
 auto AppliedLayout = Layout::Classic;
@@ -161,6 +163,15 @@ void ApplyWebLayout() {
 	row.nameTop = Scaled(metrics.nameTop);
 	row.textTop = Scaled(metrics.textTop);
 	Mutable(st::dialogsRowHeight) = row.height;
+	Mutable(st::dialogsUnreadHeight) = Scaled(kWebUnreadHeight);
+	Mutable(st::dialogsUnreadFont) = style::font(
+		Scaled(kWebUnreadFontSize),
+		st::normalFont->flags(),
+		st::dialogsUnreadFont->family());
+	Mutable(st::dialogsDateFont) = style::font(
+		Scaled(kWebDateFontSize),
+		st::dialogsDateFont->flags(),
+		st::dialogsDateFont->family());
 
 	auto &search = Mutable(st::dialogsFilter);
 	const auto heightAdded = Scaled(kWebSearchHeight) - search.heightMin;
