@@ -17,9 +17,19 @@ struct ThemeInfo {
 	int wallpaperIntensity = 0;
 };
 
+struct AccentInfo {
+	QString id;
+	QString title;
+	QColor color;
+};
+
 [[nodiscard]] std::vector<ThemeInfo> Themes();
 [[nodiscard]] QString CurrentThemeId();
 bool ApplyTheme(const QString &id);
 void EnsureWebTheme();
+
+[[nodiscard]] std::vector<AccentInfo> Accents();
+[[nodiscard]] QString CurrentAccentId();
+bool ApplyAccent(const QString &id);
 
 } // namespace AyuDesign

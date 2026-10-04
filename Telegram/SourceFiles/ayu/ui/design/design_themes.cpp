@@ -9,9 +9,16 @@
 #include "lang_auto.h"
 #include "ayu/ayu_settings.h"
 #include "ayu/ui/design/design_system.h"
+#include "base/zlib_help.h"
 #include "data/data_wall_paper.h"
+#include "settings.h"
+#include "ui/style/style_palette_colorizer.h"
 #include "window/themes/window_theme.h"
+#include "window/themes/window_theme_editor.h"
+#include "window/themes/window_theme_editor_box.h"
 #include "styles/palette.h"
+
+#include <QtCore/QRegularExpression>
 
 namespace AyuDesign {
 namespace {
@@ -19,9 +26,157 @@ namespace {
 constexpr auto kWebWallPaperIntensity = 38;
 constexpr auto kDarkLightness = 128;
 constexpr auto kWallPaperRetryDelay = crl::time(2000);
+constexpr auto kAccentHueThreshold = 15;
+constexpr auto kAccentMinChroma = 20;
+constexpr auto kAccentThemeFile = "tdata/chickengram-accent.tdesktop-theme"_cs;
 
 [[nodiscard]] QString ThemePath(const QString &id) {
 	return u":/gui/chickengram/themes/%1.tdesktop-theme"_q.arg(id);
+}
+
+[[nodiscard]] std::optional<QColor> AccentColor(const QString &id) {
+	if (id.isEmpty()) {
+		return std::nullopt;
+	}
+	for (const auto &accent : Accents()) {
+		if (accent.id == id && accent.color.isValid()) {
+			return accent.color;
+		}
+	}
+	return std::nullopt;
+}
+
+[[nodiscard]] bool IgnoredAccentKey(const QString &key) {
+	static const auto prefixes = std::array{
+		u"historyPeer"_q,
+		u"call"_q,
+		u"groupCall"_q,
+		u"mediaview"_q,
+		u"stickerPanPremium"_q,
+		u"premium"_q,
+		u"wallet"_q,
+		u"statisticsChart"_q,
+		u"settingsIconBg"_q,
+		u"msgFile1"_q,
+		u"msgFile2"_q,
+		u"msgFile3"_q,
+		u"msgFile4"_q,
+	};
+	return ranges::any_of(prefixes, [&](const QString &prefix) {
+		return key.startsWith(prefix);
+	});
+}
+
+[[nodiscard]] QByteArray ColorizePalette(
+		const QByteArray &content,
+		const style::colorizer &colorizer) {
+	static const auto regex = QRegularExpression(
+		u"^\\s*([A-Za-z0-9_]+)\\s*:\\s*#([0-9a-fA-F]{6})"_q,
+		QRegularExpression::MultilineOption);
+	const auto text = QString::fromUtf8(content);
+	auto result = QString();
+	result.reserve(text.size());
+	auto position = 0;
+	auto matches = regex.globalMatch(text);
+	while (matches.hasNext()) {
+		const auto match = matches.next();
+		if (IgnoredAccentKey(match.captured(1))) {
+			continue;
+		}
+		const auto color = QColor(u"#"_q + match.captured(2));
+		const auto chroma = std::max({ color.red(), color.green(), color.blue() })
+			- std::min({ color.red(), color.green(), color.blue() });
+		if (chroma < kAccentMinChroma) {
+			continue;
+		}
+		const auto changed = style::colorize(color, colorizer);
+		if (!changed) {
+			continue;
+		}
+		const auto start = match.capturedStart(2);
+		result.append(text.mid(position, start - position));
+		result.append(changed->toRgb().name().mid(1));
+		position = start + match.capturedLength(2);
+	}
+	result.append(text.mid(position));
+	return result.toUtf8();
+}
+
+[[nodiscard]] QByteArray PackTheme(
+		const Window::Theme::ParsedTheme &parsed) {
+	zlib::FileToWrite zip;
+	zip_fileinfo info = { { 0, 0, 0, 0, 0, 0 }, 0, 0, 0 };
+	const auto write = [&](const std::string &name, const QByteArray &data) {
+		zip.openNewFile(
+			name.c_str(),
+			&info,
+			nullptr,
+			0,
+			nullptr,
+			0,
+			nullptr,
+			Z_DEFLATED,
+			Z_DEFAULT_COMPRESSION);
+		zip.writeInFile(data.constData(), data.size());
+		zip.closeFile();
+	};
+	if (!parsed.background.isEmpty()) {
+		write(
+			std::string(parsed.tiled ? "tiled" : "background")
+				+ (parsed.isPng ? ".png" : ".jpg"),
+			parsed.background);
+	}
+	write("colors.tdesktop-theme", parsed.palette);
+	zip.close();
+	return (zip.error() == ZIP_OK) ? zip.result() : QByteArray();
+}
+
+[[nodiscard]] QString PrepareThemePath(const ThemeInfo &theme) {
+	const auto accent = AccentColor(CurrentAccentId());
+	if (!accent || theme.swatches.size() < 2) {
+		return theme.path;
+	}
+	auto file = QFile(theme.path);
+	if (!file.open(QIODevice::ReadOnly)) {
+		return theme.path;
+	}
+	auto colorizer = style::colorizer();
+	colorizer.hueThreshold = kAccentHueThreshold;
+	theme.swatches[1].getHsv(
+		&colorizer.was.hue,
+		&colorizer.was.saturation,
+		&colorizer.was.value);
+	accent->getHsv(
+		&colorizer.now.hue,
+		&colorizer.now.saturation,
+		&colorizer.now.value);
+	auto object = Window::Theme::Object();
+	object.pathAbsolute = theme.path;
+	object.content = file.readAll();
+	auto parsed = Window::Theme::ParseTheme(object, false, false);
+	if (parsed.palette.isEmpty()) {
+		return theme.path;
+	}
+	parsed.palette = ColorizePalette(parsed.palette, colorizer);
+	const auto content = PackTheme(parsed);
+	if (content.isEmpty()) {
+		return theme.path;
+	}
+	const auto path = cWorkingDir() + kAccentThemeFile.utf16();
+	auto output = QFile(path);
+	if (!output.open(QIODevice::WriteOnly)
+		|| output.write(content) != content.size()) {
+		return theme.path;
+	}
+	return path;
+}
+
+bool ApplyThemeFile(const ThemeInfo &theme) {
+	if (!Window::Theme::Apply(PrepareThemePath(theme))) {
+		return false;
+	}
+	Window::Theme::KeepApplied();
+	return true;
 }
 
 void ApplyWallPaper(const ThemeInfo &theme) {
@@ -98,13 +253,47 @@ bool ApplyTheme(const QString &id) {
 		if (theme.id != id) {
 			continue;
 		}
-		if (!Window::Theme::Apply(theme.path)) {
+		if (!ApplyThemeFile(theme)) {
 			return false;
 		}
-		Window::Theme::KeepApplied();
 		ApplyWallPaper(theme);
 		AyuSettings::getInstance().setDesignTheme(id);
 		return true;
+	}
+	return false;
+}
+
+std::vector<AccentInfo> Accents() {
+	return {
+		{ QString(), tr::ayu_DesignAccentTheme(tr::now), QColor() },
+		{ u"blue"_q, tr::ayu_DesignAccentBlue(tr::now), QColor(0x33, 0x90, 0xec) },
+		{ u"purple"_q, tr::ayu_DesignAccentPurple(tr::now), QColor(0x87, 0x74, 0xe1) },
+		{ u"green"_q, tr::ayu_DesignAccentGreen(tr::now), QColor(0x4f, 0xae, 0x4e) },
+		{ u"orange"_q, tr::ayu_DesignAccentOrange(tr::now), QColor(0xe8, 0x8f, 0x3c) },
+		{ u"red"_q, tr::ayu_DesignAccentRed(tr::now), QColor(0xe5, 0x53, 0x4b) },
+		{ u"pink"_q, tr::ayu_DesignAccentPink(tr::now), QColor(0xe0, 0x5b, 0xa0) },
+		{ u"cyan"_q, tr::ayu_DesignAccentCyan(tr::now), QColor(0x26, 0xb5, 0xc9) },
+	};
+}
+
+QString CurrentAccentId() {
+	return AyuSettings::getInstance().designAccent();
+}
+
+bool ApplyAccent(const QString &id) {
+	AyuSettings::getInstance().setDesignAccent(id);
+	const auto current = CurrentThemeId();
+	const auto dark = (st::windowBg->c.lightness() < kDarkLightness);
+	const auto themeId = (current.isEmpty() || current == u"web-dark"_q)
+		? (dark ? u"web-dark-orange"_q : u"web-light"_q)
+		: current;
+	for (const auto &theme : Themes()) {
+		if (theme.id == themeId) {
+			if (current != themeId) {
+				return ApplyTheme(themeId);
+			}
+			return ApplyThemeFile(theme);
+		}
 	}
 	return false;
 }

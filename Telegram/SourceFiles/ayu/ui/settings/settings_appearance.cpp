@@ -94,6 +94,29 @@ void BuildDesign(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 	builder.addDividerText(tr::ayu_DesignThemesAbout());
 	builder.addSkip();
 
+	const auto accents = AyuDesign::Accents();
+	auto accentTitles = std::vector<QString>();
+	auto accentSelection = 0;
+	for (const auto &accent : accents) {
+		if (accent.id == AyuDesign::CurrentAccentId()) {
+			accentSelection = int(accentTitles.size());
+		}
+		accentTitles.push_back(accent.title);
+	}
+	ayu.addChooseButton({
+		.id = u"ayu/designAccent"_q,
+		.title = tr::ayu_DesignAccent(),
+		.boxTitle = tr::ayu_DesignAccent(),
+		.initialSelection = accentSelection,
+		.options = std::move(accentTitles),
+		.setter = [=](int index) {
+			if (index >= 0 && index < int(accents.size())) {
+				AyuDesign::ApplyAccent(accents[index].id);
+			}
+		},
+		.keywords = { u"accent"_q, u"color"_q, u"colour"_q },
+	});
+
 	ayu.addChooseButton({
 		.id = u"ayu/designLayout"_q,
 		.title = tr::ayu_DesignLayout(),

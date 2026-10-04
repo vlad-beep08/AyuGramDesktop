@@ -132,6 +132,12 @@ struct Command {
 			AyuDesign::ApplyTheme(id);
 		});
 	}
+	for (const auto &accent : AyuDesign::Accents()) {
+		const auto id = accent.id;
+		add(tr::ayu_DesignAccent(tr::now) + u": "_q + accent.title, [=] {
+			AyuDesign::ApplyAccent(id);
+		});
+	}
 	const auto current = &session->account();
 	for (const auto &[index, account] : Core::App().domain().accounts()) {
 		const auto raw = account.get();

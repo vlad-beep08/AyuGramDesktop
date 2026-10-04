@@ -730,6 +730,12 @@ void AyuSettings::setDesignTheme(const QString &val) {
 	save();
 }
 
+void AyuSettings::setDesignAccent(const QString &val) {
+	if (_designAccent.current() == val) return;
+	_designAccent = val;
+	save();
+}
+
 void AyuSettings::setDesignLayout(int val) {
 	if (_designLayout.current() == val) return;
 	_designLayout = val;
@@ -1242,6 +1248,7 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"designMotion", s._designMotion.current()},
 		{"windowOpacity", s._windowOpacity.current()},
 		{"designTheme", s._designTheme.current()},
+		{"designAccent", s._designAccent.current()},
 		{"designLayout", s._designLayout.current()},
 		{"designGlass", s._designGlass.current()},
 		{"designGlassTint", s._designGlassTint.current()},
@@ -1366,6 +1373,7 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._designMotion = j.value("designMotion", defaults._designMotion.current());
 	s._windowOpacity = j.value("windowOpacity", defaults._windowOpacity.current());
 	s._designTheme = j.value("designTheme", defaults._designTheme.current());
+	s._designAccent = j.value("designAccent", defaults._designAccent.current());
 	s._designLayout = j.value("designLayout", defaults._designLayout.current());
 	s._designGlass = j.value("designGlass", defaults._designGlass.current());
 	s._designGlassTint = j.value("designGlassTint", defaults._designGlassTint.current());

@@ -9178,6 +9178,15 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_PaletteSections" = "Add sections: Personal, Groups, Channels, Bots";
 "ayu_DesignSidebarTools" = "Saved Messages and Bookmarks in the folders panel";
 "ayu_DesignSectionsButton" = "Sections button in the folders panel";
+"ayu_DesignAccent" = "Accent color";
+"ayu_DesignAccentTheme" = "From theme";
+"ayu_DesignAccentBlue" = "Blue";
+"ayu_DesignAccentPurple" = "Purple";
+"ayu_DesignAccentGreen" = "Green";
+"ayu_DesignAccentOrange" = "Orange";
+"ayu_DesignAccentRed" = "Red";
+"ayu_DesignAccentPink" = "Pink";
+"ayu_DesignAccentCyan" = "Cyan";
 "ayu_WebMenuMore" = "More";
 "ayu_WebMenuClassic" = "Classic menu";
 "ayu_WebSettingsAyuAbout" = "Ghost mode, message history, appearance";

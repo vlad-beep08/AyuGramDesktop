@@ -301,6 +301,7 @@ public:
 	[[nodiscard]] int designMotion() const { return _designMotion.current(); }
 	[[nodiscard]] int windowOpacity() const { return _windowOpacity.current(); }
 	[[nodiscard]] const QString &designTheme() const { return _designTheme.current(); }
+	[[nodiscard]] const QString &designAccent() const { return _designAccent.current(); }
 	[[nodiscard]] int designLayout() const { return _designLayout.current(); }
 	[[nodiscard]] bool designGlass() const { return _designGlass.current(); }
 	[[nodiscard]] int designGlassTint() const { return _designGlassTint.current(); }
@@ -402,6 +403,7 @@ public:
 	void setDesignMotion(int val);
 	void setWindowOpacity(int val);
 	void setDesignTheme(const QString &val);
+	void setDesignAccent(const QString &val);
 	void setDesignLayout(int val);
 	void setDesignGlass(bool val);
 	void setDesignGlassTint(int val);
@@ -713,6 +715,7 @@ private:
 	rpl::variable<int> _designMotion = 0;
 	rpl::variable<int> _windowOpacity = 100;
 	rpl::variable<QString> _designTheme;
+	rpl::variable<QString> _designAccent;
 	rpl::variable<int> _designLayout = 0;
 	rpl::variable<bool> _designGlass = true;
 	rpl::variable<int> _designGlassTint = 1;
