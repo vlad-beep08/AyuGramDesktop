@@ -6,6 +6,7 @@
 // Copyright @Radolyn, 2026
 #include "ayu/features/quick_phrase/quick_phrase.h"
 
+#include "ayu/ui/design/design_effects.h"
 #include "ui/painter.h"
 #include "styles/style_ayu_icons.h"
 #include "styles/style_basic.h"
@@ -20,6 +21,7 @@ constexpr auto kMinFontSize = 7;
 constexpr auto kRadiusRatio = 0.24;
 constexpr auto kGlossInsetRatio = 0.07;
 constexpr auto kGlossHeightRatio = 0.5;
+constexpr auto kBounceDuration = crl::time(520);
 
 [[nodiscard]] QFont FitFont(const QString &text, int width) {
 	auto result = st::semiboldFont->f;
@@ -48,6 +50,17 @@ Button::Button(QWidget *parent)
 , _font(FitFont(
 	_label,
 	style::ConvertScale(kBadgeSize - 2 * kTextPadding))) {
+	clicks(
+	) | rpl::on_next([=] {
+		if (!AyuDesign::EffectsEnabled()) {
+			return;
+		}
+		_bounce.stop();
+		_bounce.start([=] {
+			update();
+		}, 0., 1., kBounceDuration, anim::linear);
+		AyuDesign::Burst(this, AyuDesign::BurstKind::Alarm);
+	}, lifetime());
 }
 
 void Button::paintEvent(QPaintEvent *e) {
@@ -63,6 +76,15 @@ void Button::paintEvent(QPaintEvent *e) {
 		side);
 	const auto radius = side * kRadiusRatio;
 	const auto line = std::max(style::ConvertScale(1), 1);
+	if (_bounce.animating()) {
+		const auto progress = _bounce.value(1.);
+		const auto scale = AyuDesign::BounceScale(progress);
+		const auto center = badge.center();
+		p.translate(center);
+		p.rotate(AyuDesign::BounceAngle(progress));
+		p.scale(scale, scale);
+		p.translate(-center);
+	}
 
 	auto base = QLinearGradient(badge.topLeft(), badge.bottomLeft());
 	base.setColorAt(0., QColor(0xFF, 0x5B, 0x45));

@@ -195,6 +195,7 @@ struct Entry {
 		{ "ayu_DesignAccentRed", "Красный" },
 		{ "ayu_DesignAccentPink", "Розовый" },
 		{ "ayu_DesignAccentCyan", "Бирюзовый" },
+		{ "ayu_DesignEffects", "Эффекты Чикенграма" },
 		{ "ayu_WebMenuMore", "Ещё" },
 		{ "ayu_WebMenuClassic", "Классическое меню" },
 		{ "ayu_WebSettingsAyuAbout", "Режим призрака, история сообщений, оформление" },

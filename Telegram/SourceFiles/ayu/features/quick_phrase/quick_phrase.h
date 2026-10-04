@@ -6,6 +6,7 @@
 // Copyright @Radolyn, 2026
 #pragma once
 
+#include "ui/effects/animations.h"
 #include "ui/widgets/buttons.h"
 
 namespace AyuFeatures::QuickPhrase {
@@ -23,6 +24,7 @@ protected:
 private:
 	const QString _label;
 	QFont _font;
+	Ui::Animations::Simple _bounce;
 
 };
 

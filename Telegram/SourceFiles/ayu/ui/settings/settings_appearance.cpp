@@ -131,6 +131,13 @@ void BuildDesign(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 			ShowRestartPrompt(controller);
 		},
 	});
+	ayu.addSettingToggle({
+		.id = u"ayu/designEffects"_q,
+		.title = tr::ayu_DesignEffects(),
+		.getter = &AyuSettings::designEffects,
+		.setter = &AyuSettings::setDesignEffects,
+		.keywords = { u"effects"_q, u"spotlight"_q, u"sparks"_q },
+	});
 	ayu.addToggle({
 		.id = u"ayu/designGlass"_q,
 		.title = tr::ayu_DesignGlass(),

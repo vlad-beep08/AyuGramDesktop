@@ -223,6 +223,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/features/forward/ayu_forward.h"
 #include "ayu/features/undo_send/undo_send.h"
 #include "ayu/features/quick_phrase/quick_phrase.h"
+#include "ayu/ui/design/design_effects.h"
 #include "ayu/ui/design/design_islands.h"
 #include "ayu/ui/design/design_system.h"
 #include "styles/style_ayu_icons.h"
@@ -8239,6 +8240,12 @@ void HistoryWidget::resizeEvent(QResizeEvent *e) {
 	//updateTabbedSelectorSectionShown();
 	recountChatWidth();
 	updateControlsGeometry();
+}
+
+void HistoryWidget::startSendBurst() {
+	if (_send && !_send->isHidden()) {
+		AyuDesign::Burst(_send.get(), AyuDesign::BurstKind::Send);
+	}
 }
 
 void HistoryWidget::startWebSwitchAnimation() {

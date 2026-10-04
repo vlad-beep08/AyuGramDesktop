@@ -748,6 +748,12 @@ void AyuSettings::setDesignGlass(bool val) {
 	save();
 }
 
+void AyuSettings::setDesignEffects(bool val) {
+	if (_designEffects.current() == val) return;
+	_designEffects = val;
+	save();
+}
+
 void AyuSettings::setDesignGlassTint(int val) {
 	if (_designGlassTint.current() == val) return;
 	_designGlassTint = val;
@@ -1251,6 +1257,7 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"designAccent", s._designAccent.current()},
 		{"designLayout", s._designLayout.current()},
 		{"designGlass", s._designGlass.current()},
+		{"designEffects", s._designEffects.current()},
 		{"designGlassTint", s._designGlassTint.current()},
 		{"designGlassBlur", s._designGlassBlur.current()},
 		{"privacyMode", s._privacyMode.current()},
@@ -1376,6 +1383,7 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._designAccent = j.value("designAccent", defaults._designAccent.current());
 	s._designLayout = j.value("designLayout", defaults._designLayout.current());
 	s._designGlass = j.value("designGlass", defaults._designGlass.current());
+	s._designEffects = j.value("designEffects", defaults._designEffects.current());
 	s._designGlassTint = j.value("designGlassTint", defaults._designGlassTint.current());
 	s._designGlassBlur = j.value("designGlassBlur", defaults._designGlassBlur.current());
 	s._privacyMode = j.value("privacyMode", defaults._privacyMode.current());

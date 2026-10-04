@@ -342,6 +342,8 @@ private:
 	bool needCollapsedRowsRefresh() const;
 	bool chooseCollapsedRow(Qt::KeyboardModifiers modifiers);
 	void switchToFilter(FilterId filterId);
+	void startWebStagger();
+	[[nodiscard]] float64 webStaggerProgress(int top) const;
 	bool chooseHashtag();
 	ChosenRow computeChosenRow() const;
 	bool isRowActive(not_null<Row*> row, const RowDescriptor &entry) const;
@@ -688,6 +690,8 @@ private:
 	QPoint _dragStart;
 	std::vector<PinnedRow> _pinnedRows;
 	Ui::Animations::Basic _pinnedShiftAnimation;
+	Ui::Animations::Basic _webStaggerAnimation;
+	crl::time _webStaggerStart = 0;
 	base::flat_set<Key> _pinnedOnDragStart;
 
 	mutable const Row *_activeSubItemsRow = nullptr;

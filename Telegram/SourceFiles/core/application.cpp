@@ -109,6 +109,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/features/streamer_mode/streamer_mode.h"
 #include "ayu/features/command_palette/command_palette.h"
 #include "ayu/features/hidden_chats/hidden_chats.h"
+#include "ayu/ui/design/design_effects.h"
 #include "ayu/ui/design/design_glass.h"
 #include "ayu/ui/design/design_system.h"
 
@@ -312,6 +313,7 @@ void Application::run() {
 	style::StartManager(cScale());
 	AyuDesign::ApplyStyleOverrides();
 	AyuDesign::SetupGlassMenus();
+	AyuDesign::SetupEffects();
 	Ui::Accessible::Init();
 	Ui::InitTextOptions();
 	Ui::StartCachedCorners();

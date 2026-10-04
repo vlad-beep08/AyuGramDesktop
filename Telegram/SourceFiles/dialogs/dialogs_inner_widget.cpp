@@ -104,6 +104,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "ayu/ayu_settings.h"
 #include "ayu/ui/ayu_userpic.h"
+#include "ayu/ui/design/design_effects.h"
 #include "ayu/ui/design/design_motion.h"
 #include "ayu/ui/design/design_system.h"
 #include "ayu/utils/telegram_helpers.h"
@@ -1293,7 +1294,23 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 				if (xadd || yadd) {
 					p.translate(xadd, yadd);
 				}
+				const auto stagger = webStaggerProgress(
+					int(p.transform().dy()));
+				if (stagger < 1.) {
+					p.fillRect(0, 0, fullWidth, row->height(), currentBg());
+					p.save();
+					p.setOpacity(stagger);
+					p.translate(
+						anim::interpolate(
+							st::dialogsRowHeight / 2,
+							0,
+							stagger),
+						0);
+				}
 				paintRow(row, (row->key() == selected), true);
+				if (stagger < 1.) {
+					p.restore();
+				}
 				if (xadd || yadd) {
 					p.translate(-xadd, -yadd);
 				}
@@ -1915,6 +1932,7 @@ void InnerWidget::paintPeerSearchResult(
 			AyuDesign::PaintWebRowHighlight(p, fullRect, st::dialogsBgOver);
 			p.setOpacity(1.);
 		}
+		AyuDesign::PaintWebRowSpotlight(p, fullRect, context.active);
 	} else {
 		p.fillRect(
 			fullRect,
@@ -5745,6 +5763,36 @@ void InnerWidget::switchToFilter(FilterId filterId) {
 			restoreChatsFilterScrollState(filterId);
 		}
 	}
+	startWebStagger();
+}
+
+void InnerWidget::startWebStagger() {
+	if (!AyuDesign::EffectsEnabled() || !isVisible()) {
+		_webStaggerStart = 0;
+		return;
+	}
+	const auto rows = (_visibleBottom - _visibleTop)
+		/ std::max(st::dialogsRowHeight, 1)
+		+ 1;
+	const auto duration = AyuDesign::StaggerDuration(rows);
+	_webStaggerStart = crl::now();
+	_webStaggerAnimation.init([=](crl::time now) {
+		update();
+		if (now - _webStaggerStart >= duration) {
+			_webStaggerStart = 0;
+			_webStaggerAnimation.stop();
+		}
+	});
+	_webStaggerAnimation.start();
+}
+
+float64 InnerWidget::webStaggerProgress(int top) const {
+	if (!_webStaggerStart) {
+		return 1.;
+	}
+	const auto index = (top - _visibleTop)
+		/ std::max(st::dialogsRowHeight, 1);
+	return AyuDesign::StaggerProgress(_webStaggerStart, index);
 }
 
 void InnerWidget::jumpToTop() {

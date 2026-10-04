@@ -53,6 +53,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/features/filters/filters_controller.h"
+#include "ayu/ui/design/design_effects.h"
 #include "ayu/ui/design/design_motion.h"
 #include "ayu/ui/design/design_system.h"
 #include "styles/style_ayu_icons.h"
@@ -527,6 +528,7 @@ void PaintRow(
 			AyuDesign::PaintWebRowHighlight(p, geometry, st::dialogsBgOver);
 			p.setOpacity(1.);
 		}
+		AyuDesign::PaintWebRowSpotlight(p, geometry, context.active);
 	} else {
 		p.fillRect(geometry, bg);
 	}
@@ -1248,6 +1250,22 @@ void RowPainter::Paint(
 		| (row->topicJumpRipple() ? Flag::TopicJumpRipple : Flag(0));
 	const auto paintItemCallback = [&](int nameleft, int namewidth) {
 		const auto texttop = context.st->textTop;
+		const auto pulse = AyuDesign::PulseScale(
+			p,
+			entry.get(),
+			badgesState.unreadCounter,
+			QRect(0, 0, context.width, context.st->height));
+		if (pulse != 1.) {
+			const auto center = QPointF(
+				context.width
+					- context.st->padding.right()
+					- st::dialogsUnreadHeight / 2.,
+				texttop + st::dialogsTextFont->height / 2.);
+			p.save();
+			p.translate(center);
+			p.scale(pulse, pulse);
+			p.translate(-center);
+		}
 		const auto availableWidth = PaintWideCounter(
 			p,
 			context,
@@ -1255,6 +1273,9 @@ void RowPainter::Paint(
 			texttop,
 			namewidth,
 			displayPinnedIcon);
+		if (pulse != 1.) {
+			p.restore();
+		}
 		const auto &color = context.active
 			? st::dialogsTextFgServiceActive
 			: context.selected

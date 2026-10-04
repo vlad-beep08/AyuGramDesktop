@@ -479,6 +479,9 @@ HistoryInner::HistoryInner(
 		checkAnnounceFirstMessages();
 		if (AyuDesign::WebLayout()) {
 			startWebAppear(item);
+			if (item->out() && item->isSending()) {
+				_widget->startSendBurst();
+			}
 		}
 	}, lifetime());
 	setupThanosEffect();

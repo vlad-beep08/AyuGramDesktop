@@ -304,6 +304,7 @@ public:
 	[[nodiscard]] const QString &designAccent() const { return _designAccent.current(); }
 	[[nodiscard]] int designLayout() const { return _designLayout.current(); }
 	[[nodiscard]] bool designGlass() const { return _designGlass.current(); }
+	[[nodiscard]] bool designEffects() const { return _designEffects.current(); }
 	[[nodiscard]] int designGlassTint() const { return _designGlassTint.current(); }
 	[[nodiscard]] int designGlassBlur() const { return _designGlassBlur.current(); }
 	[[nodiscard]] bool privacyMode() const { return _privacyMode.current(); }
@@ -406,6 +407,7 @@ public:
 	void setDesignAccent(const QString &val);
 	void setDesignLayout(int val);
 	void setDesignGlass(bool val);
+	void setDesignEffects(bool val);
 	void setDesignGlassTint(int val);
 	void setDesignGlassBlur(int val);
 	void setPrivacyMode(bool val);
@@ -718,6 +720,7 @@ private:
 	rpl::variable<QString> _designAccent;
 	rpl::variable<int> _designLayout = 0;
 	rpl::variable<bool> _designGlass = true;
+	rpl::variable<bool> _designEffects = true;
 	rpl::variable<int> _designGlassTint = 1;
 	rpl::variable<int> _designGlassBlur = 1;
 	rpl::variable<bool> _privacyMode = false;
