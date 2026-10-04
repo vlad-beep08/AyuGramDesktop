@@ -157,6 +157,8 @@ set(ayugram_files
         ayu/ui/design/design_left_box.h
         ayu/ui/design/design_motion.cpp
         ayu/ui/design/design_motion.h
+        ayu/ui/design/design_sections.cpp
+        ayu/ui/design/design_sections.h
         ayu/ui/design/design_system.cpp
         ayu/ui/design/design_system.h
         ayu/ui/design/design_themes.cpp

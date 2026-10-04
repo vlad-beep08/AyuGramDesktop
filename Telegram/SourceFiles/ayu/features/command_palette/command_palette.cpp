@@ -14,6 +14,7 @@
 #include "ayu/features/drafts_history/drafts_history.h"
 #include "ayu/features/hidden_chats/hidden_chats.h"
 #include "ayu/features/keyword_alerts/keyword_alerts.h"
+#include "ayu/ui/design/design_sections.h"
 #include "ayu/ui/design/design_themes.h"
 #include "ayu/ui/design/design_widgets.h"
 #include "base/event_filter.h"
@@ -108,6 +109,11 @@ struct Command {
 		controller->content()->showLeftBox(
 			Box<GroupInfoBox>(controller, GroupInfoBox::Type::Channel));
 	});
+	if (AyuDesign::HasMissingWebSections(session)) {
+		add(tr::ayu_PaletteSections(tr::now), [=] {
+			AyuDesign::AddWebSections(controller);
+		});
+	}
 	for (const auto &theme : AyuDesign::Themes()) {
 		const auto id = theme.id;
 		add(tr::ayu_PaletteThemePrefix(tr::now) + u": "_q + theme.title, [=] {

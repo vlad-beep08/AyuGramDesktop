@@ -9168,6 +9168,14 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_PrivacyHiddenText" = "Message hidden";
 "ayu_PalettePrivacyOn" = "Private mode is on.";
 "ayu_PalettePrivacyOff" = "Private mode is off.";
+"ayu_SectionsAdd" = "Sections";
+"ayu_SectionPersonal" = "Personal";
+"ayu_SectionGroups" = "Groups";
+"ayu_SectionChannels" = "Channels";
+"ayu_SectionBots" = "Bots";
+"ayu_SectionsAdded" = "Sections added.";
+"ayu_SectionsLimit" = "Folder limit reached.";
+"ayu_PaletteSections" = "Add sections: Personal, Groups, Channels, Bots";
 "ayu_WebMenuMore" = "More";
 "ayu_WebMenuClassic" = "Classic menu";
 "ayu_WebSettingsAyuAbout" = "Ghost mode, message history, appearance";

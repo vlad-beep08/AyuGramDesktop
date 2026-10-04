@@ -52,6 +52,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // AyuGram includes
 #include "ayu/ayu_settings.h"
 #include "ayu/ui/design/design_account_menu.h"
+#include "ayu/ui/design/design_sections.h"
 #include "ayu/ui/design/design_system.h"
 #include "ui/image/image_prepare.h"
 #include "ui/painter.h"
@@ -217,6 +218,7 @@ void FiltersMenu::setup() {
 			-1,
 			{ TextWithEntities{ tr::lng_filters_setup(tr::now) } },
 			Ui::FilterIcon::Edit);
+		_sections = nullptr;
 		if (_favorite) {
 			_favorite = nullptr;
 			updateFavorite();
@@ -527,6 +529,7 @@ void FiltersMenu::refresh() {
 		}
 	}
 	_reorder->start();
+	refreshSections();
 
 	_container->resizeToWidth(_scroll.width());
 
@@ -543,6 +546,29 @@ void FiltersMenu::refresh() {
 		refocus->setFocus();
 		scrollToButton(refocus);
 	}
+}
+
+void FiltersMenu::refreshSections() {
+	const auto session = &_session->session();
+	if (!AyuDesign::WebLayout()
+		|| !AyuDesign::HasMissingWebSections(session)) {
+		_sections = nullptr;
+		return;
+	} else if (_sections) {
+		return;
+	}
+	_sections = prepareButton(
+		_container,
+		-1,
+		{ TextWithEntities{ tr::ayu_SectionsAdd(tr::now) } },
+		Ui::FilterIcon::Custom);
+	_sections->setClickedCallback([=] {
+		if (!_reordering) {
+			Ui::PostponeCall(&_outer, [=] {
+				AyuDesign::AddWebSections(_session);
+			});
+		}
+	});
 }
 
 void FiltersMenu::setupList() {
