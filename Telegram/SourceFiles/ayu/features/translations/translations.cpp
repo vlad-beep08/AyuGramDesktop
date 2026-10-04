@@ -184,6 +184,8 @@ struct Entry {
 		{ "ayu_SectionsAdded", "Разделы добавлены." },
 		{ "ayu_SectionsLimit", "Достигнут лимит папок." },
 		{ "ayu_PaletteSections", "Добавить разделы: Личные, Группы, Каналы, Боты" },
+		{ "ayu_DesignSidebarTools", "«Избранное» и «Закладки» в панели папок" },
+		{ "ayu_DesignSectionsButton", "Кнопка «Разделы» в панели папок" },
 		{ "ayu_WebMenuMore", "Ещё" },
 		{ "ayu_WebMenuClassic", "Классическое меню" },
 		{ "ayu_WebSettingsAyuAbout", "Режим призрака, история сообщений, оформление" },

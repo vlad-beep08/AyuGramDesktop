@@ -38,6 +38,9 @@
 #include "storage/storage_domain.h"
 #include "ui/text/text_entity.h"
 #include "settings/settings_common.h"
+#include "settings/sections/settings_local_storage.h"
+#include "settings/sections/settings_notifications.h"
+#include "settings/sections/settings_privacy_security.h"
 #include "ui/layers/generic_box.h"
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/fields/input_field.h"
@@ -93,6 +96,15 @@ struct Command {
 	});
 	add(tr::lng_menu_settings(tr::now), [=] {
 		controller->showSettings();
+	});
+	add(tr::lng_settings_section_notify(tr::now), [=] {
+		controller->showSettings(Settings::NotificationsId());
+	});
+	add(tr::lng_settings_section_privacy(tr::now), [=] {
+		controller->showSettings(Settings::PrivacySecurityId());
+	});
+	add(tr::lng_settings_manage_local_storage(tr::now), [=] {
+		controller->showSettings(Settings::LocalStorageId());
 	});
 	add(tr::lng_menu_contacts(tr::now), [=] {
 		controller->content()->showLeftBox(PrepareContactsBox(controller));
@@ -298,16 +310,30 @@ void FillBox(
 			return;
 		}
 		const auto words = TextUtilities::PrepareSearchWords(query);
-		const auto list = controller->session().data().chatsList()->indexed();
-		auto added = std::vector<Row>();
-		for (const auto &row : list->filtered(words)) {
-			const auto history = row->history();
-			const auto hidden = history
-				&& HiddenChats::IsLocked()
-				&& HiddenChats::IsHidden(history);
-			if (!history || hidden) {
-				continue;
+		const auto data = &controller->session().data();
+		auto histories = std::vector<not_null<History*>>();
+		const auto collect = [&](not_null<Dialogs::IndexedList*> list) {
+			for (const auto &row : list->filtered(words)) {
+				if (int(histories.size()) >= kChatResultsLimit) {
+					break;
+				}
+				const auto history = row->history();
+				if (!history
+					|| ranges::contains(histories, history, [](
+						not_null<History*> entry) {
+						return entry.get();
+					})
+					|| (HiddenChats::IsLocked()
+						&& HiddenChats::IsHidden(history))) {
+					continue;
+				}
+				histories.push_back(history);
 			}
+		};
+		collect(data->chatsList()->indexed());
+		collect(data->contactsList());
+		auto added = std::vector<Row>();
+		for (const auto history : histories) {
 			const auto peer = history->peer;
 			const auto user = peer->asUser();
 			const auto kind = (user && user->isBot())
@@ -333,9 +359,6 @@ void FillBox(
 				run();
 			});
 			added.push_back({ .search = QString(), .run = run, .wrap = wrap });
-			if (int(added.size()) >= kChatResultsLimit) {
-				break;
-			}
 		}
 		state->chatRows = int(added.size());
 		state->rows.insert(

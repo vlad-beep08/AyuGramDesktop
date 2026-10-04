@@ -417,6 +417,20 @@ void BuildChatFolders(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 		.getter = &AyuSettings::hideAllChatsFolder,
 		.setter = &AyuSettings::setHideAllChatsFolder,
 	});
+	ayu.addSettingToggle({
+		.id = u"ayu/designSidebarTools"_q,
+		.title = tr::ayu_DesignSidebarTools(),
+		.getter = &AyuSettings::designSidebarTools,
+		.setter = &AyuSettings::setDesignSidebarTools,
+		.keywords = { u"saved"_q, u"bookmarks"_q, u"sidebar"_q },
+	});
+	ayu.addSettingToggle({
+		.id = u"ayu/designSectionsButton"_q,
+		.title = tr::ayu_DesignSectionsButton(),
+		.getter = &AyuSettings::designSectionsButton,
+		.setter = &AyuSettings::setDesignSectionsButton,
+		.keywords = { u"sections"_q, u"folders"_q },
+	});
 
 	ayu.addSectionDivider();
 }

@@ -1116,6 +1116,7 @@ Manager::DisplayOptions Manager::getNotificationOptions(
 	result.hideNameAndPhoto = hideEverything
 		|| (view > Core::Settings::NotifyView::ShowName);
 	result.hideMessageText = hideEverything
+		|| AyuSettings::getInstance().privacyMode()
 		|| (view > Core::Settings::NotifyView::ShowPreview);
 	result.hideMarkAsRead = result.hideMessageText
 		|| (type != Data::ItemNotificationType::Message)

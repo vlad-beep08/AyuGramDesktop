@@ -760,6 +760,18 @@ void AyuSettings::setPrivacyMode(bool val) {
 	save();
 }
 
+void AyuSettings::setDesignSidebarTools(bool val) {
+	if (_designSidebarTools.current() == val) return;
+	_designSidebarTools = val;
+	save();
+}
+
+void AyuSettings::setDesignSectionsButton(bool val) {
+	if (_designSectionsButton.current() == val) return;
+	_designSectionsButton = val;
+	save();
+}
+
 void AyuSettings::setIncreaseWebviewHeight(bool val) {
 	if (_increaseWebviewHeight.current() == val) return;
 	_increaseWebviewHeight = val;
@@ -1235,6 +1247,8 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"designGlassTint", s._designGlassTint.current()},
 		{"designGlassBlur", s._designGlassBlur.current()},
 		{"privacyMode", s._privacyMode.current()},
+		{"designSidebarTools", s._designSidebarTools.current()},
+		{"designSectionsButton", s._designSectionsButton.current()},
 		{"removeMessageTail", s._removeMessageTail.current()},
 		{"disableNotificationsDelay", s._disableNotificationsDelay.current()},
 		{"localPremium", s._localPremium.current()},
@@ -1357,6 +1371,8 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._designGlassTint = j.value("designGlassTint", defaults._designGlassTint.current());
 	s._designGlassBlur = j.value("designGlassBlur", defaults._designGlassBlur.current());
 	s._privacyMode = j.value("privacyMode", defaults._privacyMode.current());
+	s._designSidebarTools = j.value("designSidebarTools", defaults._designSidebarTools.current());
+	s._designSectionsButton = j.value("designSectionsButton", defaults._designSectionsButton.current());
 	s._removeMessageTail = j.value("removeMessageTail", defaults._removeMessageTail.current());
 	s._disableNotificationsDelay = j.value("disableNotificationsDelay", defaults._disableNotificationsDelay.current());
 	s._localPremium = j.value("localPremium", defaults._localPremium.current());

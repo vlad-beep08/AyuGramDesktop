@@ -51,6 +51,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_settings.h"
+#include "ayu/features/bookmarks/bookmarks.h"
 #include "ayu/ui/design/design_account_menu.h"
 #include "ayu/ui/design/design_sections.h"
 #include "ayu/ui/design/design_system.h"
@@ -208,16 +209,18 @@ void FiltersMenu::setup() {
 		_session->widget()->showMainMenu();
 	});
 
-	Core::App().settings().chatFiltersTabsModeValue(
-	) | rpl::skip(1) | rpl::on_next([=] {
+	rpl::merge(
+		Core::App().settings().chatFiltersTabsModeValue(
+		) | rpl::skip(1) | rpl::to_empty,
+		AyuSettings::getInstance().designSidebarToolsValue(
+		) | rpl::skip(1) | rpl::to_empty,
+		AyuSettings::getInstance().designSectionsButtonValue(
+		) | rpl::skip(1) | rpl::to_empty
+	) | rpl::on_next([=] {
 		if (!_list) {
 			return;
 		}
-		_setup = prepareButton(
-			_container,
-			-1,
-			{ TextWithEntities{ tr::lng_filters_setup(tr::now) } },
-			Ui::FilterIcon::Edit);
+		setupTools();
 		_sections = nullptr;
 		if (_favorite) {
 			_favorite = nullptr;
@@ -548,9 +551,42 @@ void FiltersMenu::refresh() {
 	}
 }
 
+void FiltersMenu::setupTools() {
+	_saved = nullptr;
+	_bookmarks = nullptr;
+	_setup = nullptr;
+	if (AyuDesign::WebLayout()
+		&& AyuSettings::getInstance().designSidebarTools()) {
+		_saved = prepareButton(
+			_container,
+			-1,
+			{ TextWithEntities{ tr::lng_saved_messages(tr::now) } },
+			Ui::FilterIcon::Favorite);
+		_saved->setClickedCallback([=] {
+			_session->showPeerHistory(
+				_session->session().user(),
+				Window::SectionShow::Way::ClearStack);
+		});
+		_bookmarks = prepareButton(
+			_container,
+			-1,
+			{ TextWithEntities{ tr::ayu_BookmarksTitle(tr::now) } },
+			Ui::FilterIcon::Book);
+		_bookmarks->setClickedCallback([=] {
+			AyuFeatures::Bookmarks::ShowBox(_session);
+		});
+	}
+	_setup = prepareButton(
+		_container,
+		-1,
+		{ TextWithEntities{ tr::lng_filters_setup(tr::now) } },
+		Ui::FilterIcon::Edit);
+}
+
 void FiltersMenu::refreshSections() {
 	const auto session = &_session->session();
 	if (!AyuDesign::WebLayout()
+		|| !AyuSettings::getInstance().designSectionsButton()
 		|| !AyuDesign::HasMissingWebSections(session)) {
 		_sections = nullptr;
 		return;
@@ -574,11 +610,7 @@ void FiltersMenu::refreshSections() {
 void FiltersMenu::setupList() {
 	_list = _container->add(object_ptr<TabListLayout>(_container));
 	_list->setAccessibleName(tr::lng_filters_title(tr::now));
-	_setup = prepareButton(
-		_container,
-		-1,
-		{ TextWithEntities{ tr::lng_filters_setup(tr::now) } },
-		Ui::FilterIcon::Edit);
+	setupTools();
 	_reorder = std::make_unique<Ui::VerticalLayoutReorder>(_list, &_scroll);
 
 	_reorder->updates(

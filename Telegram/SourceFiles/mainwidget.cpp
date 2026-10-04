@@ -3351,6 +3351,15 @@ void MainWidget::handleHistoryBack() {
 	if (_mainSection && _mainSection->showBackInternal()) {
 		return;
 	}
+	if (AyuDesign::WebLayout()) {
+		if (leftWidget()) {
+			closeLeftSection();
+			return;
+		} else if (_thirdSection) {
+			_controller->closeThirdSection();
+			return;
+		}
+	}
 	const auto openedFolder = _controller->openedFolder().current();
 	const auto openedForum = _controller->shownForum().current();
 	const auto rootPeer = !_stack.empty()
