@@ -6,11 +6,22 @@
 // Copyright @Radolyn, 2026
 #pragma once
 
+namespace Ui {
+class InputField;
+} // namespace Ui
+
 namespace AyuDesign {
 
 enum class BurstKind {
 	Send,
 	Alarm,
+	Typing,
+};
+
+enum class LiveUserpic {
+	None,
+	Online,
+	Typing,
 };
 
 [[nodiscard]] bool EffectsEnabled();
@@ -18,6 +29,7 @@ void SetupEffects();
 
 void PaintWebRowSpotlight(QPainter &p, QRect row, bool active);
 void Burst(not_null<QWidget*> source, BurstKind kind);
+void BurstAt(not_null<QWidget*> source, QPoint position, BurstKind kind);
 
 [[nodiscard]] float64 PulseScale(
 	QPainter &p,
@@ -28,5 +40,24 @@ void Burst(not_null<QWidget*> source, BurstKind kind);
 [[nodiscard]] crl::time StaggerDuration(int count);
 [[nodiscard]] float64 BounceScale(float64 progress);
 [[nodiscard]] float64 BounceAngle(float64 progress);
+[[nodiscard]] float64 FlightEase(float64 progress);
+
+void SetupPowerMode(not_null<Ui::InputField*> field, Fn<void()> shake);
+[[nodiscard]] QPoint ShakeOffset(float64 progress);
+
+void MakeMagnetic(QWidget *widget);
+
+void SetWallpaperCanvas(not_null<QWidget*> canvas);
+[[nodiscard]] bool IsWallpaperCanvas(QSize fill);
+[[nodiscard]] int ParallaxMargin();
+[[nodiscard]] QPoint ParallaxOffset();
+void StartWallWave(not_null<QWidget*> source, QPoint position);
+void PaintWallWave(QPainter &p, QRect clip);
+
+void PaintLiveUserpic(
+	QPainter &p,
+	const void *key,
+	QRect userpic,
+	LiveUserpic state);
 
 } // namespace AyuDesign

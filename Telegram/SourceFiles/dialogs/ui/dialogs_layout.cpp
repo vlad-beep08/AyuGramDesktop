@@ -595,6 +595,28 @@ void PaintRow(
 				&& item
 				&& !item->isEmpty()));
 	}
+	if (AyuDesign::WebLayout() && !context.narrow && from) {
+		const auto user = from->asUser();
+		const auto painter = thread ? thread->sendActionPainter() : nullptr;
+		const auto typing = painter && !painter->actionText().isEmpty();
+		const auto online = user
+			&& !user->isSelf()
+			&& !user->isBot()
+			&& Data::IsUserOnline(user);
+		AyuDesign::PaintLiveUserpic(
+			p,
+			entry.get(),
+			QRect(
+				context.st->padding.left(),
+				context.st->padding.top(),
+				context.st->photoSize,
+				context.st->photoSize),
+			typing
+				? AyuDesign::LiveUserpic::Typing
+				: online
+				? AyuDesign::LiveUserpic::Online
+				: AyuDesign::LiveUserpic::None);
+	}
 
 	const auto nameleft = context.st->nameLeft;
 	if (context.topicsExpanded > 0.) {

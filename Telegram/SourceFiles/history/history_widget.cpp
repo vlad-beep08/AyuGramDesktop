@@ -520,6 +520,14 @@ HistoryWidget::HistoryWidget(
 	) | rpl::on_next([=] {
 		fieldChanged();
 	}, _field->lifetime());
+	if (AyuDesign::WebLayout()) {
+		AyuDesign::SetupPowerMode(_field.data(), [=] {
+			startPowerShake();
+		});
+		AyuDesign::MakeMagnetic(_send.get());
+		AyuDesign::MakeMagnetic(_attachToggle.data());
+		AyuDesign::MakeMagnetic(_tabbedSelectorToggle.data());
+	}
 	Data::AmPremiumValue(&session()) | rpl::on_next([=] {
 		checkCharsLimitation();
 		updateAiButtonVisibility();
@@ -3885,6 +3893,7 @@ void HistoryWidget::refreshQuickPhraseToggle() {
 		_quickPhrase->addClickHandler([=] {
 			sendQuickPhrase();
 		});
+		AyuDesign::MakeMagnetic(_quickPhrase.data());
 		orderWidgets();
 	} else if (_quickPhrase && !has) {
 		_quickPhrase.destroy();
@@ -7502,7 +7511,9 @@ void HistoryWidget::moveFieldControls() {
 		left += _sendAs->width();
 	}
 	const auto fieldTop = bottom - fieldHeight() - st::historySendPadding;
-	_field->moveToLeft(left, fieldTop);
+	_field->moveToLeft(
+		left + _powerShake.x(),
+		fieldTop + _powerShake.y());
 	_richDraftPreview->moveToLeft(left, fieldTop);
 	if (_fieldDisabled) {
 		_fieldDisabled->moveToLeft(
@@ -8246,6 +8257,27 @@ void HistoryWidget::startSendBurst() {
 	if (_send && !_send->isHidden()) {
 		AyuDesign::Burst(_send.get(), AyuDesign::BurstKind::Send);
 	}
+}
+
+void HistoryWidget::startWallWave() {
+	if (!_scroll || _scroll->isHidden()) {
+		return;
+	}
+	AyuDesign::StartWallWave(
+		this,
+		QPoint(
+			_scroll->x() + _scroll->width() / 2,
+			_scroll->y() + _scroll->height()));
+}
+
+void HistoryWidget::startPowerShake() {
+	constexpr auto kDuration = crl::time(180);
+	_powerShakeAnimation.stop();
+	_powerShakeAnimation.start([=] {
+		_powerShake = AyuDesign::ShakeOffset(
+			_powerShakeAnimation.value(1.));
+		moveFieldControls();
+	}, 0., 1., kDuration, anim::linear);
 }
 
 void HistoryWidget::startWebSwitchAnimation() {
