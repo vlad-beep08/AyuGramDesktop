@@ -329,6 +329,9 @@ private:
 	bool showInLeftSection(
 		const std::shared_ptr<Window::SectionMemento> &memento,
 		const SectionShow &params);
+	bool showInfoInThirdColumn(
+		const std::shared_ptr<Window::SectionMemento> &memento,
+		const SectionShow &params);
 	void updateLeftSection();
 	void closeLeftSection();
 	[[nodiscard]] bool canShowLeftBox() const;

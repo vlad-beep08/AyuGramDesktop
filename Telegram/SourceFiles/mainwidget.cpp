@@ -116,6 +116,15 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace {
 
+[[nodiscard]] bool IsRightColumnInfo(
+		not_null<Window::SectionMemento*> memento) {
+	const auto info = dynamic_cast<Info::Memento*>(memento.get());
+	return info
+		&& (info->stackSize() > 0)
+		&& (info->content()->section().type()
+			!= Info::Section::Type::Settings);
+}
+
 void ClearBotStartToken(PeerData *peer) {
 	if (peer && peer->isUser() && peer->asUser()->isBot()) {
 		peer->asUser()->botInfo->startToken = QString();
@@ -1750,6 +1759,16 @@ void MainWidget::showSection(
 		const SectionShow &params) {
 	if (showInLeftSection(memento, params)) {
 		return;
+	} else if (AyuDesign::WebLayout()
+		&& !params.thirdColumn
+		&& !params.forbidLayer
+		&& IsRightColumnInfo(memento.get())) {
+		if (!showInfoInThirdColumn(memento, params)) {
+			auto inMain = params;
+			inMain.forbidLayer = true;
+			showSection(std::move(memento), inMain);
+		}
+		return;
 	} else if (_mainSection && _mainSection->showInternal(
 			memento.get(),
 			params)) {
@@ -1782,6 +1801,30 @@ void MainWidget::showSection(
 	updateColumnLayout();
 
 	showNewSection(std::move(memento), params);
+}
+
+bool MainWidget::showInfoInThirdColumn(
+		const std::shared_ptr<Window::SectionMemento> &memento,
+		const SectionShow &params) {
+	if (!_controller->canShowThirdSection()) {
+		return false;
+	}
+	auto &settings = Core::App().settings();
+	if (!settings.thirdSectionInfoEnabled()) {
+		settings.setThirdSectionInfoEnabled(true);
+		Core::App().saveSettingsDelayed();
+	}
+	if (!isThreeColumn()) {
+		if (!_controller->canShowThirdSectionWithoutResize()) {
+			_controller->resizeForThirdSection();
+		}
+		_controller->updateColumnLayout();
+	}
+	if (!isThreeColumn()) {
+		return false;
+	}
+	showSection(memento, params.withThirdColumn());
+	return true;
 }
 
 void MainWidget::updateColumnLayout() {
@@ -1895,7 +1938,9 @@ void MainWidget::showNewSection(
 	const auto layerRect = parentWidget()->rect();
 	if (newThirdSection) {
 		saveInStack = false;
-	} else if (auto layer = memento->createLayer(_controller, layerRect)) {
+	} else if (auto layer = params.forbidLayer
+			? object_ptr<Ui::LayerWidget>(nullptr)
+			: memento->createLayer(_controller, layerRect)) {
 		if (params.activation != anim::activation::background) {
 			_controller->hideLayer(anim::type::instant);
 		}
