@@ -274,7 +274,6 @@ public:
 		MsgId showAtMsgId,
 		const Window::SectionShow &params = {});
 	void startWebSwitchAnimation();
-	void startSendBurst();
 	void startWallWave();
 	void startPowerShake();
 	void setChooseReportMessagesDetails(

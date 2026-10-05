@@ -59,7 +59,7 @@ Button::Button(QWidget *parent)
 		_bounce.start([=] {
 			update();
 		}, 0., 1., kBounceDuration, anim::linear);
-		AyuDesign::Burst(this, AyuDesign::BurstKind::Alarm);
+		AyuDesign::Burst(this);
 	}, lifetime());
 }
 

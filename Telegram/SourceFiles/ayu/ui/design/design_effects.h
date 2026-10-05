@@ -12,12 +12,6 @@ class InputField;
 
 namespace AyuDesign {
 
-enum class BurstKind {
-	Send,
-	Alarm,
-	Typing,
-};
-
 enum class LiveUserpic {
 	None,
 	Online,
@@ -28,8 +22,7 @@ enum class LiveUserpic {
 void SetupEffects();
 
 void PaintWebRowSpotlight(QPainter &p, QRect row, bool active);
-void Burst(not_null<QWidget*> source, BurstKind kind);
-void BurstAt(not_null<QWidget*> source, QPoint position, BurstKind kind);
+void Burst(not_null<QWidget*> source);
 
 [[nodiscard]] float64 PulseScale(
 	QPainter &p,
@@ -49,8 +42,6 @@ void MakeMagnetic(QWidget *widget);
 
 void SetWallpaperCanvas(not_null<QWidget*> canvas);
 [[nodiscard]] bool IsWallpaperCanvas(QSize fill);
-[[nodiscard]] int ParallaxMargin();
-[[nodiscard]] QPoint ParallaxOffset();
 void StartWallWave(not_null<QWidget*> source, QPoint position);
 void PaintWallWave(QPainter &p, QRect clip);
 

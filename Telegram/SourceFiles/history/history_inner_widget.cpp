@@ -484,9 +484,7 @@ HistoryInner::HistoryInner(
 		if (AyuDesign::WebLayout()) {
 			const auto sending = item->out() && item->isSending();
 			startWebAppear(item, sending && AyuDesign::EffectsEnabled());
-			if (sending) {
-				_widget->startSendBurst();
-			} else if (!item->out()) {
+			if (!item->out()) {
 				_widget->startWallWave();
 			}
 		}

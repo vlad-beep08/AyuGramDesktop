@@ -8253,12 +8253,6 @@ void HistoryWidget::resizeEvent(QResizeEvent *e) {
 	updateControlsGeometry();
 }
 
-void HistoryWidget::startSendBurst() {
-	if (_send && !_send->isHidden()) {
-		AyuDesign::Burst(_send.get(), AyuDesign::BurstKind::Send);
-	}
-}
-
 void HistoryWidget::startWallWave() {
 	if (!_scroll || _scroll->isHidden()) {
 		return;

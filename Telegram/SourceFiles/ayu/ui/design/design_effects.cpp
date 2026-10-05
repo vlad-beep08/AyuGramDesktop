@@ -34,18 +34,11 @@ constexpr auto kSpotAlpha = 0.22;
 constexpr auto kSpotActiveAlpha = 0.14;
 constexpr auto kSpotButtonAlpha = 0.12;
 constexpr auto kBurstDuration = crl::time(650);
-constexpr auto kTypingDuration = crl::time(380);
-constexpr auto kSendReach = 72;
 constexpr auto kAlarmReach = 120;
-constexpr auto kTypingReach = 26;
-constexpr auto kSendParticles = 16;
 constexpr auto kAlarmParticles = 30;
-constexpr auto kTypingParticles = 6;
 constexpr auto kParticleMin = 2;
 constexpr auto kParticleExtra = 3;
-constexpr auto kSendGravity = 0.15;
 constexpr auto kAlarmGravity = 0.45;
-constexpr auto kTypingGravity = 0.6;
 constexpr auto kRingAlpha = 0.7;
 constexpr auto kFlashAlpha = 0.35;
 constexpr auto kPulseDuration = crl::time(480);
@@ -65,9 +58,6 @@ constexpr auto kMagnetReach = 60;
 constexpr auto kMagnetMax = 6.;
 constexpr auto kMagnetStrength = 0.22;
 constexpr auto kMagnetReturnDuration = crl::time(360);
-constexpr auto kParallaxMargin = 6;
-constexpr auto kParallaxFollow = 0.18;
-constexpr auto kParallaxEpsilon = 0.05;
 constexpr auto kWaveDuration = crl::time(1100);
 constexpr auto kWaveCooldown = crl::time(1500);
 constexpr auto kWaveAlpha = 0.22;
@@ -109,10 +99,6 @@ std::vector<std::unique_ptr<Magnet>> Magnets;
 QPoint LastCursor;
 
 QPointer<QWidget> Canvas;
-QPointF ParallaxCurrent;
-QPointF ParallaxTarget;
-QPoint ParallaxApplied;
-std::unique_ptr<Ui::Animations::Basic> ParallaxAnimation;
 
 struct Wave {
 	QPoint center;
@@ -204,10 +190,8 @@ struct BurstConfig {
 	std::vector<QColor> colors;
 };
 
-[[nodiscard]] BurstConfig ConfigFor(BurstKind kind) {
-	const auto gold = QColor(0xFF, 0xC8, 0x6B);
-	switch (kind) {
-	case BurstKind::Alarm: return {
+[[nodiscard]] BurstConfig AlarmConfig() {
+	return {
 		.reach = style::ConvertScale(kAlarmReach),
 		.count = kAlarmParticles,
 		.gravity = kAlarmGravity,
@@ -220,35 +204,11 @@ struct BurstConfig {
 			QColor(0xFF, 0xD2, 0x3F),
 		},
 	};
-	case BurstKind::Typing: return {
-		.reach = style::ConvertScale(kTypingReach),
-		.count = kTypingParticles,
-		.gravity = kTypingGravity,
-		.duration = kTypingDuration,
-		.ring = false,
-		.accent = st::windowBgActive->c,
-		.colors = { st::windowBgActive->c, gold },
-	};
-	case BurstKind::Send: break;
-	}
-	return {
-		.reach = style::ConvertScale(kSendReach),
-		.count = kSendParticles,
-		.gravity = kSendGravity,
-		.duration = kBurstDuration,
-		.ring = true,
-		.accent = st::windowBgActive->c,
-		.colors = {
-			st::windowBgActive->c,
-			gold,
-			QColor(0xFF, 0xFF, 0xFF),
-		},
-	};
 }
 
 class BurstOverlay final : public Ui::RpWidget {
 public:
-	BurstOverlay(not_null<QWidget*> parent, QPoint center, BurstKind kind);
+	BurstOverlay(not_null<QWidget*> parent, QPoint center);
 
 protected:
 	void paintEvent(QPaintEvent *e) override;
@@ -261,12 +221,9 @@ private:
 
 };
 
-BurstOverlay::BurstOverlay(
-	not_null<QWidget*> parent,
-	QPoint center,
-	BurstKind kind)
+BurstOverlay::BurstOverlay(not_null<QWidget*> parent, QPoint center)
 : RpWidget(parent)
-, _config(ConfigFor(kind)) {
+, _config(AlarmConfig()) {
 	const auto reach = _config.reach;
 	const auto area = QRect(
 		center - QPoint(reach, reach),
@@ -434,49 +391,6 @@ void HandleMagnetMove(not_null<QWidget*> widget) {
 	}
 }
 
-void StepParallax() {
-	ParallaxCurrent += (ParallaxTarget - ParallaxCurrent) * kParallaxFollow;
-	const auto rounded = ParallaxCurrent.toPoint();
-	if (rounded != ParallaxApplied) {
-		ParallaxApplied = rounded;
-		if (const auto canvas = Canvas.data()) {
-			canvas->update();
-		}
-	}
-	const auto left = ParallaxTarget - ParallaxCurrent;
-	if (std::abs(left.x()) < kParallaxEpsilon
-		&& std::abs(left.y()) < kParallaxEpsilon) {
-		ParallaxCurrent = ParallaxTarget;
-		ParallaxAnimation->stop();
-	}
-}
-
-void UpdateParallax(QPoint cursor) {
-	const auto canvas = Canvas.data();
-	if (!canvas || !canvas->isVisible() || !EffectsEnabled()) {
-		return;
-	}
-	const auto size = canvas->size();
-	if (size.width() <= 0 || size.height() <= 0) {
-		return;
-	}
-	const auto local = canvas->mapFromGlobal(cursor);
-	const auto halfWidth = size.width() / 2.;
-	const auto halfHeight = size.height() / 2.;
-	const auto x = std::clamp((local.x() - halfWidth) / halfWidth, -1., 1.);
-	const auto y = std::clamp((local.y() - halfHeight) / halfHeight, -1., 1.);
-	const auto margin = ParallaxMargin();
-	ParallaxTarget = QPointF(-x * margin, -y * margin);
-	if (!ParallaxAnimation) {
-		ParallaxAnimation = std::make_unique<Ui::Animations::Basic>([] {
-			StepParallax();
-		});
-	}
-	if (!ParallaxAnimation->animating()) {
-		ParallaxAnimation->start();
-	}
-}
-
 [[nodiscard]] float64 WaveProgress(crl::time now) {
 	return std::clamp(
 		float64(now - CurrentWave.started) / kWaveDuration,
@@ -589,7 +503,6 @@ protected:
 				if (cursor != LastCursor) {
 					LastCursor = cursor;
 					UpdateMagnets(cursor);
-					UpdateParallax(cursor);
 				}
 			}
 			break;
@@ -658,11 +571,7 @@ void PaintWebRowSpotlight(QPainter &p, QRect row, bool active) {
 		color);
 }
 
-void Burst(not_null<QWidget*> source, BurstKind kind) {
-	BurstAt(source, source->rect().center(), kind);
-}
-
-void BurstAt(not_null<QWidget*> source, QPoint position, BurstKind kind) {
+void Burst(not_null<QWidget*> source) {
 	if (!EffectsEnabled() || !source->isVisible()) {
 		return;
 	}
@@ -670,8 +579,8 @@ void BurstAt(not_null<QWidget*> source, QPoint position, BurstKind kind) {
 	if (!window) {
 		return;
 	}
-	const auto center = source->mapTo(window, position);
-	Ui::CreateChild<BurstOverlay>(window, center, kind);
+	const auto center = source->mapTo(window, source->rect().center());
+	Ui::CreateChild<BurstOverlay>(window, center);
 }
 
 float64 PulseScale(
@@ -770,10 +679,6 @@ void SetupPowerMode(not_null<Ui::InputField*> field, Fn<void()> shake) {
 		if (!grown || !EffectsEnabled() || !edit->hasFocus()) {
 			return;
 		}
-		BurstAt(
-			edit->viewport(),
-			edit->cursorRect().center(),
-			BurstKind::Typing);
 		const auto now = crl::now();
 		auto &strokes = state->strokes;
 		strokes.push_back(now);
@@ -822,14 +727,6 @@ void SetWallpaperCanvas(not_null<QWidget*> canvas) {
 bool IsWallpaperCanvas(QSize fill) {
 	const auto canvas = Canvas.data();
 	return canvas && WebLayout() && (canvas->size() == fill);
-}
-
-int ParallaxMargin() {
-	return EffectsEnabled() ? style::ConvertScale(kParallaxMargin) : 0;
-}
-
-QPoint ParallaxOffset() {
-	return EffectsEnabled() ? ParallaxApplied : QPoint();
 }
 
 void StartWallWave(not_null<QWidget*> source, QPoint position) {

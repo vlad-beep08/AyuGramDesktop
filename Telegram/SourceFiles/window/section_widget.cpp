@@ -413,18 +413,13 @@ void SectionWidget::PaintBackground(
 		QSize fill,
 		QRect clip,
 		bool paused) {
-	if (AyuDesign::EffectsEnabled() && AyuDesign::IsWallpaperCanvas(fill)) {
-		const auto margin = AyuDesign::ParallaxMargin();
-		const auto shift = QPoint(margin, margin)
-			- AyuDesign::ParallaxOffset();
-		p.translate(-shift);
-		PaintBackground(
-			p,
-			theme,
-			fill + QSize(2 * margin, 2 * margin),
-			clip.translated(shift),
-			paused);
-		p.translate(shift);
+	static auto paintingCanvas = false;
+	if (!paintingCanvas
+		&& AyuDesign::EffectsEnabled()
+		&& AyuDesign::IsWallpaperCanvas(fill)) {
+		paintingCanvas = true;
+		PaintBackground(p, theme, fill, clip, paused);
+		paintingCanvas = false;
 		AyuDesign::PaintWallWave(p, clip);
 		return;
 	}
