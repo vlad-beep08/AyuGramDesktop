@@ -35,8 +35,7 @@ void Burst(not_null<QWidget*> source);
 [[nodiscard]] float64 BounceAngle(float64 progress);
 [[nodiscard]] float64 FlightEase(float64 progress);
 
-void SetupPowerMode(not_null<Ui::InputField*> field, Fn<void()> shake);
-[[nodiscard]] QPoint ShakeOffset(float64 progress);
+void SetupPowerMode(not_null<Ui::InputField*> field);
 
 void MakeMagnetic(QWidget *widget);
 

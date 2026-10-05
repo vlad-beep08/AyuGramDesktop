@@ -51,7 +51,6 @@ constexpr auto kStaggerDuration = crl::time(240);
 constexpr auto kBounceAmplitude = 0.2;
 constexpr auto kBounceAngle = 10.;
 constexpr auto kBackOvershoot = 1.70158;
-constexpr auto kPowerWindow = crl::time(700);
 constexpr auto kNutsPerStroke = 2;
 constexpr auto kNutBumps = 3;
 constexpr auto kNutDuration = crl::time(760);
@@ -66,9 +65,6 @@ constexpr auto kNutSpin = 420.;
 constexpr auto kNutFadeFrom = 0.65;
 constexpr auto kNutBumpSize = 0.22;
 constexpr auto kNutShineAlpha = 150;
-constexpr auto kPowerKeystrokes = 5;
-constexpr auto kPowerShakeCooldown = crl::time(260);
-constexpr auto kShakeAmplitude = 2.5;
 constexpr auto kMagnetReach = 60;
 constexpr auto kMagnetMax = 6.;
 constexpr auto kMagnetStrength = 0.22;
@@ -850,11 +846,9 @@ float64 FlightEase(float64 progress) {
 		+ kBackOvershoot * t * t;
 }
 
-void SetupPowerMode(not_null<Ui::InputField*> field, Fn<void()> shake) {
+void SetupPowerMode(not_null<Ui::InputField*> field) {
 	struct State {
 		int length = 0;
-		std::vector<crl::time> strokes;
-		crl::time lastShake = 0;
 	};
 	const auto state = field->lifetime().make_state<State>();
 	state->length = int(field->getLastText().size());
@@ -868,30 +862,7 @@ void SetupPowerMode(not_null<Ui::InputField*> field, Fn<void()> shake) {
 			return;
 		}
 		SpawnNuts(edit->viewport(), edit->cursorRect().center());
-		const auto now = crl::now();
-		auto &strokes = state->strokes;
-		strokes.push_back(now);
-		strokes.erase(ranges::remove_if(strokes, [&](crl::time stroke) {
-			return (now - stroke) > kPowerWindow;
-		}), end(strokes));
-		if (shake
-			&& (int(strokes.size()) >= kPowerKeystrokes)
-			&& (now - state->lastShake) >= kPowerShakeCooldown) {
-			state->lastShake = now;
-			shake();
-		}
 	}, field->lifetime());
-}
-
-QPoint ShakeOffset(float64 progress) {
-	if (progress <= 0. || progress >= 1.) {
-		return QPoint();
-	}
-	const auto amplitude = style::ConvertScale(kShakeAmplitude)
-		* (1. - progress);
-	return QPoint(
-		qRound(std::sin(progress * kPi * 8.) * amplitude),
-		qRound(std::cos(progress * kPi * 6.) * amplitude * 0.5));
 }
 
 void MakeMagnetic(QWidget *widget) {

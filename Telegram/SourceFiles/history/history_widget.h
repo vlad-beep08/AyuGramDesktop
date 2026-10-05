@@ -275,7 +275,6 @@ public:
 		const Window::SectionShow &params = {});
 	void startWebSwitchAnimation();
 	void startWallWave();
-	void startPowerShake();
 	void setChooseReportMessagesDetails(
 		Data::ReportInput reportInput,
 		Fn<void(std::vector<MsgId>)> callback);
@@ -894,8 +893,6 @@ private:
 	bool _synteticScrollEvent = false;
 	Ui::Animations::Simple _scrollToAnimation;
 	Ui::Animations::Simple _webSwitchAnimation;
-	Ui::Animations::Simple _powerShakeAnimation;
-	QPoint _powerShake;
 	int _webSwitchLeft = 0;
 
 	HistoryView::CornerButtons _cornerButtons;

@@ -521,9 +521,7 @@ HistoryWidget::HistoryWidget(
 		fieldChanged();
 	}, _field->lifetime());
 	if (AyuDesign::WebLayout()) {
-		AyuDesign::SetupPowerMode(_field.data(), [=] {
-			startPowerShake();
-		});
+		AyuDesign::SetupPowerMode(_field.data());
 		AyuDesign::MakeMagnetic(_send.get());
 		AyuDesign::MakeMagnetic(_attachToggle.data());
 		AyuDesign::MakeMagnetic(_tabbedSelectorToggle.data());
@@ -623,9 +621,6 @@ HistoryWidget::HistoryWidget(
 		}
 		if (_scheduled) {
 			_scheduled->setVisible(!hide);
-		}
-		if (_quickPhrase) {
-			_quickPhrase->setVisible(!hide);
 		}
 		updateFieldSize();
 		moveFieldControls();
@@ -4337,7 +4332,7 @@ void HistoryWidget::updateControlsVisibility() {
 			}
 			if (_quickPhrase) {
 				const auto was = _quickPhrase->isVisible();
-				const auto now = (!_editMsgId) && (!hideExtra);
+				const auto now = !_editMsgId;
 				if (was != now) {
 					_quickPhrase->setVisible(now);
 					rightButtonsChanged = true;
@@ -7511,9 +7506,7 @@ void HistoryWidget::moveFieldControls() {
 		left += _sendAs->width();
 	}
 	const auto fieldTop = bottom - fieldHeight() - st::historySendPadding;
-	_field->moveToLeft(
-		left + _powerShake.x(),
-		fieldTop + _powerShake.y());
+	_field->moveToLeft(left, fieldTop);
 	_richDraftPreview->moveToLeft(left, fieldTop);
 	if (_fieldDisabled) {
 		_fieldDisabled->moveToLeft(
@@ -8262,16 +8255,6 @@ void HistoryWidget::startWallWave() {
 		QPoint(
 			_scroll->x() + _scroll->width() / 2,
 			_scroll->y() + _scroll->height()));
-}
-
-void HistoryWidget::startPowerShake() {
-	constexpr auto kDuration = crl::time(180);
-	_powerShakeAnimation.stop();
-	_powerShakeAnimation.start([=] {
-		_powerShake = AyuDesign::ShakeOffset(
-			_powerShakeAnimation.value(1.));
-		moveFieldControls();
-	}, 0., 1., kDuration, anim::linear);
 }
 
 void HistoryWidget::startWebSwitchAnimation() {
