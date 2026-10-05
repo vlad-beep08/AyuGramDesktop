@@ -302,7 +302,6 @@ public:
 	[[nodiscard]] int windowOpacity() const { return _windowOpacity.current(); }
 	[[nodiscard]] const QString &designTheme() const { return _designTheme.current(); }
 	[[nodiscard]] const QString &designAccent() const { return _designAccent.current(); }
-	[[nodiscard]] int designLayout() const { return _designLayout.current(); }
 	[[nodiscard]] bool designGlass() const { return _designGlass.current(); }
 	[[nodiscard]] bool designEffects() const { return _designEffects.current(); }
 	[[nodiscard]] int designGlassTint() const { return _designGlassTint.current(); }
@@ -405,7 +404,6 @@ public:
 	void setWindowOpacity(int val);
 	void setDesignTheme(const QString &val);
 	void setDesignAccent(const QString &val);
-	void setDesignLayout(int val);
 	void setDesignGlass(bool val);
 	void setDesignEffects(bool val);
 	void setDesignGlassTint(int val);
@@ -539,7 +537,6 @@ public:
 	[[nodiscard]] rpl::producer<int> designCornersValue() const { return _designCorners.value(); }
 	[[nodiscard]] rpl::producer<int> designMotionValue() const { return _designMotion.value(); }
 	[[nodiscard]] rpl::producer<int> windowOpacityValue() const { return _windowOpacity.value(); }
-	[[nodiscard]] rpl::producer<int> designLayoutValue() const { return _designLayout.value(); }
 	[[nodiscard]] rpl::producer<bool> privacyModeValue() const { return _privacyMode.value(); }
 	[[nodiscard]] rpl::producer<bool> designSidebarToolsValue() const { return _designSidebarTools.value(); }
 	[[nodiscard]] rpl::producer<bool> designSectionsButtonValue() const { return _designSectionsButton.value(); }
@@ -718,7 +715,6 @@ private:
 	rpl::variable<int> _windowOpacity = 100;
 	rpl::variable<QString> _designTheme;
 	rpl::variable<QString> _designAccent;
-	rpl::variable<int> _designLayout = 0;
 	rpl::variable<bool> _designGlass = true;
 	rpl::variable<bool> _designEffects = true;
 	rpl::variable<int> _designGlassTint = 1;

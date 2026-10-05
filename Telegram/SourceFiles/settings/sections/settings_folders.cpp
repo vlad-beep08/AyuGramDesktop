@@ -1122,38 +1122,13 @@ void BuildViewSection(SectionBuilder &builder) {
 		Ui::AddSkip(content);
 		const auto title = Ui::AddSubsectionTitle(
 			content,
-			tr::lng_filters_view_subtitle());
+			tr::lng_filters_tabs_subtitle());
 		if (ctx.highlights) {
 			ctx.highlights->push_back({
 				u"folders/tab-view"_q,
 				{ title.get(), SubsectionTitleHighlight() },
 			});
 		}
-
-		const auto group = std::make_shared<Ui::RadioenumGroup<bool>>(
-			Core::App().settings().chatFiltersHorizontal());
-		const auto addSend = [&](bool value, const QString &text) {
-			content->add(
-				object_ptr<Ui::Radioenum<bool>>(
-					content,
-					group,
-					value,
-					text,
-					st::settingsSendType),
-				st::settingsSendTypePadding);
-		};
-		addSend(false, tr::lng_filters_vertical(tr::now));
-		addSend(true, tr::lng_filters_horizontal(tr::now));
-
-		group->setChangedCallback([=](bool value) {
-			Core::App().settings().setChatFiltersHorizontal(value);
-			Core::App().saveSettingsDelayed();
-		});
-
-		Ui::AddSkip(content);
-		Ui::AddSubsectionTitle(
-			content,
-			tr::lng_filters_tabs_subtitle());
 
 		using Mode = Ui::ChatsFiltersTabsMode;
 		const auto modeGroup = std::make_shared<Ui::RadioenumGroup<Mode>>(

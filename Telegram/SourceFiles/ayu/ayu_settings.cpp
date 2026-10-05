@@ -522,7 +522,6 @@ void AyuSettings::validate() {
 	validateRange(_designCorners, 0, 3, defaults._designCorners);
 	validateRange(_designMotion, 0, 2, defaults._designMotion);
 	validateRange(_windowOpacity, 50, 100, defaults._windowOpacity);
-	validateRange(_designLayout, 0, 1, defaults._designLayout);
 	validateRange(_designGlassTint, 0, 2, defaults._designGlassTint);
 	validateRange(_designGlassBlur, 0, 2, defaults._designGlassBlur);
 	validateRange(_wideMultiplier, 0.5, 4.0, defaults._wideMultiplier);
@@ -733,12 +732,6 @@ void AyuSettings::setDesignTheme(const QString &val) {
 void AyuSettings::setDesignAccent(const QString &val) {
 	if (_designAccent.current() == val) return;
 	_designAccent = val;
-	save();
-}
-
-void AyuSettings::setDesignLayout(int val) {
-	if (_designLayout.current() == val) return;
-	_designLayout = val;
 	save();
 }
 
@@ -1255,7 +1248,6 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"windowOpacity", s._windowOpacity.current()},
 		{"designTheme", s._designTheme.current()},
 		{"designAccent", s._designAccent.current()},
-		{"designLayout", s._designLayout.current()},
 		{"designGlass", s._designGlass.current()},
 		{"designEffects", s._designEffects.current()},
 		{"designGlassTint", s._designGlassTint.current()},
@@ -1381,7 +1373,6 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._windowOpacity = j.value("windowOpacity", defaults._windowOpacity.current());
 	s._designTheme = j.value("designTheme", defaults._designTheme.current());
 	s._designAccent = j.value("designAccent", defaults._designAccent.current());
-	s._designLayout = j.value("designLayout", defaults._designLayout.current());
 	s._designGlass = j.value("designGlass", defaults._designGlass.current());
 	s._designEffects = j.value("designEffects", defaults._designEffects.current());
 	s._designGlassTint = j.value("designGlassTint", defaults._designGlassTint.current());

@@ -800,47 +800,6 @@ void SetupSupportChatsLimitSlice(
 	});
 }
 
-void BuildThemeOptionsSection(SectionBuilder &builder) {
-	const auto controller = builder.controller();
-	const auto highlights = builder.highlights();
-
-	builder.add([controller, highlights](const WidgetContext &ctx) {
-		SetupThemeOptions(controller, ctx.container.get(), highlights);
-		return SectionBuilder::WidgetToAdd{};
-	}, [] {
-		return SearchEntry{
-			.id = u"chat/themes"_q,
-			.title = tr::lng_settings_themes(tr::now),
-			.keywords = { u"themes"_q, u"appearance"_q, u"dark"_q, u"light"_q },
-			.icon = { &st::menuIconPalette },
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return SearchEntry{
-			.id = u"chat/themes-edit"_q,
-			.title = tr::lng_settings_theme_accent_title(tr::now),
-			.keywords = { u"accent"_q, u"color"_q, u"customize"_q },
-		};
-	});
-
-	if (IsSystemAccentColorSupported()) {
-		builder.add(nullptr, [] {
-			return SearchEntry{
-				.id = u"chat/themes-system-accent"_q,
-				.title = tr::lng_settings_theme_system_accent_color(tr::now),
-				.keywords = {
-					u"system"_q,
-					u"accent"_q,
-					u"color"_q,
-					u"theme"_q,
-					u"os"_q,
-				},
-			};
-		});
-	}
-}
-
 void BuildThemeSettingsSection(SectionBuilder &builder) {
 	const auto controller = builder.controller();
 
@@ -858,35 +817,10 @@ void BuildThemeSettingsSection(SectionBuilder &builder) {
 
 	builder.add(nullptr, [] {
 		return SearchEntry{
-			.id = u"chat/auto-night-mode"_q,
-			.title = tr::lng_settings_auto_night_mode(tr::now),
-			.keywords = { u"night"_q, u"dark"_q, u"auto"_q, u"system"_q },
-			.icon = { &st::menuIconNightMode },
-		};
-	});
-
-	builder.add(nullptr, [] {
-		return SearchEntry{
 			.id = u"chat/font"_q,
 			.title = tr::lng_settings_font_family(tr::now),
 			.keywords = { u"font"_q, u"family"_q, u"text"_q },
 			.icon = { &st::menuIconFont },
-		};
-	});
-}
-
-void BuildCloudThemesSection(SectionBuilder &builder) {
-	const auto controller = builder.controller();
-	const auto highlights = builder.highlights();
-
-	builder.add([controller, highlights](const WidgetContext &ctx) {
-		SetupCloudThemes(controller, ctx.container.get(), highlights);
-		return SectionBuilder::WidgetToAdd{};
-	}, [] {
-		return SearchEntry{
-			.id = u"chat/cloud-themes"_q,
-			.title = tr::lng_settings_bg_cloud_themes(tr::now),
-			.keywords = { u"cloud"_q, u"themes"_q, u"online"_q },
 		};
 	});
 }
@@ -1306,9 +1240,7 @@ void BuildSupportSection(SectionBuilder &builder) {
 }
 
 void BuildChatSectionContent(SectionBuilder &builder) {
-	BuildThemeOptionsSection(builder);
 	BuildThemeSettingsSection(builder);
-	BuildCloudThemesSection(builder);
 	BuildChatBackgroundSection(builder);
 	BuildChatListQuickActionSection(builder);
 	BuildStickersEmojiSection(builder);
@@ -2820,7 +2752,6 @@ void SetupThemeSettings(
 		not_null<Window::SessionController*> controller,
 		not_null<Ui::VerticalLayout*> container,
 		HighlightRegistry *highlights) {
-	Ui::AddDivider(container);
 	Ui::AddSkip(container, st::settingsPrivacySkip);
 
 	const auto title = Ui::AddSubsectionTitle(
@@ -2839,42 +2770,11 @@ void SetupThemeSettings(
 		controller->session().user(),
 		st::settingsColorButton);
 
-	const auto settings = &Core::App().settings();
-	if (settings->systemDarkMode().has_value()) {
-		auto label = settings->systemDarkModeEnabledValue(
-		) | rpl::map([=](bool enabled) {
-			return enabled
-				? tr::lng_settings_auto_night_mode_on()
-				: tr::lng_settings_auto_night_mode_off();
-		}) | rpl::flatten_latest();
-		const auto button = AddButtonWithLabel(
-			container,
-			tr::lng_settings_auto_night_mode(),
-			std::move(label),
-			st::settingsButton,
-			{ &st::menuIconNightMode });
-		button->setClickedCallback([=] {
-			const auto now = !settings->systemDarkModeEnabled();
-			if (now && Window::Theme::Background()->editingTheme()) {
-				controller->show(Ui::MakeInformBox(
-					tr::lng_theme_editor_cant_change_theme()));
-			} else {
-				settings->setSystemDarkModeEnabled(now);
-				Core::App().saveSettingsDelayed();
-			}
-		});
-		if (highlights) {
-			highlights->push_back({
-				u"chat/auto-night-mode"_q,
-				{ button.get(), { .rippleShape = true } },
-			});
-		}
-	}
-
 	if (!AyuDesign::ForcedFontFamily().isEmpty()) {
 		Ui::AddSkip(container, st::settingsCheckboxesSkip);
 		return;
 	}
+	const auto settings = &Core::App().settings();
 	const auto family = container->lifetime().make_state<
 		rpl::variable<QString>
 	>(settings->customFontFamily());

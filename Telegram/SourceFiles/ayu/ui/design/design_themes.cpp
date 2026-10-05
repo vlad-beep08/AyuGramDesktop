@@ -9,6 +9,8 @@
 #include "lang_auto.h"
 #include "ayu/ayu_settings.h"
 #include "ayu/ui/design/design_system.h"
+#include "core/application.h"
+#include "core/core_settings.h"
 #include "base/zlib_help.h"
 #include "data/data_wall_paper.h"
 #include "settings.h"
@@ -322,8 +324,10 @@ void EnsureWebWallPaper() {
 }
 
 void EnsureWebTheme() {
-	if (!WebLayout()) {
-		return;
+	auto &settings = Core::App().settings();
+	if (settings.systemDarkModeEnabled()) {
+		settings.setSystemDarkModeEnabled(false);
+		Core::App().saveSettingsDelayed();
 	}
 	static auto watching = false;
 	if (!watching) {

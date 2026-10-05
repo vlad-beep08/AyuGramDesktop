@@ -1952,7 +1952,7 @@ void Settings::setVideoQuality(Media::VideoQuality value) {
 }
 
 bool Settings::chatFiltersHorizontal() const {
-	return _chatFiltersHorizontal.current();
+	return false;
 }
 
 rpl::producer<bool> Settings::chatFiltersHorizontalChanges() const {

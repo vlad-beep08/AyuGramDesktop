@@ -67,7 +67,6 @@ constexpr auto kWebUnreadHeight = 22;
 constexpr auto kWebUnreadFontSize = 14;
 constexpr auto kWebTabActiveAlpha = 0.14;
 
-auto AppliedLayout = Layout::Classic;
 auto ForcedFamily = QString();
 auto BackdropGenerationValue = 0;
 
@@ -145,9 +144,6 @@ void ApplyDensity() {
 }
 
 void ApplyWebLayout() {
-	if (AppliedLayout != Layout::WebA) {
-		return;
-	}
 	const auto metrics = WebRowMetrics();
 	const auto side = Scaled(kWebRowInset + kWebRowPadding);
 	auto &row = Mutable(st::defaultDialogRow);
@@ -283,17 +279,6 @@ Motion CurrentMotion() {
 	return (value >= 0 && value <= 2)
 		? Motion(value)
 		: Motion::Full;
-}
-
-Layout CurrentLayout() {
-	const auto value = AyuSettings::getInstance().designLayout();
-	return (value == int(Layout::Classic))
-		? Layout::Classic
-		: Layout::WebA;
-}
-
-bool WebLayout() {
-	return (AppliedLayout == Layout::WebA);
 }
 
 int IslandMargin() {
@@ -584,7 +569,6 @@ bool PrivacyMode() {
 }
 
 void ApplyStyleOverrides() {
-	AppliedLayout = CurrentLayout();
 	ApplyDensity();
 	ApplyWebLayout();
 	ApplyCorners();

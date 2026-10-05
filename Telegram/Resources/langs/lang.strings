@@ -9152,9 +9152,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_DesignThemeMidnight" = "Midnight";
 "ayu_DesignThemeGraphite" = "Graphite";
 "ayu_DesignThemesAbout" = "Themes of the new design system. Standard Telegram themes are in Settings → Chat Settings.";
-"ayu_DesignLayout" = "Interface style";
-"ayu_DesignLayoutWeb" = "Telegram Web";
-"ayu_DesignLayoutClassic" = "Classic";
 "ayu_DesignGlass" = "Glass effect";
 "ayu_DesignGlassTint" = "Glass density";
 "ayu_DesignGlassTintDense" = "Denser";

@@ -27,11 +27,6 @@ enum class Motion {
 	Off = 2,
 };
 
-enum class Layout {
-	WebA = 0,
-	Classic = 1,
-};
-
 enum class Radius {
 	Small,
 	Medium,
@@ -81,8 +76,9 @@ enum class State {
 [[nodiscard]] Density CurrentDensity();
 [[nodiscard]] Corners CurrentCorners();
 [[nodiscard]] Motion CurrentMotion();
-[[nodiscard]] Layout CurrentLayout();
-[[nodiscard]] bool WebLayout();
+[[nodiscard]] constexpr bool WebLayout() {
+	return true;
+}
 
 [[nodiscard]] int IslandMargin();
 [[nodiscard]] int IslandRadius();

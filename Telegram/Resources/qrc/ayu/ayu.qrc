@@ -8,10 +8,6 @@
         <file alias="art/ayu/chibi/app_icon.ico">../../art/ayu/chibi/app_icon.ico</file>
         <file alias="art/ayu/chibi2/app.png">../../art/ayu/chibi2/app.png</file>
         <file alias="art/ayu/chibi2/app_icon.ico">../../art/ayu/chibi2/app_icon.ico</file>
-        <file alias="chickengram/fonts/Roboto-Regular.ttf">../../chickengram/fonts/Roboto-Regular.ttf</file>
-        <file alias="chickengram/fonts/Roboto-Medium.ttf">../../chickengram/fonts/Roboto-Medium.ttf</file>
-        <file alias="chickengram/fonts/Roboto-Bold.ttf">../../chickengram/fonts/Roboto-Bold.ttf</file>
-        <file alias="chickengram/fonts/Roboto-Italic.ttf">../../chickengram/fonts/Roboto-Italic.ttf</file>
         <file alias="chickengram/fonts/ChickengramSans-Regular.ttf">../../chickengram/fonts/ChickengramSans-Regular.ttf</file>
         <file alias="chickengram/fonts/ChickengramSans-Bold.ttf">../../chickengram/fonts/ChickengramSans-Bold.ttf</file>
         <file alias="chickengram/themes/web-light.tdesktop-theme">../../chickengram/themes/web-light.tdesktop-theme</file>

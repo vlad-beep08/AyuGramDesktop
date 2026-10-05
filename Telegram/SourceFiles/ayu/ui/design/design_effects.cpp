@@ -666,14 +666,13 @@ protected:
 } // namespace
 
 bool EffectsEnabled() {
-	return WebLayout()
-		&& AyuSettings::getInstance().designEffects()
+	return AyuSettings::getInstance().designEffects()
 		&& (DurationMs(Duration::Normal) > 0);
 }
 
 void SetupEffects() {
 	static auto installed = false;
-	if (installed || !WebLayout()) {
+	if (installed) {
 		return;
 	}
 	installed = true;

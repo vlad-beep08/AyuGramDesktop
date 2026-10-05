@@ -609,7 +609,7 @@ protected:
 } // namespace
 
 void SetupGlassMenus() {
-	if (!WebLayout() || !AyuSettings::getInstance().designGlass()) {
+	if (!AyuSettings::getInstance().designGlass()) {
 		return;
 	}
 	const auto &colors = Colors();
