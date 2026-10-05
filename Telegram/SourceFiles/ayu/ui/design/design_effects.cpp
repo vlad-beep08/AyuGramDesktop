@@ -55,7 +55,7 @@ constexpr auto kPowerWindow = crl::time(700);
 constexpr auto kNutsPerStroke = 2;
 constexpr auto kNutBumps = 3;
 constexpr auto kNutDuration = crl::time(760);
-constexpr auto kNutSizeMin = 7;
+constexpr auto kNutSizeMin = 9;
 constexpr auto kNutSizeExtra = 3;
 constexpr auto kNutAspect = 1.2;
 constexpr auto kNutSpreadX = 55;
@@ -65,8 +65,6 @@ constexpr auto kNutGravity = 170;
 constexpr auto kNutSpin = 420.;
 constexpr auto kNutFadeFrom = 0.65;
 constexpr auto kNutBumpSize = 0.22;
-constexpr auto kNutSpeckSize = 0.08;
-constexpr auto kNutSpeckAlpha = 150;
 constexpr auto kNutShineAlpha = 150;
 constexpr auto kPowerKeystrokes = 5;
 constexpr auto kPowerShakeCooldown = crl::time(260);
@@ -532,13 +530,6 @@ void PaintNut(QPainter &p, const Nut &nut, QPointF center, float64 t) {
 			QPointF(bump.x() * width / 2., bump.y() * height / 2.),
 			height * kNutBumpSize,
 			height * kNutBumpSize);
-	}
-	p.setBrush(QColor(0x3F, 0x66, 0x14, kNutSpeckAlpha));
-	for (const auto &bump : nut.bumps) {
-		p.drawEllipse(
-			QPointF(-bump.y() * width / 4., bump.x() * height / 4.),
-			height * kNutSpeckSize,
-			height * kNutSpeckSize);
 	}
 	p.setBrush(QColor(255, 255, 255, kNutShineAlpha));
 	p.drawEllipse(QRectF(
