@@ -39,11 +39,6 @@ void SetupPowerMode(not_null<Ui::InputField*> field);
 
 void MakeMagnetic(QWidget *widget);
 
-void SetWallpaperCanvas(not_null<QWidget*> canvas);
-[[nodiscard]] bool IsWallpaperCanvas(QSize fill);
-void StartWallWave(not_null<QWidget*> source, QPoint position);
-void PaintWallWave(QPainter &p, QRect clip);
-
 void PaintLiveUserpic(
 	QPainter &p,
 	const void *key,

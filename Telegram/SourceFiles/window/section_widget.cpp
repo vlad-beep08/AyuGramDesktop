@@ -41,7 +41,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_settings.h"
-#include "ayu/ui/design/design_effects.h"
 #include "ayu/ui/design/design_system.h"
 
 
@@ -413,16 +412,6 @@ void SectionWidget::PaintBackground(
 		QSize fill,
 		QRect clip,
 		bool paused) {
-	static auto paintingCanvas = false;
-	if (!paintingCanvas
-		&& AyuDesign::EffectsEnabled()
-		&& AyuDesign::IsWallpaperCanvas(fill)) {
-		paintingCanvas = true;
-		PaintBackground(p, theme, fill, clip, paused);
-		paintingCanvas = false;
-		AyuDesign::PaintWallWave(p, clip);
-		return;
-	}
 	const auto &background = theme->background();
 	if (background.colorForFill) {
 		p.fillRect(clip, *background.colorForFill);

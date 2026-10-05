@@ -8246,17 +8246,6 @@ void HistoryWidget::resizeEvent(QResizeEvent *e) {
 	updateControlsGeometry();
 }
 
-void HistoryWidget::startWallWave() {
-	if (!_scroll || _scroll->isHidden()) {
-		return;
-	}
-	AyuDesign::StartWallWave(
-		this,
-		QPoint(
-			_scroll->x() + _scroll->width() / 2,
-			_scroll->y() + _scroll->height()));
-}
-
 void HistoryWidget::startWebSwitchAnimation() {
 	const auto duration = AyuDesign::DurationMs(AyuDesign::Duration::Normal);
 	if (duration <= 0 || !_scroll) {

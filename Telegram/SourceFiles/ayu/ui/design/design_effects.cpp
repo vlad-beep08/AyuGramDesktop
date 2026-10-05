@@ -69,11 +69,6 @@ constexpr auto kMagnetReach = 60;
 constexpr auto kMagnetMax = 6.;
 constexpr auto kMagnetStrength = 0.22;
 constexpr auto kMagnetReturnDuration = crl::time(360);
-constexpr auto kWaveDuration = crl::time(1100);
-constexpr auto kWaveCooldown = crl::time(1500);
-constexpr auto kWaveAlpha = 0.22;
-constexpr auto kWaveWidth = 70;
-constexpr auto kWaveReach = 0.6;
 constexpr auto kLiveSpin = crl::time(1100);
 constexpr auto kLiveFrame = crl::time(66);
 constexpr auto kLiveStale = crl::time(1000);
@@ -108,18 +103,6 @@ struct Magnet {
 
 std::vector<std::unique_ptr<Magnet>> Magnets;
 QPoint LastCursor;
-
-QPointer<QWidget> Canvas;
-
-struct Wave {
-	QPoint center;
-	crl::time started = 0;
-	QRect painted;
-};
-
-Wave CurrentWave;
-crl::time LastWave = 0;
-std::unique_ptr<Ui::Animations::Basic> WaveAnimation;
 
 struct LiveEntry {
 	QRect area;
@@ -400,50 +383,6 @@ void HandleMagnetMove(not_null<QWidget*> widget) {
 			magnet->applied = QPoint();
 		}
 	}
-}
-
-[[nodiscard]] float64 WaveProgress(crl::time now) {
-	return std::clamp(
-		float64(now - CurrentWave.started) / kWaveDuration,
-		0.,
-		1.);
-}
-
-[[nodiscard]] float64 WaveRadius(float64 progress) {
-	const auto canvas = Canvas.data();
-	if (!canvas) {
-		return 0.;
-	}
-	const auto reach = std::hypot(canvas->width(), canvas->height())
-		* kWaveReach;
-	return reach * (1. - std::pow(1. - progress, 3.));
-}
-
-[[nodiscard]] QRect WaveRect(float64 progress) {
-	const auto outer = int(std::ceil(WaveRadius(progress)))
-		+ style::ConvertScale(kWaveWidth);
-	return QRect(
-		CurrentWave.center - QPoint(outer, outer),
-		QSize(2 * outer, 2 * outer));
-}
-
-void StepWave() {
-	const auto canvas = Canvas.data();
-	const auto previous = CurrentWave.painted;
-	const auto now = crl::now();
-	const auto progress = WaveProgress(now);
-	if (!canvas || progress >= 1.) {
-		CurrentWave.started = 0;
-		CurrentWave.painted = QRect();
-		WaveAnimation->stop();
-		if (canvas && !previous.isEmpty()) {
-			canvas->update(previous);
-		}
-		return;
-	}
-	const auto ring = WaveRect(progress).intersected(canvas->rect());
-	CurrentWave.painted = ring;
-	canvas->update(previous.united(ring));
 }
 
 [[nodiscard]] not_null<LiveState*> ResolveLive(not_null<QWidget*> widget) {
@@ -878,70 +817,6 @@ void MakeMagnetic(QWidget *widget) {
 	magnet->widget = widget;
 	magnet->base = widget->pos();
 	Magnets.push_back(std::move(magnet));
-}
-
-void SetWallpaperCanvas(not_null<QWidget*> canvas) {
-	Canvas = canvas.get();
-}
-
-bool IsWallpaperCanvas(QSize fill) {
-	const auto canvas = Canvas.data();
-	return canvas && WebLayout() && (canvas->size() == fill);
-}
-
-void StartWallWave(not_null<QWidget*> source, QPoint position) {
-	const auto canvas = Canvas.data();
-	if (!canvas
-		|| !EffectsEnabled()
-		|| !canvas->isAncestorOf(source)
-		|| !source->window()->isActiveWindow()) {
-		return;
-	}
-	const auto now = crl::now();
-	if (CurrentWave.started || (now - LastWave) < kWaveCooldown) {
-		return;
-	}
-	LastWave = now;
-	CurrentWave = Wave{
-		.center = source->mapTo(canvas, position),
-		.started = now,
-	};
-	if (!WaveAnimation) {
-		WaveAnimation = std::make_unique<Ui::Animations::Basic>([] {
-			StepWave();
-		});
-	}
-	WaveAnimation->start();
-}
-
-void PaintWallWave(QPainter &p, QRect clip) {
-	if (!CurrentWave.started) {
-		return;
-	}
-	const auto progress = WaveProgress(crl::now());
-	if (progress >= 1.) {
-		return;
-	}
-	const auto radius = WaveRadius(progress);
-	const auto width = float64(style::ConvertScale(kWaveWidth));
-	const auto outer = radius + width / 2.;
-	if (outer <= 0.) {
-		return;
-	}
-	const auto inner = std::max(radius - width / 2., 0.) / outer;
-	const auto middle = radius / outer;
-	const auto color = st::windowBgActive->c;
-	const auto alpha = kWaveAlpha * (1. - progress);
-	auto gradient = QRadialGradient(QPointF(CurrentWave.center), outer);
-	gradient.setColorAt(0., WithAlpha(color, 0.));
-	gradient.setColorAt(inner, WithAlpha(color, 0.));
-	gradient.setColorAt(middle, WithAlpha(color, alpha));
-	gradient.setColorAt(1., WithAlpha(color, 0.));
-	const auto area = WaveRect(progress).intersected(clip);
-	if (area.isEmpty()) {
-		return;
-	}
-	p.fillRect(area, gradient);
 }
 
 void PaintLiveUserpic(

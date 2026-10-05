@@ -108,7 +108,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/features/forward/ayu_forward.h"
-#include "ayu/ui/design/design_effects.h"
 #include "ayu/ui/design/design_islands.h"
 #include "ayu/ui/design/design_motion.h"
 #include "ayu/ui/design/design_system.h"
@@ -289,9 +288,6 @@ MainWidget::MainWidget(
 , _changelogs(Core::Changelogs::Create(&controller->session())) {
 	if (_dialogs) {
 		setupConnectingWidget();
-		if (AyuDesign::WebLayout() && parent) {
-			AyuDesign::SetWallpaperCanvas(parent);
-		}
 	}
 
 	_history->cancelRequests(

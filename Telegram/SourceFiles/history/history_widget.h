@@ -274,7 +274,6 @@ public:
 		MsgId showAtMsgId,
 		const Window::SectionShow &params = {});
 	void startWebSwitchAnimation();
-	void startWallWave();
 	void setChooseReportMessagesDetails(
 		Data::ReportInput reportInput,
 		Fn<void(std::vector<MsgId>)> callback);

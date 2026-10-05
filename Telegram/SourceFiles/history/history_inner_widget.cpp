@@ -484,9 +484,6 @@ HistoryInner::HistoryInner(
 		if (AyuDesign::WebLayout()) {
 			const auto sending = item->out() && item->isSending();
 			startWebAppear(item, sending && AyuDesign::EffectsEnabled());
-			if (!item->out()) {
-				_widget->startWallWave();
-			}
 		}
 	}, lifetime());
 	setupThanosEffect();
