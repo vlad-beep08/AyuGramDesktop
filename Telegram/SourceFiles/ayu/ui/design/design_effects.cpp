@@ -23,6 +23,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QTextEdit>
 
+#include <array>
 #include <random>
 
 namespace AyuDesign {
@@ -51,6 +52,22 @@ constexpr auto kBounceAmplitude = 0.2;
 constexpr auto kBounceAngle = 10.;
 constexpr auto kBackOvershoot = 1.70158;
 constexpr auto kPowerWindow = crl::time(700);
+constexpr auto kNutsPerStroke = 2;
+constexpr auto kNutBumps = 3;
+constexpr auto kNutDuration = crl::time(760);
+constexpr auto kNutSizeMin = 7;
+constexpr auto kNutSizeExtra = 3;
+constexpr auto kNutAspect = 1.2;
+constexpr auto kNutSpreadX = 55;
+constexpr auto kNutLiftMin = 35;
+constexpr auto kNutLiftExtra = 40;
+constexpr auto kNutGravity = 170;
+constexpr auto kNutSpin = 420.;
+constexpr auto kNutFadeFrom = 0.65;
+constexpr auto kNutBumpSize = 0.22;
+constexpr auto kNutSpeckSize = 0.08;
+constexpr auto kNutSpeckAlpha = 150;
+constexpr auto kNutShineAlpha = 150;
 constexpr auto kPowerKeystrokes = 5;
 constexpr auto kPowerShakeCooldown = crl::time(260);
 constexpr auto kShakeAmplitude = 2.5;
@@ -476,6 +493,186 @@ void StepWave() {
 	return state;
 }
 
+struct Nut {
+	QPointF origin;
+	QPointF velocity;
+	float64 size = 0.;
+	float64 angle = 0.;
+	float64 spin = 0.;
+	crl::time started = 0;
+	std::array<QPointF, kNutBumps> bumps;
+};
+
+[[nodiscard]] std::minstd_rand &NutRandom() {
+	static auto result = std::minstd_rand(uint32(crl::now()));
+	return result;
+}
+
+void PaintNut(QPainter &p, const Nut &nut, QPointF center, float64 t) {
+	const auto width = nut.size * kNutAspect;
+	const auto height = nut.size;
+	const auto opacity = (t < kNutFadeFrom)
+		? 1.
+		: std::max(1. - (t - kNutFadeFrom) / (1. - kNutFadeFrom), 0.);
+	p.save();
+	p.setOpacity(opacity);
+	p.translate(center);
+	p.rotate(nut.angle + nut.spin * t);
+	auto gradient = QRadialGradient(
+		QPointF(-width * 0.2, -height * 0.25),
+		width * 0.8);
+	gradient.setColorAt(0., QColor(0xD9, 0xF2, 0x84));
+	gradient.setColorAt(0.5, QColor(0x93, 0xC8, 0x3E));
+	gradient.setColorAt(1., QColor(0x56, 0x86, 0x1F));
+	p.setPen(Qt::NoPen);
+	p.setBrush(gradient);
+	p.drawEllipse(QRectF(-width / 2., -height / 2., width, height));
+	for (const auto &bump : nut.bumps) {
+		p.drawEllipse(
+			QPointF(bump.x() * width / 2., bump.y() * height / 2.),
+			height * kNutBumpSize,
+			height * kNutBumpSize);
+	}
+	p.setBrush(QColor(0x3F, 0x66, 0x14, kNutSpeckAlpha));
+	for (const auto &bump : nut.bumps) {
+		p.drawEllipse(
+			QPointF(-bump.y() * width / 4., bump.x() * height / 4.),
+			height * kNutSpeckSize,
+			height * kNutSpeckSize);
+	}
+	p.setBrush(QColor(255, 255, 255, kNutShineAlpha));
+	p.drawEllipse(QRectF(
+		-width * 0.3,
+		-height * 0.34,
+		width * 0.26,
+		height * 0.2));
+	p.restore();
+}
+
+class NutLayer final : public Ui::RpWidget {
+public:
+	explicit NutLayer(not_null<QWidget*> window);
+
+	void spawn(QPoint center);
+
+protected:
+	void paintEvent(QPaintEvent *e) override;
+
+private:
+	[[nodiscard]] QPointF position(const Nut &nut, float64 t) const;
+	[[nodiscard]] QRect area(crl::time now) const;
+	void step(crl::time now);
+
+	std::vector<Nut> _nuts;
+	QRect _painted;
+	Ui::Animations::Basic _animation;
+
+};
+
+NutLayer::NutLayer(not_null<QWidget*> window)
+: RpWidget(window)
+, _animation([=](crl::time now) { step(now); }) {
+	setAttribute(Qt::WA_TransparentForMouseEvents);
+	hide();
+}
+
+void NutLayer::spawn(QPoint center) {
+	auto &random = NutRandom();
+	auto unit = std::uniform_real_distribution<float64>(0., 1.);
+	auto sign = std::uniform_real_distribution<float64>(-1., 1.);
+	const auto now = crl::now();
+	for (auto i = 0; i != kNutsPerStroke; ++i) {
+		auto nut = Nut{
+			.origin = QPointF(center),
+			.velocity = QPointF(
+				sign(random) * style::ConvertScale(kNutSpreadX),
+				-style::ConvertScale(kNutLiftMin)
+					- unit(random) * style::ConvertScale(kNutLiftExtra)),
+			.size = style::ConvertScale(kNutSizeMin)
+				+ unit(random) * style::ConvertScale(kNutSizeExtra),
+			.angle = unit(random) * 360.,
+			.spin = sign(random) * kNutSpin,
+			.started = now,
+		};
+		for (auto &bump : nut.bumps) {
+			const auto angle = unit(random) * 2. * kPi;
+			bump = QPointF(std::cos(angle), std::sin(angle)) * 0.8;
+		}
+		_nuts.push_back(nut);
+	}
+	setGeometry(parentWidget()->rect());
+	show();
+	raise();
+	if (!_animation.animating()) {
+		_animation.start();
+	}
+}
+
+QPointF NutLayer::position(const Nut &nut, float64 t) const {
+	return nut.origin
+		+ nut.velocity * t
+		+ QPointF(0., style::ConvertScale(kNutGravity) * t * t);
+}
+
+QRect NutLayer::area(crl::time now) const {
+	auto result = QRect();
+	for (const auto &nut : _nuts) {
+		const auto t = std::clamp(
+			float64(now - nut.started) / kNutDuration,
+			0.,
+			1.);
+		const auto reach = int(std::ceil(nut.size * kNutAspect)) + 2;
+		const auto center = position(nut, t).toPoint();
+		result = result.united(QRect(
+			center - QPoint(reach, reach),
+			QSize(2 * reach, 2 * reach)));
+	}
+	return result;
+}
+
+void NutLayer::step(crl::time now) {
+	_nuts.erase(ranges::remove_if(_nuts, [&](const Nut &nut) {
+		return (now - nut.started) >= kNutDuration;
+	}), end(_nuts));
+	const auto current = area(now);
+	update(_painted.united(current));
+	_painted = current;
+	if (_nuts.empty()) {
+		_animation.stop();
+		_painted = QRect();
+		hide();
+	}
+}
+
+void NutLayer::paintEvent(QPaintEvent *e) {
+	if (_nuts.empty()) {
+		return;
+	}
+	auto p = QPainter(this);
+	auto hq = PainterHighQualityEnabler(p);
+	const auto now = crl::now();
+	for (const auto &nut : _nuts) {
+		const auto t = std::clamp(
+			float64(now - nut.started) / kNutDuration,
+			0.,
+			1.);
+		PaintNut(p, nut, position(nut, t), t);
+	}
+}
+
+void SpawnNuts(not_null<QWidget*> source, QPoint position) {
+	const auto window = source->window();
+	if (!window) {
+		return;
+	}
+	static auto layers = base::flat_map<QWidget*, QPointer<NutLayer>>();
+	auto &layer = layers[window];
+	if (!layer) {
+		layer = Ui::CreateChild<NutLayer>(window);
+	}
+	layer->spawn(source->mapTo(window, position));
+}
+
 class EffectsFilter final : public QObject {
 public:
 	using QObject::QObject;
@@ -679,6 +876,7 @@ void SetupPowerMode(not_null<Ui::InputField*> field, Fn<void()> shake) {
 		if (!grown || !EffectsEnabled() || !edit->hasFocus()) {
 			return;
 		}
+		SpawnNuts(edit->viewport(), edit->cursorRect().center());
 		const auto now = crl::now();
 		auto &strokes = state->strokes;
 		strokes.push_back(now);
