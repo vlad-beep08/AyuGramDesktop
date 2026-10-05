@@ -73,14 +73,12 @@ constexpr auto kWaveCooldown = crl::time(1500);
 constexpr auto kWaveAlpha = 0.22;
 constexpr auto kWaveWidth = 70;
 constexpr auto kWaveReach = 0.6;
-constexpr auto kLivePeriod = crl::time(2400);
 constexpr auto kLiveSpin = crl::time(1100);
-constexpr auto kLiveFrame = crl::time(50);
+constexpr auto kLiveFrame = crl::time(66);
 constexpr auto kLiveStale = crl::time(1000);
 constexpr auto kLiveGap = 3;
 constexpr auto kLiveWidth = 2;
-constexpr auto kLiveBaseAlpha = 0.35;
-constexpr auto kLiveBreathAlpha = 0.3;
+constexpr auto kLiveOnlineAlpha = 0.55;
 constexpr auto kLiveTrackAlpha = 0.25;
 constexpr auto kLiveArcSpan = 100;
 
@@ -536,6 +534,11 @@ void StepWave() {
 		LiveStates.remove(raw);
 	});
 	state->animation = std::make_unique<Ui::Animations::Basic>([=] {
+		const auto window = raw->window();
+		if (!window || !window->isActiveWindow()) {
+			state->animation->stop();
+			return;
+		}
 		const auto now = crl::now();
 		if (now - state->lastFrame < kLiveFrame) {
 			return;
@@ -892,35 +895,33 @@ void PaintLiveUserpic(
 	if (state == LiveUserpic::None || !EffectsEnabled()) {
 		return;
 	}
-	const auto widget = dynamic_cast<QWidget*>(p.device());
-	if (!widget) {
-		return;
-	}
-	const auto live = ResolveLive(widget);
-	const auto now = crl::now();
 	const auto gap = style::ConvertScale(kLiveGap);
 	const auto line = float64(style::ConvertScale(kLiveWidth));
 	const auto ring = QRectF(userpic).marginsAdded(
 		QMarginsF(gap, gap, gap, gap));
-	const auto extra = int(std::ceil(line));
-	auto &entry = live->entries[key];
-	entry.area = p.transform().mapRect(ring.toAlignedRect().marginsAdded(
-		{ extra, extra, extra, extra }));
-	entry.painted = now;
-	if (!live->animation->animating()) {
-		live->animation->start();
-	}
 	auto hq = PainterHighQualityEnabler(p);
 	const auto accent = st::windowBgActive->c;
 	p.setBrush(Qt::NoBrush);
 	if (state == LiveUserpic::Online) {
-		const auto phase = std::sin(
-			2. * kPi * float64(now % kLivePeriod) / kLivePeriod);
-		p.setPen(QPen(
-			WithAlpha(accent, kLiveBaseAlpha + kLiveBreathAlpha * phase),
-			line));
+		p.setPen(QPen(WithAlpha(accent, kLiveOnlineAlpha), line));
 		p.drawEllipse(ring);
 		return;
+	}
+	const auto widget = dynamic_cast<QWidget*>(p.device());
+	const auto now = crl::now();
+	if (widget) {
+		const auto live = ResolveLive(widget);
+		const auto extra = int(std::ceil(line));
+		auto &entry = live->entries[key];
+		entry.area = p.transform().mapRect(
+			ring.toAlignedRect().marginsAdded(
+				{ extra, extra, extra, extra }));
+		entry.painted = now;
+		if (!live->animation->animating()
+			&& widget->window()
+			&& widget->window()->isActiveWindow()) {
+			live->animation->start();
+		}
 	}
 	p.setPen(QPen(WithAlpha(accent, kLiveTrackAlpha), line));
 	p.drawEllipse(ring);
