@@ -197,7 +197,6 @@ struct Entry {
 		{ "ayu_DesignAccentCyan", "Бирюзовый" },
 		{ "ayu_DesignEffects", "Эффекты Чикенграма" },
 		{ "ayu_WebMenuMore", "Ещё" },
-		{ "ayu_WebMenuClassic", "Классическое меню" },
 		{ "ayu_WebSettingsAyuAbout", "Режим призрака, история сообщений, оформление" },
 		{ "ayu_WebSettingsAccountAbout", "Имя, юзернейм, о себе" },
 		{ "ayu_WebSettingsNotifyAbout", "Звуки, звонки, значки" },

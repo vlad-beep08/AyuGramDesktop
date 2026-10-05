@@ -149,6 +149,8 @@ public:
 
 	QVariant inputMethodQuery(Qt::InputMethodQuery query) const override;
 
+	void showMainMenu();
+
 	~Widget();
 
 protected:
@@ -232,7 +234,6 @@ private:
 
 	void showCalendar();
 	void showSearchFrom();
-	void showMainMenu();
 	void clearSearchCache(bool clearPosts);
 	void setSearchQuery(const QString &query, int cursorPosition = -1);
 	void updateTopBarSuggestions();

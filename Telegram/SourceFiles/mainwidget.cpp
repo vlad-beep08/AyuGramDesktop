@@ -2938,6 +2938,12 @@ void MainWidget::hideLeftColumn() {
 	closeLeftSection();
 }
 
+void MainWidget::showAccountMenu() {
+	if (_dialogs) {
+		_dialogs->showMainMenu();
+	}
+}
+
 bool MainWidget::canShowLeftBox() const {
 	return AyuDesign::WebLayout()
 		&& _dialogs

@@ -50,6 +50,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <QtGui/QWindow>
 
+// AyuGram includes
+#include "ayu/ui/design/design_system.h"
+
 namespace {
 
 // Code for testing languages is F7-F6-F7-F8
@@ -402,6 +405,13 @@ void MainWindow::showMainMenu() {
 	if (_passcodeLock || _setupEmailLock) return;
 
 	if (isHidden()) showFromTray();
+
+	if (AyuDesign::WebLayout()) {
+		if (const auto controller = sessionController()) {
+			controller->content()->showAccountMenu();
+		}
+		return;
+	}
 
 	ensureLayerCreated();
 	_layer->showMainMenu(

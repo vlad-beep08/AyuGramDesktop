@@ -152,6 +152,7 @@ public:
 	bool showBackFromStack(const SectionShow &params);
 	void showLeftBox(object_ptr<Ui::BoxContent> box);
 	void hideLeftColumn();
+	void showAccountMenu();
 	void orderWidgets();
 	QPixmap grabForShowAnimation(const Window::SectionSlideParams &params);
 	void checkMainSectionToLayer();

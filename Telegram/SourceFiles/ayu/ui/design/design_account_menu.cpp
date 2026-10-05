@@ -123,10 +123,6 @@ void FillMore(
 		auto &ghost = AyuSettings::ghost(session);
 		ghost.setGhostModeEnabled(!ghost.isGhostModeActive());
 	}, &st::ayuGhostIcon);
-	menu->addSeparator();
-	menu->addAction(tr::ayu_WebMenuClassic(tr::now), [=] {
-		controller->widget()->showMainMenu();
-	}, &st::menuIconManage);
 }
 
 } // namespace
