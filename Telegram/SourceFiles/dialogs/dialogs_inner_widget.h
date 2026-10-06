@@ -148,6 +148,7 @@ public:
 	void idSearchReceived(const std::vector<not_null<PeerData*>> &results);
 
 	[[nodiscard]] FilterId filterId() const;
+	void switchToFilter(FilterId filterId);
 
 	void clearSelection();
 
@@ -341,7 +342,6 @@ private:
 	void refreshWithCollapsedRows(bool toTop = false);
 	bool needCollapsedRowsRefresh() const;
 	bool chooseCollapsedRow(Qt::KeyboardModifiers modifiers);
-	void switchToFilter(FilterId filterId);
 	void startWebStagger();
 	[[nodiscard]] float64 webStaggerProgress(int top) const;
 	bool chooseHashtag();
@@ -616,11 +616,12 @@ private:
 	[[nodiscard]] bool hasChatTypeFilter() const;
 
 	void saveChatsFilterScrollState(FilterId filterId);
-	void restoreChatsFilterScrollState(FilterId filterId);
+	bool restoreChatsFilterScrollState(FilterId filterId);
 
 	[[nodiscard]] not_null<Ui::QuickActionContext*> ensureQuickAction(
 		int64 key);
 	void deactivateQuickAction();
+	void updateQuickActionRow(int64 key);
 
 	[[nodiscard]] bool lookupIsInBotAppButton(
 		Row *row,

@@ -98,6 +98,7 @@ void SendButton::setState(State state) {
 	setAccessibleName([&] {
 		switch (_state.type) {
 		case Type::Send: return tr::lng_send_button(tr::now);
+		case Type::Stop: return tr::lng_stop_button(tr::now);
 		case Type::Record:
 			return tr::lng_shortcuts_record_voice_message(tr::now);
 		case Type::Round:
@@ -223,6 +224,7 @@ void SendButton::paintEvent(QPaintEvent *e) {
 			paintStarsToSend(p, over);
 		}
 		break;
+	case Type::Stop: paintStop(p, over); break;
 	case Type::Schedule: paintSchedule(p, over); break;
 	case Type::Slowmode: paintSlowmode(p); break;
 	case Type::EditPrice: break;
@@ -359,6 +361,25 @@ void SendButton::paintSend(QPainter &p, bool over) {
 	}
 }
 
+void SendButton::paintStop(QPainter &p, bool over) {
+	if (!isDisabled()) {
+		paintRipple(
+			p,
+			(width() - _st.inner.rippleAreaSize) / 2,
+			_st.inner.rippleAreaPosition.y());
+	}
+	auto hq = PainterHighQualityEnabler(p);
+	const auto size = _st.stopSize;
+	const auto inner = QRect(
+		QPoint(
+			(width() - size.width()) / 2,
+			(height() - size.height()) / 2),
+		size);
+	p.setPen(Qt::NoPen);
+	p.setBrush(over ? st::historySendIconFgOver : st::historySendIconFg);
+	p.drawRoundedRect(inner, _st.stopRadius, _st.stopRadius);
+}
+
 void SendButton::paintStarsToSend(QPainter &p, bool over) {
 	const auto geometry = starsGeometry();
 	{
@@ -454,6 +475,7 @@ SendButton::RippleShape SendButton::currentRippleShape() const {
 	case Type::Record:
 	case Type::Round:
 	case Type::Cancel:
+	case Type::Stop:
 	case Type::Slowmode:
 	case Type::EditPrice:
 		return RippleShape::InnerEllipse;
@@ -464,8 +486,22 @@ SendButton::RippleShape SendButton::currentRippleShape() const {
 QRect SendButton::sendEllipseRect() const {
 	const auto &sendIcon = _st.inner.icon;
 	const auto padding = _st.sendIconFillPadding;
-	return QRect(_st.sendIconPosition, sendIcon.size()).marginsAdded(
-		{ padding, padding, padding, padding });
+	const auto natural = QRect(
+		_st.sendIconPosition,
+		sendIcon.size()
+	).marginsAdded({ padding, padding, padding, padding });
+
+	const auto side = std::min({
+		natural.width(),
+		natural.height(),
+		width(),
+		height(),
+	});
+	return QRect(
+		(width() - side) / 2,
+		(height() - side) / 2,
+		side,
+		side);
 }
 
 QRect SendButton::scheduleEllipseRect() const {
