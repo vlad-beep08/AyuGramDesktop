@@ -536,9 +536,6 @@ HistoryWidget::HistoryWidget(
 	}, _field->lifetime());
 	if (AyuDesign::WebLayout()) {
 		AyuDesign::SetupPowerMode(_field.data());
-		AyuDesign::MakeMagnetic(_send.get());
-		AyuDesign::MakeMagnetic(_attachToggle.data());
-		AyuDesign::MakeMagnetic(_tabbedSelectorToggle.data());
 	}
 	Data::AmPremiumValue(&session()) | rpl::on_next([=] {
 		checkCharsLimitation();
@@ -4052,7 +4049,6 @@ void HistoryWidget::refreshQuickPhraseToggle() {
 		_quickPhrase->addClickHandler([=] {
 			sendQuickPhrase();
 		});
-		AyuDesign::MakeMagnetic(_quickPhrase.data());
 		orderWidgets();
 	} else if (_quickPhrase && !has) {
 		_quickPhrase.destroy();

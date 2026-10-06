@@ -65,10 +65,6 @@ constexpr auto kNutSpin = 420.;
 constexpr auto kNutFadeFrom = 0.65;
 constexpr auto kNutBumpSize = 0.22;
 constexpr auto kNutShineAlpha = 150;
-constexpr auto kMagnetReach = 60;
-constexpr auto kMagnetMax = 6.;
-constexpr auto kMagnetStrength = 0.22;
-constexpr auto kMagnetReturnDuration = crl::time(360);
 constexpr auto kLiveSpin = crl::time(1100);
 constexpr auto kLiveFrame = crl::time(66);
 constexpr auto kLiveStale = crl::time(1000);
@@ -92,17 +88,6 @@ struct PulseState {
 };
 
 base::flat_map<QWidget*, std::unique_ptr<PulseState>> PulseStates;
-
-struct Magnet {
-	QPointer<QWidget> widget;
-	QPoint base;
-	QPoint applied;
-	bool applying = false;
-	Ui::Animations::Simple back;
-};
-
-std::vector<std::unique_ptr<Magnet>> Magnets;
-QPoint LastCursor;
 
 struct LiveEntry {
 	QRect area;
@@ -322,67 +307,6 @@ void BurstOverlay::paintEvent(QPaintEvent *e) {
 		}
 	});
 	return state;
-}
-
-void ApplyMagnet(not_null<Magnet*> magnet, QPoint offset) {
-	const auto widget = magnet->widget.data();
-	if (!widget || offset == magnet->applied) {
-		return;
-	}
-	magnet->applying = true;
-	widget->move(magnet->base + offset);
-	magnet->applying = false;
-	magnet->applied = offset;
-}
-
-void UpdateMagnets(QPoint cursor) {
-	Magnets.erase(ranges::remove_if(Magnets, [](const auto &magnet) {
-		return !magnet->widget;
-	}), end(Magnets));
-	const auto enabled = EffectsEnabled();
-	const auto reach = style::ConvertScale(kMagnetReach);
-	const auto max = float64(style::ConvertScale(kMagnetMax));
-	for (const auto &owned : Magnets) {
-		const auto magnet = owned.get();
-		const auto widget = magnet->widget.data();
-		if (!widget->isVisible()) {
-			continue;
-		} else if (!enabled) {
-			magnet->back.stop();
-			ApplyMagnet(magnet, QPoint());
-			continue;
-		}
-		const auto center = widget->mapToGlobal(widget->rect().center())
-			- magnet->applied;
-		const auto delta = QPointF(cursor - center);
-		const auto distance = std::hypot(delta.x(), delta.y());
-		if (distance < reach) {
-			magnet->back.stop();
-			auto offset = delta * kMagnetStrength;
-			const auto length = std::hypot(offset.x(), offset.y());
-			if (length > max) {
-				offset *= max / length;
-			}
-			ApplyMagnet(magnet, offset.toPoint());
-		} else if (!magnet->applied.isNull() && !magnet->back.animating()) {
-			const auto from = QPointF(magnet->applied);
-			magnet->back.start([=] {
-				const auto progress = magnet->back.value(1.);
-				ApplyMagnet(magnet, (from * (1. - progress)).toPoint());
-			}, 0., 1., kMagnetReturnDuration, anim::easeOutBack);
-		}
-	}
-}
-
-void HandleMagnetMove(not_null<QWidget*> widget) {
-	for (const auto &owned : Magnets) {
-		const auto magnet = owned.get();
-		if (magnet->widget.data() == widget.get() && !magnet->applying) {
-			magnet->back.stop();
-			magnet->base = widget->pos();
-			magnet->applied = QPoint();
-		}
-	}
 }
 
 [[nodiscard]] not_null<LiveState*> ResolveLive(not_null<QWidget*> widget) {
@@ -621,20 +545,6 @@ protected:
 					widget->update();
 				}
 			}
-			if (e->type() == QEvent::MouseMove) {
-				const auto cursor = QCursor::pos();
-				if (cursor != LastCursor) {
-					LastCursor = cursor;
-					UpdateMagnets(cursor);
-				}
-			}
-			break;
-		case QEvent::Move:
-			if (!Magnets.empty()) {
-				if (const auto widget = qobject_cast<QWidget*>(object)) {
-					HandleMagnetMove(widget);
-				}
-			}
 			break;
 		case QEvent::Paint:
 			if (!EffectsEnabled()) {
@@ -801,21 +711,6 @@ void SetupPowerMode(not_null<Ui::InputField*> field) {
 		}
 		SpawnNuts(edit->viewport(), edit->cursorRect().center());
 	}, field->lifetime());
-}
-
-void MakeMagnetic(QWidget *widget) {
-	if (!widget) {
-		return;
-	}
-	for (const auto &magnet : Magnets) {
-		if (magnet->widget.data() == widget) {
-			return;
-		}
-	}
-	auto magnet = std::make_unique<Magnet>();
-	magnet->widget = widget;
-	magnet->base = widget->pos();
-	Magnets.push_back(std::move(magnet));
 }
 
 void PaintLiveUserpic(

@@ -37,8 +37,6 @@ void Burst(not_null<QWidget*> source);
 
 void SetupPowerMode(not_null<Ui::InputField*> field);
 
-void MakeMagnetic(QWidget *widget);
-
 void PaintLiveUserpic(
 	QPainter &p,
 	const void *key,
