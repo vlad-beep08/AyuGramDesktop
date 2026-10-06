@@ -44,7 +44,7 @@ struct Compiled {
 	}
 	if (!words.isEmpty()) {
 		cache.regex = QRegularExpression(
-			u"(?<![\w])("_q + words.join(u'|') + u")(?![\w])"_q,
+			u"(?<![\\w])("_q + words.join(u'|') + u")(?![\\w])"_q,
 			QRegularExpression::CaseInsensitiveOption
 				| QRegularExpression::UseUnicodePropertiesOption);
 	}

@@ -92,6 +92,7 @@ public:
 
 	[[nodiscard]] int height() const;
 	[[nodiscard]] rpl::producer<int> heightValue() const;
+	[[nodiscard]] QRect geometry() const;
 
 private:
 	[[nodiscard]] Data::Thread *activeThread() const;

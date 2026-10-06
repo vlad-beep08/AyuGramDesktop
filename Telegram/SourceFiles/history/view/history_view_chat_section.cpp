@@ -4436,15 +4436,25 @@ void ChatWidget::updateControlsGeometry() {
 	const auto innerWidth = web ? columnWidth : (contentWidth - tabsLeftSkip);
 	const auto subsectionTabsTop = _topBar->bottomNoMargins();
 	const auto topControlsTop = subsectionTabsTop
+		+ (web ? AyuDesign::WebHeaderGap() : 0)
 		+ (_subsectionTabs ? _subsectionTabs->topSkip() : 0);
-	_topControls->move(tabsLeftSkip, topControlsTop);
+	_topControls->move(web ? columnLeft : tabsLeftSkip, topControlsTop);
 	_topControls->resizeToWidth(innerWidth);
 	const auto top = topControlsTop + _topControls->height();
 
 	auto bottom = height() - (web ? AyuDesign::WebComposerBottom() : 0);
 	const auto bottomHeight = _bottom->contentHeight();
 	if (bottomHeight > 0) {
-		_bottom->setGeometry(0, bottom - bottomHeight, width(), bottomHeight);
+		_bottom->setGeometry(
+			web ? columnLeft : 0,
+			bottom - bottomHeight,
+			web ? columnWidth : width(),
+			bottomHeight);
+		if (web) {
+			_bottom->setMask(AyuDesign::RoundedRegion(
+				_bottom->size(),
+				AyuDesign::WebComposerRadius()));
+		}
 		bottom -= bottomHeight;
 	}
 	if (isChoosingTheme()) {
@@ -4562,27 +4572,23 @@ void ChatWidget::paintEvent(QPaintEvent *e) {
 			_topBar->geometry(),
 			_topBar->height() / 2);
 		const auto radius = AyuDesign::WebComposerRadius();
-		const auto barsHeight = _topBars->height() - st::lineWidth;
-		if (barsHeight > 0) {
+		const auto bars = _topControls->geometry();
+		if (bars.height() > 0) {
 			AyuDesign::PaintPillSurface(
 				p,
-				QRect(_topBars->pos(), QSize(_topBars->width(), barsHeight)),
+				bars,
 				radius,
 				st::historyPinnedBg);
 		}
-		for (const auto button : {
-				static_cast<QWidget*>(_openChatButton.get()),
-				static_cast<QWidget*>(_aboutHiddenAuthor.get()),
-				static_cast<QWidget*>(_joinGroup.get()) }) {
-			if (button && !button->isHidden()) {
-				AyuDesign::PaintPillSurface(
-					p,
-					button->geometry(),
-					radius,
-					st::historyComposeAreaBg);
-			}
-		}
-		if (!_openChatButton && !_aboutHiddenAuthor && !_joinGroup) {
+		const auto bottomShown = !_bottom->isHidden()
+			&& (_bottom->contentHeight() > 0);
+		if (bottomShown) {
+			AyuDesign::PaintPillSurface(
+				p,
+				_bottom->geometry(),
+				radius,
+				st::historyComposeAreaBg);
+		} else {
 			const auto composeHeight = _composeControls->heightCurrent();
 			const auto columnWidth = AyuDesign::WebColumnWidth(width());
 			AyuDesign::PaintPillShadow(

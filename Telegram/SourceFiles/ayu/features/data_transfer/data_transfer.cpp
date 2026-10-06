@@ -35,7 +35,7 @@ constexpr auto kFormatVersion = 1;
 
 [[nodiscard]] bool IsAllowedName(const QString &name) {
 	static const auto regex = QRegularExpression(
-		u"^(ayu_settings|ayu/[a-z_]+)\.json$"_q);
+		u"^(ayu_settings|ayu/[a-z_]+)\\.json$"_q);
 	return regex.match(name).hasMatch();
 }
 

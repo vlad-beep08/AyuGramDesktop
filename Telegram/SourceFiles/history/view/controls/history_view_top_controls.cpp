@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/controls/history_view_top_controls.h"
 
 #include "apiwrap.h"
+#include "ayu/ui/design/design_system.h"
 #include "base/binary_guard.h"
 #include "base/call_delayed.h"
 #include "boxes/peers/edit_peer_requests_box.h"
@@ -359,6 +360,12 @@ int TopControls::height() const {
 
 rpl::producer<int> TopControls::heightValue() const {
 	return _height.value();
+}
+
+QRect TopControls::geometry() const {
+	return _wrap->isHidden()
+		? QRect()
+		: QRect(_wrap->pos(), QSize(_width, _height.current()));
 }
 
 void TopControls::setupRootView() {
@@ -1185,6 +1192,13 @@ void TopControls::updateLayout() {
 	}
 	_topBars->resize(_width, top + st::lineWidth);
 	_wrap->resize(_width, top + st::lineWidth);
+	if (AyuDesign::WebLayout() && top > 0) {
+		_wrap->setMask(AyuDesign::RoundedRegion(
+			QSize(_width, top),
+			AyuDesign::WebComposerRadius()));
+	} else {
+		_wrap->clearMask();
+	}
 	_height = top;
 }
 
