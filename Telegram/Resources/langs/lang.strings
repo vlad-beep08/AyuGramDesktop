@@ -9342,6 +9342,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_DesignAccentPink" = "Pink";
 "ayu_DesignAccentCyan" = "Cyan";
 "ayu_DesignEffects" = "ChickenGram effects";
+"ayu_DesignEffectsOff" = "Off";
+"ayu_DesignEffectsLight" = "Light";
+"ayu_DesignEffectsFull" = "All";
+"ayu_DesignEffectsAuto" = "Auto (light on battery and weak PCs)";
 "ayu_WebMenuMore" = "More";
 "ayu_WebSettingsAyuAbout" = "Ghost mode, message history, appearance";
 "ayu_WebSettingsAccountAbout" = "Name, username, bio";

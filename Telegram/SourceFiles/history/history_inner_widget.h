@@ -450,10 +450,8 @@ private:
 
 	void itemRemoved(not_null<const HistoryItem*> item);
 	void viewRemoved(not_null<const Element*> view);
-	void startWebAppear(not_null<const HistoryItem*> item, bool flight);
+	void startWebAppear(not_null<const HistoryItem*> item);
 	[[nodiscard]] float64 webAppearProgress(
-		not_null<const HistoryItem*> item) const;
-	[[nodiscard]] crl::time webAppearDuration(
 		not_null<const HistoryItem*> item) const;
 
 	void touchResetSpeed();
@@ -646,7 +644,6 @@ private:
 
 	std::unique_ptr<HistoryView::Reactions::Manager> _reactionsManager;
 	base::flat_map<not_null<const HistoryItem*>, crl::time> _webAppear;
-	base::flat_set<not_null<const HistoryItem*>> _webFlight;
 	Ui::Animations::Basic _webAppearAnimation;
 	rpl::variable<HistoryItem*> _reactionsItem;
 	std::unique_ptr<HistoryView::ReplyButton::Manager> _replyButtonManager;

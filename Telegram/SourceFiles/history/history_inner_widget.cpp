@@ -152,9 +152,6 @@ namespace {
 constexpr auto kScrollDateHideTimeout = 800;
 constexpr auto kWebAppearDuration = crl::time(220);
 constexpr auto kWebAppearShift = 16;
-constexpr auto kWebFlightDuration = crl::time(420);
-constexpr auto kWebFlightScale = 0.9;
-constexpr auto kWebFlightOpacity = 0.35;
 constexpr auto kScrollDateHideOnDayCrossingTimeout = crl::time(3000);
 constexpr auto kUnloadHeavyPartsPages = 2;
 constexpr auto kClearUserpicsAfter = 50;
@@ -483,9 +480,8 @@ HistoryInner::HistoryInner(
 			|| (_migrated && history == _migrated);
 	}) | rpl::on_next([=](not_null<HistoryItem*> item) {
 		checkAnnounceFirstMessages();
-		if (AyuDesign::WebLayout()) {
-			const auto sending = item->out() && item->isSending();
-			startWebAppear(item, sending && AyuDesign::EffectsEnabled());
+		if (AyuDesign::WebLayout() && !(item->out() && item->isSending())) {
+			startWebAppear(item);
 		}
 	}, lifetime());
 	setupThanosEffect();
@@ -1775,28 +1771,11 @@ void HistoryInner::paintEvent(QPaintEvent *e) {
 				const auto appear = webAppearProgress(item);
 				if (appear < 1.) {
 					p.save();
-					if (_webFlight.contains(item)) {
-						const auto eased = AyuDesign::FlightEase(appear);
-						const auto distance = std::max(
-							_visibleAreaBottom - top,
-							style::ConvertScale(kWebAppearShift));
-						const auto scale = kWebFlightScale
-							+ (1. - kWebFlightScale) * std::min(eased, 1.);
-						const auto origin = QPointF(width(), height);
-						p.setOpacity(p.opacity() * std::min(
-							kWebFlightOpacity + appear * 2.,
-							1.));
-						p.translate(0., (1. - eased) * distance);
-						p.translate(origin);
-						p.scale(scale, scale);
-						p.translate(-origin);
-					} else {
-						const auto eased = anim::easeOutCubic(1., appear);
-						p.setOpacity(p.opacity() * eased);
-						p.translate(
-							0.,
-							(1. - eased) * style::ConvertScale(kWebAppearShift));
-					}
+					const auto eased = anim::easeOutCubic(1., appear);
+					p.setOpacity(p.opacity() * eased);
+					p.translate(
+						0.,
+						(1. - eased) * style::ConvertScale(kWebAppearShift));
 					view->draw(p, context);
 					p.restore();
 				} else {
@@ -2581,22 +2560,16 @@ void HistoryInner::performDrag() {
 	}
 }
 
-void HistoryInner::startWebAppear(
-		not_null<const HistoryItem*> item,
-		bool flight) {
+void HistoryInner::startWebAppear(not_null<const HistoryItem*> item) {
 	if (AyuDesign::DurationMs(AyuDesign::Duration::Normal) <= 0
 		|| !isVisible()) {
 		return;
 	}
 	_webAppear[item] = crl::now();
-	if (flight) {
-		_webFlight.emplace(item);
-	}
 	if (!_webAppearAnimation.animating()) {
 		_webAppearAnimation.init([=](crl::time now) {
 			for (auto i = begin(_webAppear); i != end(_webAppear);) {
-				if (now - i->second >= webAppearDuration(i->first)) {
-					_webFlight.remove(i->first);
+				if (now - i->second >= kWebAppearDuration) {
 					i = _webAppear.erase(i);
 				} else {
 					++i;
@@ -2618,20 +2591,12 @@ float64 HistoryInner::webAppearProgress(
 		return 1.;
 	}
 	const auto passed = float64(crl::now() - i->second)
-		/ webAppearDuration(item);
+		/ kWebAppearDuration;
 	return std::clamp(passed, 0., 1.);
-}
-
-crl::time HistoryInner::webAppearDuration(
-		not_null<const HistoryItem*> item) const {
-	return _webFlight.contains(item)
-		? kWebFlightDuration
-		: kWebAppearDuration;
 }
 
 void HistoryInner::itemRemoved(not_null<const HistoryItem*> item) {
 	_webAppear.remove(item);
-	_webFlight.remove(item);
 	if (_pinnedItem == item) {
 		_pinnedItem = nullptr;
 	}

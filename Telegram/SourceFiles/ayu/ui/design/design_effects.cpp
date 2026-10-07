@@ -7,6 +7,8 @@
 #include "ayu/ui/design/design_effects.h"
 
 #include "ayu/ayu_settings.h"
+#include "base/battery_saving.h"
+#include "core/application.h"
 #include "ayu/ui/design/design_system.h"
 #include "ui/effects/animation_value.h"
 #include "ui/effects/animations.h"
@@ -18,6 +20,7 @@
 #include "styles/palette.h"
 
 #include <QtCore/QPointer>
+#include <QtCore/QThread>
 #include <QtGui/QCursor>
 #include <QtGui/QRadialGradient>
 #include <QtWidgets/QApplication>
@@ -26,10 +29,19 @@
 #include <array>
 #include <random>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
 namespace AyuDesign {
 namespace {
 
 constexpr auto kPi = 3.14159265358979323846;
+constexpr auto kLevelOff = 0;
+constexpr auto kLevelLight = 1;
+constexpr auto kLevelFull = 2;
+constexpr auto kWeakThreads = 4;
+constexpr auto kAutoRecheck = crl::time(5000);
 constexpr auto kSpotRadius = 150;
 constexpr auto kSpotAlpha = 0.22;
 constexpr auto kSpotActiveAlpha = 0.14;
@@ -50,7 +62,6 @@ constexpr auto kStaggerStep = crl::time(28);
 constexpr auto kStaggerDuration = crl::time(240);
 constexpr auto kBounceAmplitude = 0.2;
 constexpr auto kBounceAngle = 10.;
-constexpr auto kBackOvershoot = 1.70158;
 constexpr auto kNutsPerStroke = 2;
 constexpr auto kNutBumps = 3;
 constexpr auto kNutDuration = crl::time(760);
@@ -575,9 +586,47 @@ protected:
 
 } // namespace
 
+[[nodiscard]] bool OnBattery() {
+#ifdef Q_OS_WIN
+	auto status = SYSTEM_POWER_STATUS();
+	if (GetSystemPowerStatus(&status) && !(status.BatteryFlag & 128)) {
+		return (status.ACLineStatus == 0);
+	}
+#endif
+	return false;
+}
+
+[[nodiscard]] bool PreferLightEffects() {
+	static auto checked = crl::time(0);
+	static auto light = false;
+	const auto now = crl::now();
+	if (!checked || now - checked >= kAutoRecheck) {
+		checked = now;
+		light = (QThread::idealThreadCount() <= kWeakThreads)
+			|| OnBattery()
+			|| Core::App().batterySaving().enabled().value_or(false);
+	}
+	return light;
+}
+
+EffectsLevel CurrentEffectsLevel() {
+	if (DurationMs(Duration::Normal) <= 0) {
+		return EffectsLevel::Off;
+	}
+	switch (AyuSettings::getInstance().designEffectsLevel()) {
+	case kLevelOff: return EffectsLevel::Off;
+	case kLevelLight: return EffectsLevel::Light;
+	case kLevelFull: return EffectsLevel::Full;
+	}
+	return PreferLightEffects() ? EffectsLevel::Light : EffectsLevel::Full;
+}
+
 bool EffectsEnabled() {
-	return AyuSettings::getInstance().designEffects()
-		&& (DurationMs(Duration::Normal) > 0);
+	return CurrentEffectsLevel() != EffectsLevel::Off;
+}
+
+bool FullEffects() {
+	return CurrentEffectsLevel() == EffectsLevel::Full;
 }
 
 void SetupEffects() {
@@ -687,13 +736,6 @@ float64 BounceAngle(float64 progress) {
 		* (1. - progress);
 }
 
-float64 FlightEase(float64 progress) {
-	const auto t = std::clamp(progress, 0., 1.) - 1.;
-	return 1.
-		+ (kBackOvershoot + 1.) * t * t * t
-		+ kBackOvershoot * t * t;
-}
-
 void SetupPowerMode(not_null<Ui::InputField*> field) {
 	struct State {
 		int length = 0;
@@ -706,7 +748,7 @@ void SetupPowerMode(not_null<Ui::InputField*> field) {
 		const auto grown = (length > state->length);
 		state->length = length;
 		const auto edit = field->rawTextEdit();
-		if (!grown || !EffectsEnabled() || !edit->hasFocus()) {
+		if (!grown || !FullEffects() || !edit->hasFocus()) {
 			return;
 		}
 		SpawnNuts(edit->viewport(), edit->cursorRect().center());
@@ -728,7 +770,7 @@ void PaintLiveUserpic(
 	auto hq = PainterHighQualityEnabler(p);
 	const auto accent = st::windowBgActive->c;
 	p.setBrush(Qt::NoBrush);
-	if (state == LiveUserpic::Online) {
+	if (state == LiveUserpic::Online || !FullEffects()) {
 		p.setPen(QPen(WithAlpha(accent, kLiveOnlineAlpha), line));
 		p.drawEllipse(ring);
 		return;

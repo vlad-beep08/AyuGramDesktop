@@ -117,12 +117,21 @@ void BuildDesign(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 		.keywords = { u"accent"_q, u"color"_q, u"colour"_q },
 	});
 
-	ayu.addSettingToggle({
+	ayu.addChooseButton({
 		.id = u"ayu/designEffects"_q,
 		.title = tr::ayu_DesignEffects(),
-		.getter = &AyuSettings::designEffects,
-		.setter = &AyuSettings::setDesignEffects,
-		.keywords = { u"effects"_q, u"spotlight"_q, u"sparks"_q },
+		.boxTitle = tr::ayu_DesignEffects(),
+		.initialSelection = settings->designEffectsLevel(),
+		.options = {
+			tr::ayu_DesignEffectsOff(tr::now),
+			tr::ayu_DesignEffectsLight(tr::now),
+			tr::ayu_DesignEffectsFull(tr::now),
+			tr::ayu_DesignEffectsAuto(tr::now),
+		},
+		.setter = [=](int index) {
+			AyuSettings::getInstance().setDesignEffectsLevel(index);
+		},
+		.keywords = { u"effects"_q, u"spotlight"_q, u"animations"_q },
 	});
 	ayu.addToggle({
 		.id = u"ayu/designGlass"_q,

@@ -18,7 +18,15 @@ enum class LiveUserpic {
 	Typing,
 };
 
+enum class EffectsLevel {
+	Off,
+	Light,
+	Full,
+};
+
+[[nodiscard]] EffectsLevel CurrentEffectsLevel();
 [[nodiscard]] bool EffectsEnabled();
+[[nodiscard]] bool FullEffects();
 void SetupEffects();
 
 void PaintWebRowSpotlight(QPainter &p, QRect row, bool active);
@@ -33,7 +41,6 @@ void Burst(not_null<QWidget*> source);
 [[nodiscard]] crl::time StaggerDuration(int count);
 [[nodiscard]] float64 BounceScale(float64 progress);
 [[nodiscard]] float64 BounceAngle(float64 progress);
-[[nodiscard]] float64 FlightEase(float64 progress);
 
 void SetupPowerMode(not_null<Ui::InputField*> field);
 
