@@ -159,6 +159,8 @@ set(ayugram_files
         ayu/ui/design/design_cards.h
         ayu/ui/design/design_effects.cpp
         ayu/ui/design/design_effects.h
+        ayu/ui/design/design_profile.cpp
+        ayu/ui/design/design_profile.h
         ayu/ui/design/design_glass.cpp
         ayu/ui/design/design_glass.h
         ayu/ui/design/design_islands.cpp

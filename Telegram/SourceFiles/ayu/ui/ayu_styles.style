@@ -124,3 +124,16 @@ ayuServiceTimeBadgeVerticalPadding: 2px;
 ayuServiceTimeBadgeGap: 8px;
 ayuServiceTimeBadgeTrailingInset: 3px;
 ayuServiceTimeBadgeLastLineWidthAdd: 9px;
+
+ayuWebProfileName: FlatLabel(defaultFlatLabel) {
+	maxHeight: 26px;
+	style: TextStyle(defaultTextStyle) {
+		font: font(20px semibold);
+	}
+}
+ayuWebProfileStatus: FlatLabel(defaultFlatLabel) {
+	maxHeight: 20px;
+	style: TextStyle(defaultTextStyle) {
+		font: font(14px);
+	}
+}

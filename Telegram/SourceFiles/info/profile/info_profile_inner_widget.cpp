@@ -60,6 +60,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_settings.h"
+#include "ayu/ui/design/design_profile.h"
+#include "ayu/ui/design/design_system.h"
 
 
 namespace Info {
@@ -214,6 +216,13 @@ object_ptr<Ui::RpWidget> InnerWidget::setupContent(
 
 	auto result = object_ptr<Ui::VerticalLayout>(parent);
 
+	if (AyuDesign::WebLayout() && !_savedMessages && !_topic && !_sublist) {
+		AyuDesign::AddWebProfileCover(
+			result.data(),
+			_controller->parentController(),
+			_peer,
+			_onlineCount.events());
+	}
 	if (!_savedMessages) {
 		const auto musicPeer = _sublist
 			? _sublist->sublistPeer().get()
@@ -572,11 +581,14 @@ void InnerWidget::showSearch() {
 }
 
 bool InnerWidget::hasFlexibleTopBar() const {
-	return true;
+	return !AyuDesign::WebLayout();
 }
 
 base::weak_qptr<Ui::RpWidget> InnerWidget::createPinnedToTop(
 		not_null<Ui::RpWidget*> parent) {
+	if (AyuDesign::WebLayout()) {
+		return base::weak_qptr<Ui::RpWidget>();
+	}
 	const auto content = Ui::CreateChild<TopBar>(
 		parent,
 		TopBar::Descriptor{

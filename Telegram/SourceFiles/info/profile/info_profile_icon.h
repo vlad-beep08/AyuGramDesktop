@@ -36,5 +36,9 @@ private:
 
 };
 
+void AddCenteredFloatingIcon(
+	not_null<Ui::RpWidget*> parent,
+	const style::icon &icon);
+
 } // namespace Profile
 } // namespace Info

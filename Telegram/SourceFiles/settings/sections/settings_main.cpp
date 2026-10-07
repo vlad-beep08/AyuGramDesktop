@@ -538,6 +538,30 @@ void Cover::refreshQrButtonGeometry(int newWidth) {
 		: rpl::producer<QString>();
 }
 
+void BuildWebPhoneCard(SectionBuilder &builder) {
+	const auto controller = builder.controller();
+	const auto user = builder.session()->user();
+	builder.addButton({
+		.id = u"main/phone"_q,
+		.title = Info::Profile::PhoneValue(
+			user
+		) | rpl::map([](const TextWithEntities &text) {
+			return text.text;
+		}),
+		.subtitle = tr::lng_settings_phone_label(),
+		.icon = WebIcon(st::menuIconPhone, st::settingsIconBg2),
+		.onClick = [=] {
+			QGuiApplication::clipboard()->setText(
+				Ui::FormatPhone(user->phone()));
+			controller->showToast(tr::lng_text_copied(tr::now));
+		},
+		.keywords = { u"phone"_q, u"number"_q },
+	});
+	builder.addSkip();
+	builder.addDivider();
+	builder.addSkip();
+}
+
 void BuildSectionButtons(SectionBuilder &builder) {
 	const auto session = builder.session();
 	const auto controller = builder.controller();
@@ -917,6 +941,9 @@ void Main::setupContent() {
 		});
 		builder.addDivider();
 		builder.addSkip();
+		if (AyuDesign::WebLayout()) {
+			BuildWebPhoneCard(builder);
+		}
 		BuildValidationSuggestions(builder);
 		BuildSectionButtons(builder);
 		builder.addSkip();

@@ -118,6 +118,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include <QtGui/QClipboard>
 
 // AyuGram includes
+#include "ayu/ui/design/design_system.h"
 #include "ayu/ui/utils/ayu_profile_values.h"
 #include "ayu/utils/telegram_helpers.h"
 #include "styles/style_ayu_styles.h"
@@ -1679,6 +1680,20 @@ Section DetailsFiller::makeInfo() {
 	const auto controller = _controller->parentController();
 	const auto weak = base::make_weak(controller);
 	const auto peerIdRaw = QString::number(_peer->id.value);
+	const auto addWebIcon = [](
+			not_null<Ui::RpWidget*> row,
+			const style::icon &icon) {
+		if (AyuDesign::WebLayout()) {
+			AddCenteredFloatingIcon(row, icon);
+		}
+	};
+	const auto addWebLineIcon = [=](
+			not_null<Ui::FlatLabel*> text,
+			const style::icon &icon) {
+		addWebIcon(
+			static_cast<Ui::RpWidget*>(text->parentWidget()->parentWidget()),
+			icon);
+	};
 	const auto lnkHook = [=](Ui::FlatLabel::ContextMenuRequest request) {
 		const auto strong = weak.get();
 		if (!strong || !request.link) {
@@ -1769,6 +1784,7 @@ Section DetailsFiller::makeInfo() {
 				AddPhoneSpoilerMenu(request.menu, user);
 			};
 			phoneLabel->setContextMenuHook(hook);
+			addWebLineIcon(phoneLabel, st::menuIconPhone);
 		}
 		auto label = user->isBot()
 			? tr::lng_info_about_label()
@@ -1778,6 +1794,7 @@ Section DetailsFiller::makeInfo() {
 			AboutWithAdvancedValue(user));
 		setupAboutContextMenu(about.text, AboutWithAdvancedValue(user));
 		SetupAboutPeerIdDrag(about.text, user);
+		addWebLineIcon(about.text, st::infoIconInformation);
 
 		const auto usernameLine = addInfoOneLine(
 			UsernamesSubtext(_peer, tr::lng_info_username_label()),
@@ -1796,6 +1813,7 @@ Section DetailsFiller::makeInfo() {
 		usernameLine.subtext->overrideLinkClickHandler(callback);
 		usernameLine.text->setContextMenuHook(lnkHook);
 		usernameLine.subtext->setContextMenuHook(lnkHook);
+		addWebLineIcon(usernameLine.text, st::menuIconUsername);
 		UsernameValue(
 			user,
 			true
@@ -1826,15 +1844,21 @@ Section DetailsFiller::makeInfo() {
 		});
 
 		if (!user->isBot()) {
-			tracker.track(result->add(
+			const auto birthday = result->add(
 				CreateBirthday(result, controller, user),
 				{},
-				style::al_justify));
-			tracker.track(result->add(
-				CreateWorkingHours(result, user), {}, style::al_justify));
+				style::al_justify);
+			tracker.track(birthday);
+			addWebIcon(birthday, st::menuIconGiftPremium);
+			const auto hours = result->add(
+				CreateWorkingHours(result, user), {}, style::al_justify);
+			tracker.track(hours);
+			addWebIcon(hours, st::menuIconTimer);
 
-			tracker.track(result->add(
-				CreateNotes(result, controller, user), {}, style::al_justify));
+			const auto notes = result->add(
+				CreateNotes(result, controller, user), {}, style::al_justify);
+			tracker.track(notes);
+			addWebIcon(notes, st::menuIconEdit);
 
 			auto locationText = user->session().changes().peerFlagsValue(
 				user,
@@ -1850,11 +1874,12 @@ Section DetailsFiller::makeInfo() {
 					TextUtilities::SingleLine(details.location.address),
 					LocationClickHandler::Url(*details.location.point));
 			});
-			addInfoOneLine(
+			const auto location = addInfoOneLine(
 				tr::lng_info_location_label(),
 				std::move(locationText),
-				QString()
-			).text->setLinksTrusted();
+				QString());
+			location.text->setLinksTrusted();
+			addWebLineIcon(location.text, st::menuIconAddress);
 		}
 
 		{
@@ -1883,6 +1908,7 @@ Section DetailsFiller::makeInfo() {
 				return false;
 			});
 			AddRegistrationOrCreationButton(controller, _peer, idInfo, fitLabelToButton);
+			addWebLineIcon(idInfo.text, st::menuIconIpAddress);
 		}
 	} else {
 		const auto topicRootId = _topic ? _topic->rootId() : 0;
@@ -1918,6 +1944,7 @@ Section DetailsFiller::makeInfo() {
 		linkLine.subtext->overrideLinkClickHandler(linkCallback);
 		linkLine.text->setContextMenuHook(lnkHook);
 		linkLine.subtext->setContextMenuHook(lnkHook);
+		addWebLineIcon(linkLine.text, st::infoIconMediaLink);
 		LinkValue(
 			_peer,
 			true,
@@ -1958,11 +1985,12 @@ Section DetailsFiller::makeInfo() {
 						LocationClickHandler::Url(location->point))
 					: TextWithEntities();
 			});
-			addInfoOneLine(
+			const auto location = addInfoOneLine(
 				tr::lng_info_location_label(),
 				std::move(locationText),
-				QString()
-			).text->setLinksTrusted();
+				QString());
+			location.text->setLinksTrusted();
+			addWebLineIcon(location.text, st::menuIconAddress);
 		}
 
 		const auto about = addInfoLine(tr::lng_info_about_label(), _topic
@@ -1972,6 +2000,7 @@ Section DetailsFiller::makeInfo() {
 			setupAboutContextMenu(about.text, AboutWithAdvancedValue(_peer));
 			SetupAboutPeerIdDrag(about.text, _peer);
 		}
+		addWebLineIcon(about.text, st::infoIconInformation);
 
 		if (!_topic) {
 			const auto dataCenter = getPeerDC(_peer);
@@ -1999,6 +2028,7 @@ Section DetailsFiller::makeInfo() {
 				return false;
 			});
 			AddRegistrationOrCreationButton(controller, _peer, idInfo, fitLabelToButton);
+			addWebLineIcon(idInfo.text, st::menuIconIpAddress);
 		}
 
 		if (_topic) {
@@ -2023,7 +2053,33 @@ Section DetailsFiller::makeInfo() {
 				}
 				return false;
 			});
+			addWebLineIcon(idInfo.text, st::menuIconIpAddress);
 		}
+	}
+	if (AyuDesign::WebLayout() && !_peer->isSelf() && !_sublist) {
+		const auto peer = _peer;
+		const auto topicRootId = _topic ? _topic->rootId() : MsgId();
+		const auto notifications = result->add(
+			object_ptr<Ui::SlideWrap<Ui::SettingsButton>>(
+				result,
+				object_ptr<Ui::SettingsButton>(
+					result,
+					tr::lng_profile_enable_notifications(),
+					st::infoProfileButton)));
+		const auto button = notifications->entity();
+		button->toggleOn(_topic
+			? NotificationsEnabledValue(_topic)
+			: NotificationsEnabledValue(peer));
+		button->addClickHandler([=] {
+			const auto thread = topicRootId
+				? static_cast<Data::Thread*>(peer->forumTopicFor(topicRootId))
+				: peer->owner().history(peer).get();
+			if (thread) {
+				MuteMenu::ToggleMuteForever(thread);
+			}
+		});
+		addWebIcon(button, st::menuIconNotifications);
+		tracker.track(notifications);
 	}
 	raw->toggleOn(tracker.atLeastOneShownValue());
 	raw->finishAnimating();

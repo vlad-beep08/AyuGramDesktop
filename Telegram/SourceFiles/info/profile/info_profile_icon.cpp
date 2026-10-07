@@ -10,6 +10,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/ui/design/design_system.h"
 #include "ui/painter.h"
 #include "ui/style/style_core_scale.h"
+#include "styles/style_info.h"
 
 namespace Info {
 namespace Profile {
@@ -78,6 +79,20 @@ void FloatingIcon::paintEvent(QPaintEvent *e) {
 		return;
 	}
 	_icon->paint(p, _point, width());
+}
+
+void AddCenteredFloatingIcon(
+		not_null<Ui::RpWidget*> parent,
+		const style::icon &icon) {
+	const auto extra = WebIconExtra(icon);
+	const auto floating = Ui::CreateChild<FloatingIcon>(
+		parent.get(),
+		icon,
+		QPoint(st::infoSharedMediaButtonIconPosition.x(), extra));
+	parent->heightValue(
+	) | rpl::on_next([=](int height) {
+		floating->moveToLeft(0, (height - icon.height()) / 2 - extra);
+	}, floating->lifetime());
 }
 
 } // namespace Profile

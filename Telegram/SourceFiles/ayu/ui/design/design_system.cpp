@@ -21,6 +21,7 @@
 #include "styles/style_chat.h"
 #include "styles/style_chat_helpers.h"
 #include "styles/style_dialogs.h"
+#include "styles/style_info_profile_actions.h"
 #include "styles/style_layers.h"
 #include "styles/style_widgets.h"
 #include "styles/style_window.h"
@@ -146,6 +147,9 @@ void ApplyDensity() {
 }
 
 void ApplyWebLayout() {
+	const auto iconRow = st::infoProfilePersonalChannelPadding.left();
+	Mutable(st::infoProfileLabeledPadding).setLeft(iconRow);
+	Mutable(st::infoProfileLabeledUsernamePadding).setLeft(iconRow);
 	const auto metrics = WebRowMetrics();
 	const auto side = Scaled(kWebRowInset + kWebRowPadding);
 	auto &row = Mutable(st::defaultDialogRow);

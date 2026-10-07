@@ -57,6 +57,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_settings.h"
+#include "ayu/ui/design/design_system.h"
+#include "boxes/peers/edit_contact_box.h"
+#include "boxes/peers/edit_forum_topic_box.h"
+#include "boxes/peers/edit_peer_info_box.h"
+#include "history/history.h"
+#include "ui/layers/generic_box.h"
 #include "ayu/features/filters/filters_cache_controller.h"
 #include "ayu/ui/settings/filters/edit_filter.h"
 #include "ayu/ui/settings/filters/settings_filters_list.h"
@@ -78,7 +84,8 @@ const style::InfoTopBar &TopBarStyle(Wrap wrap) {
 [[nodiscard]] bool HasCustomTopBar(not_null<const Controller*> controller) {
 	const auto section = controller->section();
 	return (section.type() == Section::Type::BotStarRef)
-		|| (section.type() == Section::Type::Profile)
+		|| ((section.type() == Section::Type::Profile)
+			&& !AyuDesign::WebLayout())
 		|| (section.type() == Section::Type::Community)
 		|| ((section.type() == Section::Type::Settings)
 			&& section.settingsType()->hasCustomTopBar())
@@ -86,6 +93,49 @@ const style::InfoTopBar &TopBarStyle(Wrap wrap) {
 			&& controller->key().storiesAlbumId() != Stories::ArchiveId()
 			&& controller->key().storiesPeer()
 			&& controller->key().storiesPeer()->isSelf());
+}
+
+void AddWebProfileEditButton(
+		not_null<TopBar*> topBar,
+		not_null<Controller*> controller,
+		Wrap wrap) {
+	const auto key = controller->key();
+	const auto peer = key.peer();
+	const auto topic = key.topic();
+	if (!peer || key.savedMessages() || key.sublist()) {
+		return;
+	}
+	const auto user = peer->asUser();
+	const auto editable = topic
+		? topic->canEdit()
+		: user
+		? (user->isSelf() || user->isContact())
+		: EditPeerInfoBox::Available(peer);
+	if (!editable) {
+		return;
+	}
+	const auto &st = (wrap == Wrap::Layer)
+		? st::infoLayerTopBarEdit
+		: st::infoTopBarEdit;
+	const auto button = topBar->addButton(
+		base::make_unique_q<Ui::IconButton>(topBar, st));
+	button->setAccessibleName(tr::lng_profile_action_short_manage(tr::now));
+	const auto window = controller->parentController();
+	button->addClickHandler([=] {
+		if (topic) {
+			window->show(Box(
+				EditForumTopicBox,
+				window,
+				peer->owner().history(peer),
+				topic->rootId()));
+		} else if (user && user->isSelf()) {
+			controller->showSettings(::Settings::InformationId());
+		} else if (user) {
+			window->show(Box(EditContactBox, window, user));
+		} else {
+			window->showEditPeerBox(peer);
+		}
+	});
 }
 
 [[nodiscard]] Fn<Ui::StringWithNumbers(int)> SelectedTitleForMedia(
@@ -436,6 +486,10 @@ void WrapWidget::setupTopBarMenuToggle() {
 	}
 	const auto key = _controller->key();
 	const auto section = _controller->section();
+	if (AyuDesign::WebLayout()
+		&& section.type() == Section::Type::Profile) {
+		AddWebProfileEditButton(_topBar.data(), _controller.get(), wrap());
+	}
 	if (section.type() == Section::Type::Profile
 		&& (wrap() != Wrap::Side || hasStackHistory())) {
 		addTopBarMenuButton();
