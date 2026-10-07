@@ -132,8 +132,20 @@ ayuWebProfileName: FlatLabel(defaultFlatLabel) {
 	}
 }
 ayuWebProfileStatus: FlatLabel(defaultFlatLabel) {
+	textFg: historyPeerUserpicFg;
+	palette: TextPalette(defaultTextPalette) {
+		linkFg: historyPeerUserpicFg;
+	}
 	maxHeight: 20px;
 	style: TextStyle(defaultTextStyle) {
 		font: font(14px);
 	}
 }
+ayuWebInfoTopBarClose: IconButton(infoTopBarBack) {
+	icon: icon {{ "info/info_close", boxTitleCloseFg }};
+	iconOver: icon {{ "info/info_close", boxTitleCloseFgOver }};
+}
+ayuWebInfoTopBar: InfoTopBar(infoTopBar) {
+	back: ayuWebInfoTopBarClose;
+}
+ayuWebIconGray: #7e8c9b;

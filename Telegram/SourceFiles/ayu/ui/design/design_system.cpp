@@ -21,7 +21,10 @@
 #include "styles/style_chat.h"
 #include "styles/style_chat_helpers.h"
 #include "styles/style_dialogs.h"
+#include "styles/style_ayu_styles.h"
+#include "styles/style_info.h"
 #include "styles/style_info_profile_actions.h"
+#include "styles/style_menu_icons.h"
 #include "styles/style_layers.h"
 #include "styles/style_widgets.h"
 #include "styles/style_window.h"
@@ -32,6 +35,12 @@
 
 namespace AyuDesign {
 namespace {
+
+[[nodiscard]] auto WebIconPresets()
+-> base::flat_map<const void*, const style::color*> & {
+	static auto result = base::flat_map<const void*, const style::color*>();
+	return result;
+}
 
 constexpr auto kMinWindowOpacity = 50;
 constexpr auto kMaxWindowOpacity = 100;
@@ -150,6 +159,14 @@ void ApplyWebLayout() {
 	const auto iconRow = st::infoProfilePersonalChannelPadding.left();
 	Mutable(st::infoProfileLabeledPadding).setLeft(iconRow);
 	Mutable(st::infoProfileLabeledUsernamePadding).setLeft(iconRow);
+	SetWebIconBackground(&st::infoIconInformation, st::ayuWebIconGray);
+	SetWebIconBackground(&st::infoIconMediaLink, st::settingsIconBg3);
+	SetWebIconBackground(&st::menuIconNotifications, st::settingsIconBg1);
+	SetWebIconBackground(&st::menuIconPhone, st::settingsIconBg2);
+	SetWebIconBackground(&st::menuIconUsername, st::settingsIconBg4);
+	SetWebIconBackground(&st::menuIconIpAddress, st::settingsIconBg5);
+	SetWebIconBackground(&st::menuIconAddress, st::settingsIconBg8);
+	SetWebIconBackground(&st::infoIconMediaSaved, st::settingsIconBg4);
 	const auto metrics = WebRowMetrics();
 	const auto side = Scaled(kWebRowInset + kWebRowPadding);
 	auto &row = Mutable(st::defaultDialogRow);
@@ -354,6 +371,10 @@ int WebCardRadius() {
 	return Scaled(kWebCardRadius);
 }
 
+void SetWebIconBackground(const void *key, const style::color &color) {
+	WebIconPresets()[key] = &color;
+}
+
 const style::color &WebIconBackground(const void *key) {
 	static const auto colors = std::array<const style::color*, 7>{
 		&st::settingsIconBg4,
@@ -364,6 +385,10 @@ const style::color &WebIconBackground(const void *key) {
 		&st::settingsIconBg5,
 		&st::settingsIconBg8,
 	};
+	if (const auto preset = WebIconPresets().find(key)
+		; preset != WebIconPresets().end()) {
+		return *preset->second;
+	}
 	static auto assigned = base::flat_map<const void*, int>();
 	const auto i = assigned.find(key);
 	if (i != assigned.end()) {

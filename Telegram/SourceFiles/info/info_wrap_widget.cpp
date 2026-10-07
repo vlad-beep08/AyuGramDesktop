@@ -69,6 +69,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/utils/telegram_helpers.h"
 #include "inline_bots/bot_attach_web_view.h"
 #include "styles/style_ayu_settings.h"
+#include "styles/style_ayu_styles.h"
 #include "window/window_peer_menu.h"
 
 
@@ -421,10 +422,14 @@ void WrapWidget::createTopBar() {
 	auto selectedItems = _topBar
 		? _topBar->takeSelectedItems()
 		: SelectedItems(Section::MediaType::kCount);
+	const auto webClose = AyuDesign::WebLayout()
+		&& (wrapValue == Wrap::Side)
+		&& !hasBackButton()
+		&& (_controller->section().type() == Section::Type::Profile);
 	_topBar.create(
 		this,
 		_controller.get(),
-		TopBarStyle(wrapValue),
+		webClose ? st::ayuWebInfoTopBar : TopBarStyle(wrapValue),
 		std::move(selectedItems));
 	_topBar->selectionActionRequests(
 	) | rpl::on_next([=](SelectionAction action) {
@@ -436,6 +441,12 @@ void WrapWidget::createTopBar() {
 		_topBar->backRequest(
 		) | rpl::on_next([=] {
 			checkBeforeClose([=] { _controller->showBackFromStack(); });
+		}, _topBar->lifetime());
+	} else if (webClose) {
+		_topBar->enableBackButton();
+		_topBar->backRequest(
+		) | rpl::on_next([=] {
+			_controller->parentController()->closeThirdSection();
 		}, _topBar->lifetime());
 	} else if (wrapValue == Wrap::Side) {
 		auto close = _topBar->addButton(
