@@ -52,7 +52,7 @@ Button::Button(QWidget *parent)
 	style::ConvertScale(kBadgeSize - 2 * kTextPadding))) {
 	clicks(
 	) | rpl::on_next([=] {
-		if (!AyuDesign::EffectsEnabled()) {
+		if (!AyuDesign::EffectOn(AyuDesign::Effect::Burst)) {
 			return;
 		}
 		_bounce.stop();

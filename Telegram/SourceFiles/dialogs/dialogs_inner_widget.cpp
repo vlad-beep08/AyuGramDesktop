@@ -5810,7 +5810,7 @@ void InnerWidget::switchToFilter(FilterId filterId) {
 }
 
 void InnerWidget::startWebStagger() {
-	if (!AyuDesign::FullEffects() || !isVisible()) {
+	if (!AyuDesign::EffectOn(AyuDesign::Effect::Cascade) || !isVisible()) {
 		_webStaggerStart = 0;
 		return;
 	}

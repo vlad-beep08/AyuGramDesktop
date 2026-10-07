@@ -524,7 +524,8 @@ void AyuSettings::validate() {
 	validateRange(_windowOpacity, 50, 100, defaults._windowOpacity);
 	validateRange(_designGlassTint, 0, 2, defaults._designGlassTint);
 	validateRange(_designGlassBlur, 0, 2, defaults._designGlassBlur);
-	validateRange(_designEffectsLevel, 0, 3, defaults._designEffectsLevel);
+	validateRange(_designEffectsLevel, 0, 2, defaults._designEffectsLevel);
+	validateRange(_designEffectsFlags, 0, 0xFF, defaults._designEffectsFlags);
 	validateRange(_wideMultiplier, 0.5, 4.0, defaults._wideMultiplier);
 	validateRange(_avatarCorners, 0, AyuUiSettings::kMaxAvatarCorners, defaults._avatarCorners);
 
@@ -745,6 +746,18 @@ void AyuSettings::setDesignGlass(bool val) {
 void AyuSettings::setDesignEffectsLevel(int val) {
 	if (_designEffectsLevel.current() == val) return;
 	_designEffectsLevel = val;
+	save();
+}
+
+void AyuSettings::setDesignEffectsAuto(bool val) {
+	if (_designEffectsAuto.current() == val) return;
+	_designEffectsAuto = val;
+	save();
+}
+
+void AyuSettings::setDesignEffectsFlags(int val) {
+	if (_designEffectsFlags.current() == val) return;
+	_designEffectsFlags = val;
 	save();
 }
 
@@ -1251,6 +1264,8 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"designAccent", s._designAccent.current()},
 		{"designGlass", s._designGlass.current()},
 		{"designEffectsLevel", s._designEffectsLevel.current()},
+		{"designEffectsAuto", s._designEffectsAuto.current()},
+		{"designEffectsFlags", s._designEffectsFlags.current()},
 		{"designGlassTint", s._designGlassTint.current()},
 		{"designGlassBlur", s._designGlassBlur.current()},
 		{"privacyMode", s._privacyMode.current()},
@@ -1375,11 +1390,18 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._designTheme = j.value("designTheme", defaults._designTheme.current());
 	s._designAccent = j.value("designAccent", defaults._designAccent.current());
 	s._designGlass = j.value("designGlass", defaults._designGlass.current());
-	s._designEffectsLevel = j.value(
-		"designEffectsLevel",
-		j.value("designEffects", true)
-			? defaults._designEffectsLevel.current()
-			: 0);
+	const auto legacyEffects = j.value("designEffects", true);
+	s._designEffectsLevel = std::min(
+		j.value(
+			"designEffectsLevel",
+			legacyEffects ? defaults._designEffectsLevel.current() : 0),
+		2);
+	s._designEffectsAuto = j.value(
+		"designEffectsAuto",
+		defaults._designEffectsAuto.current());
+	s._designEffectsFlags = j.value(
+		"designEffectsFlags",
+		legacyEffects ? defaults._designEffectsFlags.current() : 0);
 	s._designGlassTint = j.value("designGlassTint", defaults._designGlassTint.current());
 	s._designGlassBlur = j.value("designGlassBlur", defaults._designGlassBlur.current());
 	s._privacyMode = j.value("privacyMode", defaults._privacyMode.current());

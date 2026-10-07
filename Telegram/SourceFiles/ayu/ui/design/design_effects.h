@@ -18,15 +18,27 @@ enum class LiveUserpic {
 	Typing,
 };
 
+enum class Effect : int {
+	Spotlight = (1 << 0),
+	Burst = (1 << 1),
+	Pulse = (1 << 2),
+	OnlineRing = (1 << 3),
+	TypingArc = (1 << 4),
+	Cascade = (1 << 5),
+	Peanuts = (1 << 6),
+	MessageAppear = (1 << 7),
+};
+
 enum class EffectsLevel {
-	Off,
+	Saving,
 	Light,
 	Full,
 };
 
-[[nodiscard]] EffectsLevel CurrentEffectsLevel();
-[[nodiscard]] bool EffectsEnabled();
-[[nodiscard]] bool FullEffects();
+[[nodiscard]] bool EffectOn(Effect effect);
+[[nodiscard]] int EffectsPreset(EffectsLevel level);
+void ApplyEffectsLevel(EffectsLevel level);
+void SetEffectEnabled(Effect effect, bool enabled);
 void SetupEffects();
 
 void PaintWebRowSpotlight(QPainter &p, QRect row, bool active);

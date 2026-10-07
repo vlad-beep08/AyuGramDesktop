@@ -2561,7 +2561,7 @@ void HistoryInner::performDrag() {
 }
 
 void HistoryInner::startWebAppear(not_null<const HistoryItem*> item) {
-	if (AyuDesign::DurationMs(AyuDesign::Duration::Normal) <= 0
+	if (!AyuDesign::EffectOn(AyuDesign::Effect::MessageAppear)
 		|| !isVisible()) {
 		return;
 	}

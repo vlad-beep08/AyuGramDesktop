@@ -95,6 +95,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include <QtGui/QWindow>
 
 // AyuGram includes
+#include "ayu/ui/settings/settings_effects.h"
 #include "ayu/ui/settings/settings_main.h"
 #include "ayu/ui/utils/ayu_profile_values.h"
 #include "ayu/utils/telegram_helpers.h"
@@ -640,13 +641,11 @@ void BuildSectionButtons(SectionBuilder &builder) {
 
 	builder.addButton({
 		.id = u"main/power"_q,
-		.title = tr::lng_settings_power_menu(),
+		.title = tr::ayu_EffectsPageTitle(),
 		.subtitle = WebSubtitle(tr::ayu_WebSettingsPowerAbout()),
 		.icon = WebIcon(st::menuIconPowerUsage, st::settingsIconBg2),
-		.onClick = [=] {
-			controller->show(Box(PowerSavingBox, PowerSaving::Flags()));
-		},
-		.keywords = { u"battery"_q, u"animations"_q, u"power"_q, u"saving"_q },
+		.onClick = [=] { showOther(AyuEffectsId()); },
+		.keywords = { u"battery"_q, u"animations"_q, u"power"_q, u"saving"_q, u"effects"_q },
 	});
 
 	const auto languageName = []() -> rpl::producer<QString> {

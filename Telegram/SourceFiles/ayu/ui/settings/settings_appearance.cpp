@@ -17,6 +17,7 @@
 #include "ayu/ui/design/design_widgets.h"
 #include "ayu/ui/settings/ayu_builder.h"
 #include "ayu/ui/settings/settings_ayu_utils.h"
+#include "ayu/ui/settings/settings_effects.h"
 #include "ayu/ui/settings/settings_main.h"
 #include "inline_bots/bot_attach_web_view.h"
 #include "main/main_session.h"
@@ -86,20 +87,10 @@ void BuildDesign(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 		.keywords = { u"accent"_q, u"color"_q, u"colour"_q },
 	});
 
-	ayu.addChooseButton({
-		.id = u"ayu/designEffects"_q,
-		.title = tr::ayu_DesignEffects(),
-		.boxTitle = tr::ayu_DesignEffects(),
-		.initialSelection = settings->designEffectsLevel(),
-		.options = {
-			tr::ayu_DesignEffectsOff(tr::now),
-			tr::ayu_DesignEffectsLight(tr::now),
-			tr::ayu_DesignEffectsFull(tr::now),
-			tr::ayu_DesignEffectsAuto(tr::now),
-		},
-		.setter = [=](int index) {
-			AyuSettings::getInstance().setDesignEffectsLevel(index);
-		},
+	builder.addSectionButton({
+		.title = tr::ayu_EffectsPageTitle(),
+		.targetSection = AyuEffectsId(),
+		.icon = { &st::menuIconPowerUsage },
 		.keywords = { u"effects"_q, u"spotlight"_q, u"animations"_q },
 	});
 	ayu.addToggle({

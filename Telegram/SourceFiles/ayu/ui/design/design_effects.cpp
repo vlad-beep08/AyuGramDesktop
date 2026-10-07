@@ -9,6 +9,7 @@
 #include "ayu/ayu_settings.h"
 #include "base/battery_saving.h"
 #include "core/application.h"
+#include "ui/power_saving.h"
 #include "ayu/ui/design/design_system.h"
 #include "ui/effects/animation_value.h"
 #include "ui/effects/animations.h"
@@ -37,9 +38,12 @@ namespace AyuDesign {
 namespace {
 
 constexpr auto kPi = 3.14159265358979323846;
-constexpr auto kLevelOff = 0;
-constexpr auto kLevelLight = 1;
-constexpr auto kLevelFull = 2;
+constexpr auto kLightEffects = int(Effect::Spotlight)
+	| int(Effect::Burst)
+	| int(Effect::Pulse)
+	| int(Effect::OnlineRing)
+	| int(Effect::MessageAppear);
+constexpr auto kAllEffects = 0xFF;
 constexpr auto kWeakThreads = 4;
 constexpr auto kAutoRecheck = crl::time(5000);
 constexpr auto kSpotRadius = 150;
@@ -551,14 +555,14 @@ protected:
 						i->second = QRect();
 					}
 				}
-				if (EffectsEnabled()
+				if (EffectOn(Effect::Spotlight)
 					&& dynamic_cast<Ui::SettingsButton*>(widget)) {
 					widget->update();
 				}
 			}
 			break;
 		case QEvent::Paint:
-			if (!EffectsEnabled()) {
+			if (!EffectOn(Effect::Spotlight)) {
 				break;
 			}
 			if (const auto button = dynamic_cast<Ui::SettingsButton*>(
@@ -584,8 +588,6 @@ protected:
 
 };
 
-} // namespace
-
 [[nodiscard]] bool OnBattery() {
 #ifdef Q_OS_WIN
 	auto status = SYSTEM_POWER_STATUS();
@@ -609,24 +611,54 @@ protected:
 	return light;
 }
 
-EffectsLevel CurrentEffectsLevel() {
+[[nodiscard]] PowerSaving::Flags PowerSavingPreset(EffectsLevel level) {
+	switch (level) {
+	case EffectsLevel::Saving: return PowerSaving::kAll;
+	case EffectsLevel::Light: return PowerSaving::kChatBackground
+		| PowerSaving::kChatEffects
+		| PowerSaving::kCalls;
+	case EffectsLevel::Full: return PowerSaving::Flags();
+	}
+	return PowerSaving::Flags();
+}
+
+} // namespace
+
+bool EffectOn(Effect effect) {
 	if (DurationMs(Duration::Normal) <= 0) {
-		return EffectsLevel::Off;
+		return false;
 	}
-	switch (AyuSettings::getInstance().designEffectsLevel()) {
-	case kLevelOff: return EffectsLevel::Off;
-	case kLevelLight: return EffectsLevel::Light;
-	case kLevelFull: return EffectsLevel::Full;
+	const auto &settings = AyuSettings::getInstance();
+	auto mask = settings.designEffectsFlags();
+	if (settings.designEffectsAuto() && PreferLightEffects()) {
+		mask &= kLightEffects;
 	}
-	return PreferLightEffects() ? EffectsLevel::Light : EffectsLevel::Full;
+	return (mask & int(effect)) != 0;
 }
 
-bool EffectsEnabled() {
-	return CurrentEffectsLevel() != EffectsLevel::Off;
+int EffectsPreset(EffectsLevel level) {
+	switch (level) {
+	case EffectsLevel::Saving: return 0;
+	case EffectsLevel::Light: return kLightEffects;
+	case EffectsLevel::Full: return kAllEffects;
+	}
+	return kAllEffects;
 }
 
-bool FullEffects() {
-	return CurrentEffectsLevel() == EffectsLevel::Full;
+void ApplyEffectsLevel(EffectsLevel level) {
+	PowerSaving::Set(PowerSavingPreset(level));
+	Core::App().saveSettingsDelayed();
+	auto &settings = AyuSettings::getInstance();
+	settings.setDesignEffectsFlags(EffectsPreset(level));
+	settings.setDesignEffectsLevel(int(level));
+}
+
+void SetEffectEnabled(Effect effect, bool enabled) {
+	auto &settings = AyuSettings::getInstance();
+	const auto flags = settings.designEffectsFlags();
+	settings.setDesignEffectsFlags(enabled
+		? (flags | int(effect))
+		: (flags & ~int(effect)));
 }
 
 void SetupEffects() {
@@ -639,7 +671,7 @@ void SetupEffects() {
 }
 
 void PaintWebRowSpotlight(QPainter &p, QRect row, bool active) {
-	if (!EffectsEnabled()) {
+	if (!EffectOn(Effect::Spotlight)) {
 		return;
 	}
 	const auto color = active
@@ -653,7 +685,7 @@ void PaintWebRowSpotlight(QPainter &p, QRect row, bool active) {
 }
 
 void Burst(not_null<QWidget*> source) {
-	if (!EffectsEnabled() || !source->isVisible()) {
+	if (!EffectOn(Effect::Burst) || !source->isVisible()) {
 		return;
 	}
 	const auto window = source->window();
@@ -681,7 +713,7 @@ float64 PulseScale(
 	}
 	auto &entry = i->second;
 	const auto now = crl::now();
-	if (count > entry.count && EffectsEnabled()) {
+	if (count > entry.count && EffectOn(Effect::Pulse)) {
 		entry.started = now;
 		if (!state->animation->animating()) {
 			state->animation->start();
@@ -748,7 +780,7 @@ void SetupPowerMode(not_null<Ui::InputField*> field) {
 		const auto grown = (length > state->length);
 		state->length = length;
 		const auto edit = field->rawTextEdit();
-		if (!grown || !FullEffects() || !edit->hasFocus()) {
+		if (!grown || !EffectOn(Effect::Peanuts) || !edit->hasFocus()) {
 			return;
 		}
 		SpawnNuts(edit->viewport(), edit->cursorRect().center());
@@ -760,7 +792,12 @@ void PaintLiveUserpic(
 		const void *key,
 		QRect userpic,
 		LiveUserpic state) {
-	if (state == LiveUserpic::None || !EffectsEnabled()) {
+	if (state == LiveUserpic::None) {
+		return;
+	}
+	const auto arc = (state == LiveUserpic::Typing)
+		&& EffectOn(Effect::TypingArc);
+	if (!arc && !EffectOn(Effect::OnlineRing)) {
 		return;
 	}
 	const auto gap = style::ConvertScale(kLiveGap);
@@ -770,7 +807,7 @@ void PaintLiveUserpic(
 	auto hq = PainterHighQualityEnabler(p);
 	const auto accent = st::windowBgActive->c;
 	p.setBrush(Qt::NoBrush);
-	if (state == LiveUserpic::Online || !FullEffects()) {
+	if (!arc) {
 		p.setPen(QPen(WithAlpha(accent, kLiveOnlineAlpha), line));
 		p.drawEllipse(ring);
 		return;

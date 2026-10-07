@@ -304,6 +304,10 @@ public:
 	[[nodiscard]] const QString &designAccent() const { return _designAccent.current(); }
 	[[nodiscard]] bool designGlass() const { return _designGlass.current(); }
 	[[nodiscard]] int designEffectsLevel() const { return _designEffectsLevel.current(); }
+	[[nodiscard]] rpl::producer<int> designEffectsLevelValue() const { return _designEffectsLevel.value(); }
+	[[nodiscard]] bool designEffectsAuto() const { return _designEffectsAuto.current(); }
+	[[nodiscard]] int designEffectsFlags() const { return _designEffectsFlags.current(); }
+	[[nodiscard]] rpl::producer<int> designEffectsFlagsValue() const { return _designEffectsFlags.value(); }
 	[[nodiscard]] int designGlassTint() const { return _designGlassTint.current(); }
 	[[nodiscard]] int designGlassBlur() const { return _designGlassBlur.current(); }
 	[[nodiscard]] bool privacyMode() const { return _privacyMode.current(); }
@@ -406,6 +410,8 @@ public:
 	void setDesignAccent(const QString &val);
 	void setDesignGlass(bool val);
 	void setDesignEffectsLevel(int val);
+	void setDesignEffectsAuto(bool val);
+	void setDesignEffectsFlags(int val);
 	void setDesignGlassTint(int val);
 	void setDesignGlassBlur(int val);
 	void setPrivacyMode(bool val);
@@ -716,7 +722,9 @@ private:
 	rpl::variable<QString> _designTheme;
 	rpl::variable<QString> _designAccent;
 	rpl::variable<bool> _designGlass = true;
-	rpl::variable<int> _designEffectsLevel = 3;
+	rpl::variable<int> _designEffectsLevel = 2;
+	rpl::variable<bool> _designEffectsAuto = true;
+	rpl::variable<int> _designEffectsFlags = 0xFF;
 	rpl::variable<int> _designGlassTint = 1;
 	rpl::variable<int> _designGlassBlur = 1;
 	rpl::variable<bool> _privacyMode = false;
