@@ -7,6 +7,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "settings/settings_common.h"
 
+#include "ayu/ui/design/design_system.h"
+
 #include "base/timer.h"
 #include "lottie/lottie_icon.h"
 #include "menu/menu_send_details.h"
@@ -29,6 +31,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_edit_peer_members.h"
 #include "styles/style_info.h"
 #include "styles/style_menu_icons.h"
+#include "styles/style_ayu_icons.h"
 #include "styles/style_settings.h"
 #include "styles/style_widgets.h"
 
@@ -443,6 +446,17 @@ void AddButtonIcon(
 		IconDescriptor &&descriptor) {
 	Expects(descriptor.icon != nullptr);
 
+	if (AyuDesign::WebLayout()
+		&& !descriptor.background
+		&& !descriptor.backgroundBrush
+		&& (descriptor.type == IconType::Rounded)
+		&& (st.padding.left() > st.iconLeft)) {
+		descriptor.background = &AyuDesign::WebIconBackground(
+			descriptor.icon);
+		descriptor.tintedPadding = st::ayuWebSettingsIconPadding;
+	}
+	const auto shift = descriptor.tintedPadding;
+
 	struct IconWidget {
 		IconWidget(QWidget *parent, IconDescriptor &&descriptor)
 		: widget(parent)
@@ -458,7 +472,7 @@ void AddButtonIcon(
 	icon->widget.resize(icon->icon.size());
 	icon->widget.show();
 	button->sizeValue(
-	) | rpl::on_next([=, left = st.iconLeft](QSize size) {
+	) | rpl::on_next([=, left = st.iconLeft - shift](QSize size) {
 		icon->widget.moveToLeft(
 			left,
 			(size.height() - icon->widget.height()) / 2,

@@ -27,6 +27,8 @@
 
 #include <QtGui/QFontDatabase>
 
+#include <array>
+
 namespace AyuDesign {
 namespace {
 
@@ -346,6 +348,26 @@ int WebCardMargin() {
 
 int WebCardRadius() {
 	return Scaled(kWebCardRadius);
+}
+
+const style::color &WebIconBackground(const void *key) {
+	static const auto colors = std::array<const style::color*, 7>{
+		&st::settingsIconBg4,
+		&st::settingsIconBg2,
+		&st::settingsIconBg6,
+		&st::settingsIconBg3,
+		&st::settingsIconBg1,
+		&st::settingsIconBg5,
+		&st::settingsIconBg8,
+	};
+	static auto assigned = base::flat_map<const void*, int>();
+	const auto i = assigned.find(key);
+	if (i != assigned.end()) {
+		return *colors[i->second];
+	}
+	const auto index = int(assigned.size() % colors.size());
+	assigned.emplace(key, index);
+	return *colors[index];
 }
 
 int BackdropGeneration() {

@@ -96,6 +96,7 @@ enum class State {
 [[nodiscard]] int WebSearchIconLeft();
 [[nodiscard]] int WebCardMargin();
 [[nodiscard]] int WebCardRadius();
+[[nodiscard]] const style::color &WebIconBackground(const void *key);
 [[nodiscard]] int BackdropGeneration();
 void BumpBackdropGeneration();
 [[nodiscard]] QImage WebRowRippleMask(QSize size);
