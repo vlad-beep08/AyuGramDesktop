@@ -211,7 +211,7 @@ void PaintUnder(not_null<CardsState*> state, QRect clip) {
 void PaintCorner(
 		QPainter &p,
 		not_null<CardsState*> state,
-		const QPainterPath &outside,
+		const QPainterPath &card,
 		QRect area) {
 	const auto ratio = style::DevicePixelRatio();
 	auto image = QImage(
@@ -225,9 +225,9 @@ void PaintCorner(
 		if (!PaintWallpaper(q, state->over, area)) {
 			q.fillRect(area, st::boxDividerBg);
 		}
-		q.setCompositionMode(QPainter::CompositionMode_DestinationIn);
+		q.setCompositionMode(QPainter::CompositionMode_DestinationOut);
 		auto hq = PainterHighQualityEnabler(q);
-		q.fillPath(outside, Qt::black);
+		q.fillPath(card, Qt::black);
 	}
 	p.drawImage(area.topLeft(), image);
 }
@@ -247,10 +247,8 @@ void PaintOver(not_null<CardsState*> state, QRect clip) {
 		if (r <= 0 || !rect.intersects(clip)) {
 			continue;
 		}
-		auto outside = QPainterPath();
-		outside.setFillRule(Qt::OddEvenFill);
-		outside.addRect(rect);
-		outside.addRoundedRect(rect, r, r);
+		auto card = QPainterPath();
+		card.addRoundedRect(rect, r, r);
 		const auto right = rect.x() + rect.width() - r;
 		const auto bottom = rect.y() + rect.height() - r;
 		const auto corners = {
@@ -262,7 +260,7 @@ void PaintOver(not_null<CardsState*> state, QRect clip) {
 		for (const auto &corner : corners) {
 			const auto area = corner & clip;
 			if (!area.isEmpty()) {
-				PaintCorner(p, state, outside, area);
+				PaintCorner(p, state, card, area);
 			}
 		}
 	}
