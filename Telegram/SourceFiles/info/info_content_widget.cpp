@@ -167,9 +167,7 @@ bool ContentWidget::isStackBottom() const {
 
 void ContentWidget::paintEvent(QPaintEvent *e) {
 	auto p = QPainter(this);
-	if (_webCards && AyuDesign::PaintWallpaper(p, this, e->rect())) {
-		return;
-	} else if (_paintPadding.isNull()) {
+	if (_paintPadding.isNull()) {
 		p.fillRect(e->rect(), _bg);
 	} else {
 		const auto &r = e->rect();

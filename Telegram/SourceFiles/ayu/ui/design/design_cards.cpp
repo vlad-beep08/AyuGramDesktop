@@ -13,8 +13,6 @@
 #include "ui/widgets/box_content_divider.h"
 #include "styles/palette.h"
 
-#include <QtCore/QPointer>
-#include <QtGui/QImage>
 #include <QtGui/QPainterPath>
 
 #include <typeinfo>
@@ -31,35 +29,6 @@ struct Band {
 	bool bleed = false;
 	QWidget *source = nullptr;
 };
-
-struct WallpaperCanvas {
-	QPointer<QWidget> owner;
-	Fn<void(QPainter&, QSize, QRect)> paint;
-	std::vector<QPointer<QWidget>> users;
-};
-
-[[nodiscard]] auto WallpaperCanvases()
--> base::flat_map<QWidget*, WallpaperCanvas> & {
-	static auto result = base::flat_map<QWidget*, WallpaperCanvas>();
-	return result;
-}
-
-void RememberWallpaperUser(
-		WallpaperCanvas &canvas,
-		not_null<QWidget*> widget) {
-	auto &users = canvas.users;
-	const auto raw = widget.get();
-	const auto known = ranges::find_if(users, [&](const auto &user) {
-		return user.data() == raw;
-	});
-	if (known != users.end()) {
-		return;
-	}
-	users.erase(ranges::remove_if(users, [](const auto &user) {
-		return !user;
-	}), users.end());
-	users.push_back(raw);
-}
 
 [[nodiscard]] auto BleedPainters()
 -> base::flat_map<QWidget*, Fn<void(QPainter&, QRect)>> & {
@@ -79,11 +48,10 @@ protected:
 			return false;
 		}
 		const auto divider = static_cast<Ui::BoxContentDivider*>(object);
-		const auto clip = static_cast<QPaintEvent*>(e)->rect();
 		auto p = QPainter(divider);
-		if (!PaintWallpaper(p, divider, clip)) {
-			p.fillRect(clip, divider->color());
-		}
+		p.fillRect(
+			static_cast<QPaintEvent*>(e)->rect(),
+			divider->color());
 		return true;
 	}
 
@@ -208,62 +176,31 @@ void PaintUnder(not_null<CardsState*> state, QRect clip) {
 	}
 }
 
-void PaintCorner(
-		QPainter &p,
-		not_null<CardsState*> state,
-		const QPainterPath &card,
-		QRect area) {
-	const auto ratio = style::DevicePixelRatio();
-	auto image = QImage(
-		area.size() * ratio,
-		QImage::Format_ARGB32_Premultiplied);
-	image.setDevicePixelRatio(ratio);
-	image.fill(Qt::transparent);
-	{
-		auto q = QPainter(&image);
-		q.translate(-area.topLeft());
-		if (!PaintWallpaper(q, state->over, area)) {
-			q.fillRect(area, st::boxDividerBg);
-		}
-		q.setCompositionMode(QPainter::CompositionMode_DestinationOut);
-		auto hq = PainterHighQualityEnabler(q);
-		q.fillPath(card, Qt::black);
-	}
-	p.drawImage(area.topLeft(), image);
-}
-
 void PaintOver(not_null<CardsState*> state, QRect clip) {
 	if (state->dirty) {
 		Compute(state);
 	}
-	auto p = QPainter(state->over);
+	auto path = QPainterPath();
+	path.setFillRule(Qt::OddEvenFill);
 	const auto radius = WebCardRadius();
 	for (const auto &band : state->bands) {
 		if (band.bleed) {
 			continue;
 		}
 		const auto rect = BandRect(state, band);
-		const auto r = std::min(radius, rect.height() / 2);
-		if (r <= 0 || !rect.intersects(clip)) {
+		if (!rect.intersects(clip)) {
 			continue;
 		}
-		auto card = QPainterPath();
-		card.addRoundedRect(rect, r, r);
-		const auto right = rect.x() + rect.width() - r;
-		const auto bottom = rect.y() + rect.height() - r;
-		const auto corners = {
-			QRect(rect.x(), rect.y(), r, r),
-			QRect(right, rect.y(), r, r),
-			QRect(rect.x(), bottom, r, r),
-			QRect(right, bottom, r, r),
-		};
-		for (const auto &corner : corners) {
-			const auto area = corner & clip;
-			if (!area.isEmpty()) {
-				PaintCorner(p, state, card, area);
-			}
-		}
+		const auto r = std::min(radius, rect.height() / 2);
+		path.addRect(rect);
+		path.addRoundedRect(rect, r, r);
 	}
+	if (path.isEmpty()) {
+		return;
+	}
+	auto p = QPainter(state->over);
+	auto hq = PainterHighQualityEnabler(p);
+	p.fillPath(path, st::boxDividerBg);
 }
 
 } // namespace
@@ -321,58 +258,6 @@ void MarkWebCardBleed(
 		QObject::connect(raw, &QObject::destroyed, [=] {
 			BleedPainters().remove(raw);
 		});
-	}
-}
-
-void RegisterWallpaperCanvas(
-		not_null<QWidget*> canvas,
-		not_null<QWidget*> owner,
-		Fn<void(QPainter&, QSize, QRect)> paint) {
-	auto &canvases = WallpaperCanvases();
-	const auto raw = canvas.get();
-	const auto fresh = !canvases.contains(raw);
-	auto &entry = canvases[raw];
-	entry.owner = owner.get();
-	entry.paint = std::move(paint);
-	if (fresh) {
-		QObject::connect(raw, &QObject::destroyed, [=] {
-			WallpaperCanvases().remove(raw);
-		});
-	}
-}
-
-bool PaintWallpaper(QPainter &p, not_null<QWidget*> widget, QRect clip) {
-	auto &canvases = WallpaperCanvases();
-	for (auto parent = widget.get(); parent; parent = parent->parentWidget()) {
-		const auto i = canvases.find(parent);
-		if (i == canvases.end()) {
-			continue;
-		}
-		auto &canvas = i->second;
-		if (!canvas.owner || !canvas.paint) {
-			return false;
-		}
-		RememberWallpaperUser(canvas, widget);
-		const auto shift = widget->mapTo(parent, QPoint());
-		p.save();
-		p.translate(-shift);
-		canvas.paint(p, parent->size(), clip.translated(shift));
-		p.restore();
-		return true;
-	}
-	return false;
-}
-
-void RefreshWallpaper(not_null<QWidget*> canvas) {
-	auto &canvases = WallpaperCanvases();
-	const auto i = canvases.find(canvas.get());
-	if (i == canvases.end()) {
-		return;
-	}
-	for (const auto &user : i->second.users) {
-		if (user) {
-			user->update();
-		}
 	}
 }
 

@@ -111,7 +111,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/features/forward/ayu_forward.h"
-#include "ayu/ui/design/design_cards.h"
 #include "ayu/ui/design/design_islands.h"
 #include "ayu/ui/design/design_motion.h"
 #include "ayu/ui/design/design_system.h"
@@ -3025,20 +3024,6 @@ void MainWidget::setupIslands() {
 	if (!_dialogs || !AyuDesign::WebLayout()) {
 		return;
 	}
-	if (const auto canvas = parentWidget()) {
-		AyuDesign::RegisterWallpaperCanvas(canvas, this, [=](
-				QPainter &p,
-				QSize fill,
-				QRect clip) {
-			Window::SectionWidget::PaintBackground(
-				p,
-				_controller->currentChatTheme(),
-				fill,
-				clip,
-				_controller->isGifPausedAtLeastFor(
-					Window::GifPauseReason::Any));
-		});
-	}
 	crl::on_main(this, [] {
 		AyuDesign::EnsureWebTheme();
 	});
@@ -3125,11 +3110,8 @@ QRegion MainWidget::islandBackdropRegion() const {
 
 void MainWidget::refreshIslandBackdrop() {
 	AyuDesign::BumpBackdropGeneration();
-	if (const auto canvas = parentWidget()) {
-		if (x() > 0) {
-			canvas->update(0, 0, x(), height());
-		}
-		AyuDesign::RefreshWallpaper(canvas);
+	if (const auto canvas = parentWidget(); canvas && x() > 0) {
+		canvas->update(0, 0, x(), height());
 	}
 	if (!_dialogsIsland.isEmpty()) {
 		const auto island = _dialogsIsland;
