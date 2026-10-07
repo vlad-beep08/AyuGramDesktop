@@ -181,6 +181,10 @@ bool ApplyThemeFile(const ThemeInfo &theme) {
 	return true;
 }
 
+[[nodiscard]] QString OurThemeId() {
+	return u"web-dark-orange"_q;
+}
+
 void ApplyWallPaper(const ThemeInfo &theme) {
 	if (theme.wallpaper.empty()) {
 		return;
@@ -196,52 +200,12 @@ void ApplyWallPaper(const ThemeInfo &theme) {
 std::vector<ThemeInfo> Themes() {
 	return {
 		{
-			.id = u"web-light"_q,
-			.title = tr::ayu_DesignThemeWebLight(tr::now),
-			.path = ThemePath(u"web-light"_q),
-			.swatches = { QColor(0xff, 0xff, 0xff), QColor(0x33, 0x90, 0xec), QColor(0xee, 0xff, 0xde) },
-			.wallpaper = { QColor(0xbd, 0xcd, 0x8c), QColor(0x8e, 0xba, 0x89), QColor(0x83, 0xb2, 0x8f), QColor(0xc5, 0xd3, 0xb0) },
-			.wallpaperIntensity = kWebWallPaperIntensity,
-		},
-		{
-			.id = u"web-dark-orange"_q,
+			.id = OurThemeId(),
 			.title = tr::ayu_DesignThemeWebDarkOrange(tr::now),
-			.path = ThemePath(u"web-dark-orange"_q),
+			.path = ThemePath(OurThemeId()),
 			.swatches = { QColor(0x21, 0x21, 0x21), QColor(0xdc, 0xa0, 0x6c), QColor(0x9f, 0x5e, 0x1d) },
 			.wallpaper = { QColor(0x4f, 0x5b, 0xd5), QColor(0x96, 0x2f, 0xbf), QColor(0xdd, 0x6c, 0xb9), QColor(0xfe, 0xc4, 0x96) },
 			.wallpaperIntensity = -kWebWallPaperIntensity,
-		},
-		{
-			.id = u"web-dark-purple"_q,
-			.title = tr::ayu_DesignThemeWebDark(tr::now),
-			.path = ThemePath(u"web-dark"_q),
-			.swatches = { QColor(0x21, 0x21, 0x21), QColor(0x87, 0x74, 0xe1), QColor(0x76, 0x6a, 0xc8) },
-			.wallpaper = { QColor(0x4f, 0x5b, 0xd5), QColor(0x96, 0x2f, 0xbf), QColor(0xdd, 0x6c, 0xb9), QColor(0xfe, 0xc4, 0x96) },
-			.wallpaperIntensity = -kWebWallPaperIntensity,
-		},
-		{
-			.id = u"dawn"_q,
-			.title = tr::ayu_DesignThemeDawn(tr::now),
-			.path = ThemePath(u"dawn"_q),
-			.swatches = { QColor(0xff, 0xff, 0xff), QColor(0xe7, 0x8c, 0x3c), QColor(0xfe, 0xec, 0xdd) },
-		},
-		{
-			.id = u"sunset"_q,
-			.title = tr::ayu_DesignThemeSunset(tr::now),
-			.path = ThemePath(u"sunset"_q),
-			.swatches = { QColor(0x27, 0x20, 0x1c), QColor(0xc9, 0x77, 0x40), QColor(0x96, 0x5c, 0x36) },
-		},
-		{
-			.id = u"midnight"_q,
-			.title = tr::ayu_DesignThemeMidnight(tr::now),
-			.path = ThemePath(u"midnight"_q),
-			.swatches = { QColor(0x0f, 0x0f, 0x0f), QColor(0xd2, 0xa2, 0x42), QColor(0xa1, 0x7c, 0x33) },
-		},
-		{
-			.id = u"graphite"_q,
-			.title = tr::ayu_DesignThemeGraphite(tr::now),
-			.path = ThemePath(u"graphite"_q),
-			.swatches = { QColor(0x21, 0x21, 0x21), QColor(0xc5, 0x73, 0x44), QColor(0x94, 0x5a, 0x38) },
 		},
 	};
 }
@@ -284,16 +248,11 @@ QString CurrentAccentId() {
 
 bool ApplyAccent(const QString &id) {
 	AyuSettings::getInstance().setDesignAccent(id);
-	const auto current = CurrentThemeId();
-	const auto dark = (st::windowBg->c.lightness() < kDarkLightness);
-	const auto themeId = (current.isEmpty() || current == u"web-dark"_q)
-		? (dark ? u"web-dark-orange"_q : u"web-light"_q)
-		: current;
+	if (CurrentThemeId() != OurThemeId()) {
+		return ApplyTheme(OurThemeId());
+	}
 	for (const auto &theme : Themes()) {
-		if (theme.id == themeId) {
-			if (current != themeId) {
-				return ApplyTheme(themeId);
-			}
+		if (theme.id == OurThemeId()) {
 			return ApplyThemeFile(theme);
 		}
 	}
@@ -313,10 +272,8 @@ void EnsureWebWallPaper() {
 		return;
 	}
 	lastApplied = now;
-	const auto dark = (st::windowBg->c.lightness() < kDarkLightness);
-	const auto id = dark ? u"web-dark-orange"_q : u"web-light"_q;
 	for (const auto &theme : Themes()) {
-		if (theme.id == id) {
+		if (theme.id == OurThemeId()) {
 			ApplyWallPaper(theme);
 			return;
 		}
@@ -343,11 +300,9 @@ void EnsureWebTheme() {
 			});
 		}, *lifetime);
 	}
-	const auto current = CurrentThemeId();
-	if (current.isEmpty() || current == u"web-dark"_q) {
-		ApplyTheme((Window::Theme::IsNightMode() || !current.isEmpty())
-			? u"web-dark-orange"_q
-			: u"web-light"_q);
+	const auto light = (st::windowBg->c.lightness() >= kDarkLightness);
+	if (CurrentThemeId() != OurThemeId() || light) {
+		ApplyTheme(OurThemeId());
 		return;
 	}
 	EnsureWebWallPaper();

@@ -81,24 +81,6 @@ void ShowInLeftColumn(
 	controller->content()->showLeftBox(std::move(box));
 }
 
-void ToggleNight(not_null<Window::SessionController*> controller) {
-	const auto current = CurrentThemeId();
-	if (current == u"web-light"_q) {
-		ApplyTheme(u"web-dark-orange"_q);
-		return;
-	} else if (current == u"web-dark-orange"_q
-		|| current == u"web-dark-purple"_q) {
-		ApplyTheme(u"web-light"_q);
-		return;
-	}
-	Window::Theme::ToggleNightModeWithConfirmation(
-		&controller->window(),
-		[] {
-			Window::Theme::ToggleNightMode();
-			Window::Theme::KeepApplied();
-		});
-}
-
 void FillMore(
 		not_null<Ui::PopupMenu*> menu,
 		not_null<Window::SessionController*> controller) {
@@ -115,9 +97,6 @@ void FillMore(
 	menu->addAction(tr::lng_menu_calls(tr::now), [=] {
 		ShowInLeftColumn(controller, ::Calls::PrepareCallsBox(controller));
 	}, &st::menuIconPhone);
-	menu->addAction(tr::lng_menu_night_mode(tr::now), [=] {
-		ToggleNight(controller);
-	}, &st::menuIconNightMode);
 	const auto session = &controller->session();
 	menu->addAction(tr::ayu_GhostModeToggle(tr::now), [=] {
 		auto &ghost = AyuSettings::ghost(session);

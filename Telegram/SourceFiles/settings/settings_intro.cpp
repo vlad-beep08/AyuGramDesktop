@@ -92,7 +92,6 @@ object_ptr<Ui::RpWidget> CreateIntroSettings(
 	Ui::AddDivider(result);
 	Ui::AddSkip(result);
 	SetupInterfaceScale(window, result, false);
-	SetupDefaultThemes(window, result);
 	Ui::AddSkip(result);
 
 	if (anim::Disabled()) {

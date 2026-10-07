@@ -63,37 +63,6 @@ void BuildDesign(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 		.keywords = { u"theme"_q, u"design"_q },
 	});
 
-	builder.add([](const WidgetContext &ctx) -> SectionBuilder::WidgetToAdd {
-		auto list = object_ptr<Ui::VerticalLayout>(ctx.container);
-		const auto raw = list.data();
-		using Card = std::pair<QString, AyuDesign::ThemeCard*>;
-		const auto cards = std::make_shared<std::vector<Card>>();
-		const auto refresh = [=] {
-			const auto current = AyuDesign::CurrentThemeId();
-			for (const auto &[id, card] : *cards) {
-				card->setActive(id == current);
-			}
-		};
-		for (const auto &theme : AyuDesign::Themes()) {
-			const auto card = raw->add(object_ptr<AyuDesign::ThemeCard>(
-				raw,
-				theme.title,
-				theme.swatches));
-			cards->push_back({ theme.id, card });
-			const auto id = theme.id;
-			card->setClickedCallback([=] {
-				if (AyuDesign::ApplyTheme(id)) {
-					refresh();
-				}
-			});
-		}
-		refresh();
-		return { .widget = std::move(list) };
-	});
-	builder.addSkip();
-	builder.addDividerText(tr::ayu_DesignThemesAbout());
-	builder.addSkip();
-
 	const auto accents = AyuDesign::Accents();
 	auto accentTitles = std::vector<QString>();
 	auto accentSelection = 0;

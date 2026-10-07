@@ -126,12 +126,6 @@ struct Command {
 			AyuDesign::AddWebSections(controller);
 		});
 	}
-	for (const auto &theme : AyuDesign::Themes()) {
-		const auto id = theme.id;
-		add(tr::ayu_PaletteThemePrefix(tr::now) + u": "_q + theme.title, [=] {
-			AyuDesign::ApplyTheme(id);
-		});
-	}
 	for (const auto &accent : AyuDesign::Accents()) {
 		const auto id = accent.id;
 		add(tr::ayu_DesignAccent(tr::now) + u": "_q + accent.title, [=] {
