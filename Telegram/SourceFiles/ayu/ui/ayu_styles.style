@@ -148,4 +148,3 @@ ayuWebInfoTopBarClose: IconButton(infoTopBarBack) {
 ayuWebInfoTopBar: InfoTopBar(infoTopBar) {
 	back: ayuWebInfoTopBarClose;
 }
-ayuWebIconGray: #7e8c9b;

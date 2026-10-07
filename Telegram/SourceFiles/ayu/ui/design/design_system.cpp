@@ -159,7 +159,7 @@ void ApplyWebLayout() {
 	const auto iconRow = st::infoProfilePersonalChannelPadding.left();
 	Mutable(st::infoProfileLabeledPadding).setLeft(iconRow);
 	Mutable(st::infoProfileLabeledUsernamePadding).setLeft(iconRow);
-	SetWebIconBackground(&st::infoIconInformation, st::ayuWebIconGray);
+	SetWebIconBackground(&st::infoIconInformation, st::historyPeerArchiveUserpicBg);
 	SetWebIconBackground(&st::infoIconMediaLink, st::settingsIconBg3);
 	SetWebIconBackground(&st::menuIconNotifications, st::settingsIconBg1);
 	SetWebIconBackground(&st::menuIconPhone, st::settingsIconBg2);
