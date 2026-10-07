@@ -20,4 +20,11 @@ void MarkWebCardBleed(
 	Fn<void(QPainter&, QRect)> paint = nullptr);
 void RefreshWebCardBleed(not_null<QWidget*> widget);
 
+void RegisterWallpaperCanvas(
+	not_null<QWidget*> canvas,
+	not_null<QWidget*> owner,
+	Fn<void(QPainter&, QSize, QRect)> paint);
+bool PaintWallpaper(QPainter &p, not_null<QWidget*> widget, QRect clip);
+void RefreshWallpaper(not_null<QWidget*> canvas);
+
 } // namespace AyuDesign
