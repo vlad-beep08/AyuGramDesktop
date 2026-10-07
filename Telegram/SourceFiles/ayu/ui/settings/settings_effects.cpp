@@ -22,6 +22,10 @@
 #include "styles/style_settings.h"
 
 namespace Settings {
+
+using namespace Builder;
+using namespace AyuBuilder;
+
 namespace {
 
 using AyuDesign::Effect;
