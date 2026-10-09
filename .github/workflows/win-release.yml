@@ -30,8 +30,11 @@ jobs:
         run: |
           mkdir %userprofile%\TBuild\Libraries
           mklink /d %GITHUB_WORKSPACE%\TBuild %userprofile%\TBuild
-          echo TBUILD=%GITHUB_WORKSPACE%\TBuild>>%GITHUB_ENV%
-          echo LibrariesPath=%GITHUB_WORKSPACE%\TBuild\Libraries\win64>>%GITHUB_ENV%
+          rem Caches and built libraries keep absolute paths from before the repository rename.
+          mkdir D:\a\AyuGramDesktop\AyuGramDesktop
+          mklink /d D:\a\AyuGramDesktop\AyuGramDesktop\TBuild %userprofile%\TBuild
+          echo TBUILD=D:\a\AyuGramDesktop\AyuGramDesktop\TBuild>>%GITHUB_ENV%
+          echo LibrariesPath=D:\a\AyuGramDesktop\AyuGramDesktop\TBuild\Libraries\win64>>%GITHUB_ENV%
 
       - name: Free runner disk space.
         shell: pwsh
@@ -61,7 +64,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          path: ${{ env.TBUILD }}\${{ env.REPO_NAME }}
+          path: TBuild\${{ env.REPO_NAME }}
 
       - name: First set up.
         shell: bash
