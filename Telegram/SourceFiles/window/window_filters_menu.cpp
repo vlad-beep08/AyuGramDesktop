@@ -136,6 +136,11 @@ void FiltersMenu::setup() {
 
 	_outer.setAttribute(Qt::WA_OpaquePaintEvent);
 	_outer.show();
+	if (AyuDesign::WebLayout()) {
+		// WHY: web buttons have a transparent background, so Qt must
+		// repaint the island under them or old frames stay on screen.
+		_menu.setAttribute(Qt::WA_OpaquePaintEvent, false);
+	}
 
 	// Keep the sidebar's Tab chain in visual order: the main menu button
 	// above the scroll area, and inside it the folders list (entered at
@@ -676,6 +681,9 @@ void FiltersMenu::createFavorite() {
 					_container,
 					_session,
 					buttonStyle()))));
+	if (AyuDesign::WebLayout()) {
+		_favorite->entity()->setAttribute(Qt::WA_OpaquePaintEvent, false);
+	}
 	_favorite->toggle(false, anim::type::instant);
 	_favorite->setFinishedCallback([=] {
 		if (_favorite && !_favorite->toggled()) {
@@ -757,6 +765,9 @@ base::unique_qptr<Ui::SideBarButton> FiltersMenu::prepareButton(
 			.customEmojiLoopLimit = isStatic ? -1 : 0,
 		}),
 		paused);
+	if (AyuDesign::WebLayout()) {
+		prepared->setAttribute(Qt::WA_OpaquePaintEvent, false);
+	}
 	prepared->setLocked(locked);
 	prepared->setIsListItem(listItem);
 	prepared->setShowIcon(mode != Ui::ChatsFiltersTabsMode::TextOnly);
