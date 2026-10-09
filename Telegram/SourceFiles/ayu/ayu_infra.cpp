@@ -12,6 +12,7 @@
 #include "ayu/ayu_worker.h"
 #include "ayu/data/ayu_database.h"
 #include "ayu/features/reminders/reminders.h"
+#include "ayu/features/updates/updates.h"
 #include "ayu/ui/ayu_logo.h"
 #include "features/translator/ayu_translator.h"
 #include "lang/lang_instance.h"
@@ -81,6 +82,7 @@ void init() {
 	initRCManager();
 	initTranslator();
 	initReminders();
+	AyuFeatures::Updates::Start();
 }
 
 }

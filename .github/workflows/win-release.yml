@@ -2,6 +2,15 @@ name: Windows Release.
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the build as a GitHub release for in-app updates
+        type: boolean
+        default: false
+      notes:
+        description: Release notes shown in the update window
+        type: string
+        default: ''
   push:
     branches:
       - ayu-release
@@ -16,6 +25,9 @@ jobs:
     name: Windows
     runs-on: windows-latest
     timeout-minutes: 360
+
+    permissions:
+      contents: write
 
     env:
       PREPARE_PATH: "Telegram/build/prepare/prepare.py"
@@ -211,7 +223,8 @@ jobs:
           -D CMAKE_CONFIGURATION_TYPES=Release ^
           -D CMAKE_MSVC_DEBUG_INFORMATION_FORMAT= ^
           -D DESKTOP_APP_DISABLE_AUTOUPDATE=ON ^
-          -D DESKTOP_APP_DISABLE_CRASH_REPORTS=ON
+          -D DESKTOP_APP_DISABLE_CRASH_REPORTS=ON ^
+          -D CHICKENGRAM_BUILD=%GITHUB_RUN_NUMBER%
 
           cmake --build ..\out --config Release --parallel -- -k 0
 
@@ -227,6 +240,24 @@ jobs:
           name: Chickengram-x64-release
           path: artifact\
           retention-days: 7
+
+      - name: Publish release.
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          SHA256="$(sha256sum artifact/Chickengram.exe | awk '{ print $1 }')"
+          if [ -z "$NOTES" ]; then
+            NOTES="$(git -C "TBuild/$REPO_NAME" log -1 --format=%s)"
+          fi
+          printf '%s\n\nSHA256: %s\n' "$NOTES" "$SHA256" > release_notes.txt
+          gh release create "build-$GITHUB_RUN_NUMBER" artifact/Chickengram.exe \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Чикенграм — сборка $GITHUB_RUN_NUMBER" \
+            --notes-file release_notes.txt
 
       - name: Remember built commit.
         if: always() && steps.build.outcome != 'skipped'

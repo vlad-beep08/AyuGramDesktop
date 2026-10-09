@@ -307,6 +307,8 @@ set(ayugram_files
         ayu/features/quick_phrase/quick_phrase.h
         ayu/features/branding/branding.cpp
         ayu/features/branding/branding.h
+        ayu/features/updates/updates.cpp
+        ayu/features/updates/updates.h
         ayu/data/messages_storage.cpp
         ayu/data/messages_storage.h
         ayu/data/entities.h
@@ -2675,6 +2677,13 @@ PRIVATE
     G_LOG_DOMAIN="Telegram"
     U_STATIC_IMPLEMENTATION=1 # AyuGram: do not use __declspec(dllimport) when including icu headers
 )
+
+if (CHICKENGRAM_BUILD)
+    set_source_files_properties(${src_loc}/ayu/features/updates/updates.cpp
+    PROPERTIES
+        COMPILE_DEFINITIONS CHICKENGRAM_BUILD=${CHICKENGRAM_BUILD}
+    )
+endif()
 
 get_property(is_multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if (APPLE

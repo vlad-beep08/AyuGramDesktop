@@ -6,6 +6,7 @@
 // Copyright @Radolyn, 2026
 #include "ayu/ui/settings/settings_main.h"
 #include "ayu/features/branding/branding.h"
+#include "ayu/features/updates/updates.h"
 
 #include "settings/sections/settings_main.h"
 #include "lang_auto.h"
@@ -125,6 +126,23 @@ void BuildCategories(SectionBuilder &builder) {
 	});
 }
 
+void BuildUpdates(SectionBuilder &builder) {
+	const auto controller = builder.controller();
+	const auto build = AyuFeatures::Updates::CurrentBuild();
+	builder.addButton({
+		.id = u"ayu/checkUpdates"_q,
+		.title = rpl::single(u"Проверить обновления"_q),
+		.icon = { &st::menuIconDownload },
+		.label = rpl::single(build ? u"сборка %1"_q.arg(build) : QString()),
+		.onClick = [=] {
+			if (controller) {
+				AyuFeatures::Updates::CheckNow(controller->uiShow());
+			}
+		},
+		.keywords = { u"update"_q, u"обновление"_q },
+	});
+}
+
 const auto kMeta = BuildHelper({
 	.id = AyuMain::Id(),
 	.parentId = MainId(),
@@ -135,6 +153,7 @@ const auto kMeta = BuildHelper({
 	builder.addSkip();
 	BuildVersionInfo(builder);
 	BuildCategories(builder);
+	BuildUpdates(builder);
 	builder.addSkip();
 });
 
