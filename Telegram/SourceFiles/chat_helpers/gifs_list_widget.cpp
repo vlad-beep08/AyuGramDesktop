@@ -120,7 +120,9 @@ GifsListWidget::GifsListWidget(
 , _mosaic(st::emojiPanWidth - st::inlineResultsLeft)
 , _previewTimer([=] { showPreview(); }) {
 	setMouseTracking(true);
-	setAttribute(Qt::WA_OpaquePaintEvent);
+	if (st().bg->c.alpha() > 0) {
+		setAttribute(Qt::WA_OpaquePaintEvent);
+	}
 
 	setupSearch();
 
